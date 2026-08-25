@@ -1,6 +1,7 @@
 import { unlink } from 'node:fs/promises'
 import { prisma } from '@skillswitch/db'
 import type { FastifyBaseLogger } from 'fastify'
+import { mediaProvider } from '../lib/media.js'
 
 /**
  * Retention purge.
@@ -10,9 +11,10 @@ import type { FastifyBaseLogger } from 'fastify'
  * survives so feedback history and accreditation aggregates stay intact — it is
  * the video that goes, which is the part that's actually sensitive.
  *
- * Runs on an interval in-process. That's the right call at this scale; when
- * there are multiple API instances this moves to a single scheduled worker so
- * two nodes don't race on the same file.
+ * Two triggers, same function: an in-process interval when the API runs as a
+ * long-lived server (startRetentionJob below), and a Vercel Cron hitting
+ * /api/internal/retention when it runs as serverless functions, where nothing
+ * lives long enough to hold a timer.
  */
 export async function purgeExpiredMedia(log: FastifyBaseLogger): Promise<number> {
   const due = await prisma.mediaAsset.findMany({
@@ -32,7 +34,11 @@ export async function purgeExpiredMedia(log: FastifyBaseLogger): Promise<number>
           if (err.code !== 'ENOENT') throw err
         })
       }
-      // A real provider delete call goes here for bunny/cloudflare.
+      // Object-storage providers delete by key instead. Same rule applies: an
+      // object that isn't there any more is the outcome we wanted.
+      if (asset.externalId && mediaProvider.deleteObject) {
+        await mediaProvider.deleteObject(asset.externalId)
+      }
 
       await prisma.mediaAsset.update({
         where: { id: asset.id },

@@ -6,10 +6,6 @@ Colleges buy seats. Students pay nothing. Every piece of feedback a student
 receives is written by a human mentor — the AI layer is allowed to reorganise
 that feedback into a weekly plan, and nothing else.
 
-> ⚠️ **Nothing in this repo has been executed yet.** It was written end-to-end
-> without an install, a `prisma validate`, a typecheck or a boot. Expect the
-> first `npm run setup` to surface small fixes. See [First run](#first-run).
-
 ---
 
 ## The four things it does
@@ -28,9 +24,10 @@ asset that compounds.
 ## Stack
 
 - **API** — Node 20+ · Fastify 5 · TypeScript (ESM, run via `tsx`) · zod · JWT
-- **DB** — Prisma 6 · SQLite in dev, Postgres in prod ([ADR 0001](docs/adr/0001-sqlite-dev-postgres-prod.md))
+- **DB** — Prisma 6 · Postgres (Supabase) in dev and prod ([ADR 0001](docs/adr/0001-sqlite-dev-postgres-prod.md))
 - **Web** — React 18 · Vite 6 · TanStack Query · react-router 6 · plain CSS
-- **Video** — browser `MediaRecorder`; pluggable `MediaProvider` (local dev / Bunny stub)
+- **Video** — browser `MediaRecorder`; pluggable `MediaProvider` (local dev / Supabase Storage / Bunny stub)
+- **Hosting** — one Vercel project: static SPA + the whole API as a catch-all serverless function
 
 Mobile-first PWA, not React Native — a student on a shared 4G phone should not
 have to install anything to record a two-minute answer.
@@ -40,12 +37,18 @@ the ten minutes before a demo.
 
 ## First run
 
+You need a Postgres connection string before anything will boot. Prisma has no
+per-environment `provider`, so there is no SQLite fallback — the cheapest path is
+a second free [Supabase](https://supabase.com) project used only for dev.
+
 ```bash
 npm run setup
 ```
 
 That runs `npm install`, creates `.env` from `.env.example`, generates the Prisma
-client, pushes the schema to SQLite, and seeds a full demo college.
+client, pushes the schema, and seeds a full demo college. Put your dev
+`DATABASE_URL` in `.env` first — read the comment above it, the pooler port
+matters.
 
 > `npm install` writes `node_modules/`. If this folder is inside OneDrive,
 > consider pausing sync first — thousands of small files plus file locks is a bad
@@ -58,7 +61,7 @@ npm run dev
 ```
 
 - Web → http://localhost:5173
-- API → http://localhost:4000 (`/health` to check)
+- API → http://localhost:4000 (`/api/health` to check)
 
 Vite proxies `/api` and `/media` to the API so the browser sees a single origin.
 That matters: `getUserMedia` requires a secure context, and `localhost` counts.
@@ -91,8 +94,10 @@ npm run db:reset     # wipe + reseed (destroys local data)
 ## Layout
 
 ```
+api/
+  [...path].mjs   Vercel entry — re-exports the bundled Fastify app
 apps/
-  api/    Fastify server — 9 route modules under src/modules/
+  api/    Fastify server — 10 route modules under src/modules/
   web/    React PWA — one folder per feature under src/features/
 packages/
   db/     Prisma schema, client singleton, Json read helpers, seed
@@ -121,8 +126,10 @@ aggregates only, and ships a `note` field saying exactly that, which the dashboa
 renders verbatim.
 
 **Video never proxies through the API in production.** `MediaProvider` issues a
-signed ticket; the browser uploads directly and the provider calls our webhook.
-`LocalMediaProvider` accepts bytes through the API and is dev-only.
+signed ticket; the browser uploads directly to a private Supabase Storage bucket
+and then calls `POST /api/media/:id/complete`. `LocalMediaProvider` accepts bytes
+through the API and is dev-only. This also sidesteps Vercel's 4.5 MB request-body
+cap, which a phone recording would blow through immediately.
 
 **DPDP consent is versioned, append-only, and withdrawal does something.**
 Revoking video consent schedules every recording you own for deletion in 7 days
@@ -130,17 +137,62 @@ and tells you how many. Known gaps are listed honestly in
 [dpdp-compliance.md](docs/dpdp-compliance.md) — read that list before claiming
 compliance to anyone.
 
+## Deploy (Vercel)
+
+One project, root directory = repo root. `vercel.json` wires it up: the SPA is
+served from `apps/web/dist` and the entire Fastify app runs as a single catch-all
+function at `api/[...path].mjs`, so `/api/*` stays same-origin and no CORS or
+client URL config is needed.
+
+```bash
+npm run vercel-build   # prisma generate -> esbuild the API -> vite build
+```
+
+Three things you have to do by hand:
+
+1. A Supabase project. `DATABASE_URL` must be the **session-mode pooler**
+   (`aws-0-<region>.pooler.supabase.com:5432`) — not the 6543 transaction pooler,
+   because four route handlers use interactive `$transaction()` and need
+   connection affinity, and not the direct `db.<ref>` host, which is IPv6-only on
+   the free tier and unreachable from Vercel.
+2. A Storage bucket named `submissions`, **private**. Playback goes through signed
+   URLs; a public bucket would put student video on the open internet.
+3. Set the function region near your Supabase region — Hobby defaults to `iad1`.
+
+Env vars: everything in `.env.example`, plus `MEDIA_PROVIDER=supabase`,
+`NODE_ENV=production`, and a freshly generated `JWT_SECRET`. `SUPABASE_SERVICE_ROLE_KEY`
+is admin-level — server-side only, never `VITE_`-prefixed or Vite inlines it into
+the public bundle.
+
+After the first `db:push`, run `packages/db/prisma/postgres-hardening.sql` once in
+the Supabase SQL editor. It adds the constraints Prisma can't express — most
+importantly the partial unique index enforcing one active mentor per student.
+
+Retention runs as a Vercel Cron (`GET /api/internal/retention`, bearer
+`CRON_SECRET`) rather than the `setInterval` used by the long-lived server, since
+nothing in a serverless function lives long enough to hold a timer.
+
 ## Not built yet
 
 - Live 1:1 sessions — `MentorAvailability` and `LiveSession` are in the schema, no routes
 - Payments / invoicing (colleges are onboarded by hand at this stage)
 - Notifications of any kind — email, push, WhatsApp
-- Real media provider — `BunnyMediaProvider` throws on `createUploadTicket()`
 - Automated tests
 - A curriculum-authoring console — tracks and assignments go in via API or seed
+- `BunnyMediaProvider` is still a stub that throws — Supabase Storage is the real
+  provider. Bunny/Cloudflare matter later, when video egress cost does.
+- Signed playback URLs are minted once at upload and stored, so a forwarded link
+  works until it expires. Re-signing per read is the hardening step; it touches
+  all eight read paths.
+- `Json` list columns are still `Json` rather than native Postgres `String[]`
+  ([ADR 0001](docs/adr/0001-sqlite-dev-postgres-prod.md))
 
 ## Status
 
 P1 vertical slice: **watch → record → human feedback → derived plan → switch
 mentor**, wired end to end, plus the college dashboard and the DPDP surface.
-Written, not yet run.
+
+Runs locally and builds for Vercel. Typecheck is clean across all four
+workspaces, and the serverless handler has been exercised against every route
+module. Seeded lessons carry no video, so `LessonPage` shows its empty state until
+real lesson video is uploaded — assignments and the mentor loop are unaffected.

@@ -40,18 +40,43 @@ export default function RecordPage() {
    * Submit is three steps on purpose: reserve a MediaAsset, push the bytes,
    * then attach it to a Submission. That's the same shape as the production
    * direct-to-CDN path — only step 2's destination changes.
+   *
+   * And it now actually does change: a relative uploadUrl means the local dev
+   * provider wants the bytes through the API, an absolute one is a signed URL
+   * on object storage that we PUT to directly. Storage never sees our JWT and
+   * the API never sees the video.
    */
   const submit = useMutation({
     mutationFn: async () => {
       if (!rec.blob || !id) throw new Error('Nothing recorded yet')
 
-      const ticket = await api.post<{ mediaId: string; uploadUrl: string }>('/media', {
-        kind: 'submission_video',
-        durationSeconds: rec.seconds,
-      })
+      const contentType = rec.blob.type || 'video/webm'
+      const ticket = await api.post<{ mediaId: string; uploadUrl: string; headers: Record<string, string> }>(
+        '/media',
+        {
+          kind: 'submission_video',
+          durationSeconds: rec.seconds,
+          contentType,
+        },
+      )
 
-      const ext = rec.blob.type.includes('mp4') ? 'mp4' : 'webm'
-      await api.upload(`/media/${ticket.mediaId}/upload`, rec.blob, `take.${ext}`)
+      if (/^https?:\/\//i.test(ticket.uploadUrl)) {
+        const res = await fetch(ticket.uploadUrl, {
+          method: 'PUT',
+          headers: { 'content-type': contentType, ...ticket.headers },
+          body: rec.blob,
+        })
+        if (!res.ok) {
+          throw new Error(`Upload failed (${res.status}). Check your connection and try again.`)
+        }
+        await api.post(`/media/${ticket.mediaId}/complete`, {
+          sizeBytes: rec.blob.size,
+          durationSeconds: rec.seconds,
+        })
+      } else {
+        const ext = contentType.includes('mp4') ? 'mp4' : 'webm'
+        await api.upload(`/media/${ticket.mediaId}/upload`, rec.blob, `take.${ext}`)
+      }
 
       return api.post<{ id: string }>('/submissions', {
         assignmentId: id,

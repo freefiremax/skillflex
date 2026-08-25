@@ -1,19 +1,25 @@
 // SkillSwitch data model
 //
-// Dev provider is SQLite so the stack runs with zero external services.
-// Production target is Postgres — see docs/adr/0001-sqlite-dev-postgres-prod.md.
-// Prisma 6.2+ supports Json AND enums on SQLite, but scalar lists (String[])
-// are Postgres-only. So:
-//   - list columns are Json (become native text[] on Postgres)
+// Postgres everywhere (Supabase) since the move to Vercel — Prisma has no
+// dynamic `provider`, and one schema beats two that drift. See
+// docs/adr/0001-sqlite-dev-postgres-prod.md for how we got here.
+//
+// The Json/String choices below are held over from the SQLite era and stay on
+// purpose — they are not workarounds any more, they are the shape the app reads:
+//   - list columns are Json, read through readList()/readObjectList() in
+//     @skillswitch/db, which accept both JSONB and a raw JSON string
 //   - enum-ish columns are String, validated by zod unions in @skillswitch/shared,
 //     because the web app needs those same values and cannot import a DB enum
+//
+// No `directUrl`: this project uses `prisma db push`, not migrations, and the
+// session-mode pooler handles DDL — so it would be a required env var for nothing.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 

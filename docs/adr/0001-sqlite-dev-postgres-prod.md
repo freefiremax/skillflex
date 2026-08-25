@@ -1,6 +1,8 @@
 # ADR 0001 — SQLite in development, Postgres in production
 
-**Status:** Accepted · 2026-08-24
+**Status:** Superseded · accepted 2026-08-24, superseded 2026-08-25
+**Superseded by:** the Vercel deploy — `provider` is now `postgresql` everywhere.
+See [Outcome](#outcome-2026-08-25) for what actually happened and what is left.
 **Context:** SkillSwitch P1 (watch → record → human feedback loop)
 
 ## Context
@@ -40,7 +42,52 @@ Two consequences are accepted deliberately:
 **Version floor:** `Json` on SQLite requires Prisma **≥ 6.2.0**. The workspace
 pins `^6.2.1`. Downgrading below that breaks `prisma db push`.
 
+## Outcome (2026-08-25)
+
+The decision above lasted one day. Deploying to Vercel forced Postgres in
+production, and **Prisma has no per-environment `provider`** — it is one value in
+one schema — so there was no way to keep SQLite in dev without maintaining a
+second schema that would drift. The dual-datasource half of this ADR is dead:
+`provider = "postgresql"` is now the only setting, and **local development needs a
+Postgres `DATABASE_URL` too** (a second free Supabase project is the clean way).
+
+The part that held up completely was consequence 2. The `read*()` helpers in
+`packages/db/src/index.ts` accept both parsed JSONB and a raw JSON string, so the
+swap to Postgres changed **zero call sites**. That was the whole bet of this ADR
+and it paid.
+
+What the "runs in the room, offline" requirement cost: a laptop demo now needs
+network. That requirement was real and is not gone — it is just no longer served
+by SQLite. If it comes back, the answer is a local Postgres, not a second schema.
+
+### Hardening: what got done
+
+Both DB-level items landed in `packages/db/prisma/postgres-hardening.sql`, as a
+hand-run file rather than an npm script — `db push` has no migration file to host
+raw SQL. It carries the partial unique index for **one active mentor per student**,
+which is the item flagged below as mattering most, plus a partial index for the
+retention sweep.
+
+One correction to the snippet that was pre-registered here: it named the columns
+as unquoted `student_id` / `ended_at`. The schema uses model-level `@@map` but no
+field-level `@map`, so tables are snake_case while **columns keep their camelCase
+Prisma names** and must be double-quoted. The version written above this section
+would have errored.
+
+### Hardening: what is still open
+
+`Json` list columns → native `String[]`. Still the highest-value remaining win,
+and still not done — it is a schema change plus deleting the `read*()` helpers
+call site by call site, which is a separate change from a deploy.
+
+Native Postgres enums remain rejected, for the original reason: the React app
+needs the same value sets and cannot import a Prisma enum.
+
 ## Migrating to Postgres
+
+> Historical — this is the plan as written on 2026-08-24. See
+> [Outcome](#outcome-2026-08-25) above for what was actually done, including a
+> correction to step 4's SQL.
 
 1. `provider = "sqlite"` → `provider = "postgresql"` in
    `packages/db/prisma/schema.prisma`.

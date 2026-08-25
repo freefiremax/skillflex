@@ -5,7 +5,7 @@ import jwt from '@fastify/jwt'
 import multipart from '@fastify/multipart'
 import fastifyStatic from '@fastify/static'
 import { ZodError } from 'zod'
-import { env, isProd } from './lib/env.js'
+import { env, isProd, isServerless } from './lib/env.js'
 import { HttpError } from './lib/auth.js'
 import { storageRoot } from './lib/media.js'
 import { authRoutes } from './modules/auth/routes.js'
@@ -17,6 +17,7 @@ import { mediaRoutes } from './modules/media/routes.js'
 import { planRoutes } from './modules/plans/routes.js'
 import { orgRoutes } from './modules/orgs/routes.js'
 import { consentRoutes } from './modules/consent/routes.js'
+import { internalRoutes } from './modules/internal/routes.js'
 
 export async function buildApp() {
   const app = Fastify({
@@ -45,7 +46,11 @@ export async function buildApp() {
 
   // Dev-only: serve recorded video off disk so the local provider has a
   // playback URL. In production the CDN does this and this plugin is dead code.
-  if (env.MEDIA_PROVIDER === 'local') {
+  //
+  // The isServerless guard is load-bearing, not defensive: Vercel's filesystem
+  // is read-only, so mkdir() throws here and takes the entire API down at cold
+  // start — every route, not just media.
+  if (env.MEDIA_PROVIDER === 'local' && !isServerless) {
     await mkdir(storageRoot, { recursive: true })
     await app.register(fastifyStatic, {
       root: storageRoot,
@@ -100,11 +105,20 @@ export async function buildApp() {
     })
   })
 
-  app.get('/health', async () => ({
+  /**
+   * Health lives under /api like everything else. Outside it, the SPA rewrite
+   * in vercel.json would hand back index.html instead.
+   */
+  const health = async () => ({
     ok: true,
     mediaProvider: env.MEDIA_PROVIDER,
     env: env.NODE_ENV,
-  }))
+    serverless: isServerless,
+  })
+
+  app.get('/api/health', health)
+  // Kept for local tooling and anything already pointing at the old path.
+  app.get('/health', health)
 
   await app.register(authRoutes, { prefix: '/api/auth' })
   await app.register(curriculumRoutes, { prefix: '/api/curriculum' })
@@ -115,6 +129,7 @@ export async function buildApp() {
   await app.register(planRoutes, { prefix: '/api/plans' })
   await app.register(orgRoutes, { prefix: '/api/orgs' })
   await app.register(consentRoutes, { prefix: '/api/consent' })
+  await app.register(internalRoutes, { prefix: '/api/internal' })
 
   return app
 }

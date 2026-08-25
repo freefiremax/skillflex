@@ -1,0 +1,24 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "npm run vercel-build",
+  "outputDirectory": "apps/web/dist",
+  "functions": {
+    "api/[...path].mjs": {
+      "maxDuration": 30,
+      "includeFiles": "apps/api/dist/**"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/internal/retention",
+      "schedule": "0 3 * * *"
+    }
+  ]
+}

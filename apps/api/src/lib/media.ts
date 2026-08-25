@@ -37,7 +37,12 @@ export interface StoredObject {
  */
 export interface MediaProvider {
   readonly name: string
-  createUploadTicket(input: { mediaId: string; kind: string }): Promise<UploadTicket>
+  createUploadTicket(input: {
+    mediaId: string
+    kind: string
+    /** Lets the provider pick a file extension for the stored object. */
+    contentType?: string
+  }): Promise<UploadTicket>
   /** Only the local dev provider implements this. */
   acceptDirectUpload?(input: {
     mediaId: string
@@ -45,6 +50,14 @@ export interface MediaProvider {
     stream: Readable
   }): Promise<StoredObject>
   playbackUrlFor(externalId: string): string
+  /**
+   * Providers whose objects are private mint a time-limited URL instead. Async
+   * because signing is a round trip; playbackUrlFor() stays synchronous so the
+   * local provider and its 14 existing call sites are unaffected.
+   */
+  signedPlaybackUrl?(externalId: string, expiresInSeconds: number): Promise<string>
+  /** Hard-delete the bytes. Used by the retention job. */
+  deleteObject?(externalId: string): Promise<void>
 }
 
 class LocalMediaProvider implements MediaProvider {
@@ -83,6 +96,111 @@ class LocalMediaProvider implements MediaProvider {
   }
 }
 
+/** video/webm;codecs=vp9 -> webm. Whatever MediaRecorder picked, we store it as-is. */
+function extensionFor(contentType: string | undefined): string {
+  if (contentType?.includes('mp4')) return 'mp4'
+  return 'webm'
+}
+
+/**
+ * Supabase Storage, private bucket.
+ *
+ * Deliberately no @supabase/supabase-js: all three operations we need are one
+ * HTTP call each, and Node 20+ has global fetch. Adding the SDK to save ~40
+ * lines would mean a dependency install and a bigger serverless bundle.
+ *
+ * Note there is no acceptDirectUpload — bytes go browser -> Supabase and never
+ * touch the API, which is also what keeps us under Vercel's 4.5 MB body cap.
+ */
+class SupabaseMediaProvider implements MediaProvider {
+  readonly name = 'supabase'
+
+  private readonly base: string
+  private readonly bucket: string
+  private readonly key: string
+
+  constructor() {
+    // env.ts already guarantees these are present when MEDIA_PROVIDER=supabase.
+    this.base = `${env.SUPABASE_URL!.replace(/\/+$/, '')}/storage/v1`
+    this.bucket = env.SUPABASE_STORAGE_BUCKET
+    this.key = env.SUPABASE_SERVICE_ROLE_KEY!
+  }
+
+  private async call<T>(method: string, urlPath: string, body?: unknown): Promise<T> {
+    const res = await fetch(`${this.base}${urlPath}`, {
+      method,
+      headers: {
+        Authorization: `Bearer ${this.key}`,
+        apikey: this.key,
+        'Content-Type': 'application/json',
+      },
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    })
+
+    if (!res.ok) {
+      const detail = await res.text().catch(() => '')
+      throw new Error(`Supabase Storage ${method} ${urlPath} failed (${res.status}): ${detail}`)
+    }
+    return (await res.json()) as T
+  }
+
+  /**
+   * Object key inside the bucket, also persisted as externalId. Keyed by media
+   * kind rather than a fixed prefix — the bucket is already named for the
+   * product, and lesson video and student video want separating.
+   */
+  private objectPath(mediaId: string, kind: string, contentType?: string): string {
+    const folder = kind.replace(/[^a-z0-9_-]/gi, '') || 'other'
+    return `${folder}/${mediaId}.${extensionFor(contentType)}`
+  }
+
+  async createUploadTicket({
+    mediaId,
+    kind,
+    contentType,
+  }: {
+    mediaId: string
+    kind: string
+    contentType?: string
+  }): Promise<UploadTicket> {
+    const objectPath = this.objectPath(mediaId, kind, contentType)
+    // Response url is relative and already carries ?token=<jwt>.
+    const { url } = await this.call<{ url: string }>(
+      'POST',
+      `/object/upload/sign/${this.bucket}/${objectPath}`,
+      {},
+    )
+
+    return {
+      uploadUrl: `${this.base}${url}`,
+      externalId: objectPath,
+      headers: { 'content-type': contentType ?? 'video/webm' },
+    }
+  }
+
+  async signedPlaybackUrl(externalId: string, expiresInSeconds: number): Promise<string> {
+    const { signedURL } = await this.call<{ signedURL: string }>(
+      'POST',
+      `/object/sign/${this.bucket}/${externalId}`,
+      { expiresIn: expiresInSeconds },
+    )
+    return `${this.base}${signedURL}`
+  }
+
+  async deleteObject(externalId: string): Promise<void> {
+    await this.call('DELETE', `/object/${this.bucket}`, { prefixes: [externalId] })
+  }
+
+  /**
+   * The bucket is private, so an unsigned URL is not playable — it exists only
+   * to satisfy the interface. Callers that need a working URL must use
+   * signedPlaybackUrl(); the routes check for it before falling back here.
+   */
+  playbackUrlFor(externalId: string): string {
+    return `${this.base}/object/${this.bucket}/${externalId}`
+  }
+}
+
 /**
  * Stub for the real thing. Bunny Stream is the cheapest credible option for an
  * India-first, cost-sensitive rollout; Cloudflare Stream is the alternative.
@@ -107,6 +225,8 @@ function build(): MediaProvider {
   switch (env.MEDIA_PROVIDER) {
     case 'local':
       return new LocalMediaProvider()
+    case 'supabase':
+      return new SupabaseMediaProvider()
     case 'bunny':
     case 'cloudflare':
       return new BunnyMediaProvider()

@@ -39,5 +39,11 @@ Thumbs.db
 # scratch
 work/
 
+# local PATH shim from the gh CLI install — machine-specific, not project code
+powershell.cmd
+
+# vercel local state
+.vercel/
+
 # claude code local state (machine-specific permissions)
 .claude/settings.local.json

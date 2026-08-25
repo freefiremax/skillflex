@@ -10,7 +10,11 @@ export const prisma =
     log: process.env.NODE_ENV === 'production' ? ['error'] : ['warn', 'error'],
   })
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+// Cached in every environment, not just dev. In dev this survives tsx watch
+// reloads; on Vercel it survives warm invocations of the same container, which
+// is the difference between reusing one pooled connection and opening a new one
+// on every request.
+globalForPrisma.prisma = prisma
 
 // Prisma scalar lists (String[]) are Postgres-only, so list-ish columns are Json.
 // These helpers keep the parse-or-cast in one place instead of scattered across
