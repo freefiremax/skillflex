@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // The API runs through tsx (dev and start), so TypeScript is used purely as
+    // a checker here. Emitting would drag workspace .ts sources outside rootDir.
+    "noEmit": true,
+    "declaration": false,
+    "declarationMap": false,
+    "types": ["node"]
+  },
+  "include": ["src/**/*"]
+}

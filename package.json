@@ -1,0 +1,39 @@
+{
+  "name": "skillswitch",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Human, multilingual & switchable soft-skills mentorship platform",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n api,web -c cyan,magenta \"npm:dev:api\" \"npm:dev:web\"",
+    "dev:api": "npm run dev -w @skillswitch/api",
+    "dev:web": "npm run dev -w @skillswitch/web",
+    "build": "npm run build -w @skillswitch/shared && npm run build -w @skillswitch/api && npm run build -w @skillswitch/web",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "db:generate": "npm run generate -w @skillswitch/db",
+    "db:push": "npm run push -w @skillswitch/db",
+    "db:seed": "npm run seed -w @skillswitch/db",
+    "db:studio": "npm run studio -w @skillswitch/db",
+    "db:reset": "npm run reset -w @skillswitch/db",
+    "env": "node scripts/ensure-env.mjs",
+    "setup": "npm install && npm run env && npm run db:generate && npm run db:push && npm run db:seed"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true,
+    "esbuild@0.25.12": true,
+    "prisma@6.19.3": true,
+    "@prisma/client@6.19.3": true,
+    "@prisma/engines@6.19.3": true
+  }
+}

@@ -1,0 +1,108 @@
+import { useEffect, type ReactNode } from 'react'
+import { NavLink, useLocation } from 'react-router-dom'
+import { LANGUAGE_LABELS, SUPPORTED_LANGUAGES, type Language } from '@skillswitch/shared'
+import { useAuth } from '../lib/auth'
+
+interface NavEntry {
+  to: string
+  label: string
+  icon: string
+}
+
+const STUDENT_NAV: NavEntry[] = [
+  { to: '/', label: 'Learn', icon: '▶' },
+  { to: '/feedback', label: 'Feedback', icon: '✎' },
+  { to: '/plan', label: 'Plan', icon: '✓' },
+  { to: '/mentor', label: 'Mentor', icon: '☺' },
+]
+
+const MENTOR_NAV: NavEntry[] = [
+  { to: '/', label: 'Queue', icon: '▤' },
+  { to: '/profile', label: 'Profile', icon: '☺' },
+]
+
+const ADMIN_NAV: NavEntry[] = [{ to: '/', label: 'Dashboard', icon: '▤' }]
+
+/** Same markup in the desktop pill bar and the mobile bottom bar. */
+function NavItems({ items }: { items: NavEntry[] }) {
+  return (
+    <>
+      {items.map((item) => (
+        <NavLink
+          key={item.to}
+          to={item.to}
+          end={item.to === '/'}
+          className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
+        >
+          <span className="nav-icon">{item.icon}</span>
+          <span>{item.label}</span>
+        </NavLink>
+      ))}
+    </>
+  )
+}
+
+export function AppShell({ children }: { children: ReactNode }) {
+  const { me, language, setLanguage, signOut } = useAuth()
+  const { pathname } = useLocation()
+
+  const nav =
+    me?.role === 'student' ? STUDENT_NAV : me?.role === 'mentor' ? MENTOR_NAV : ADMIN_NAV
+
+  // Router keeps the scroll position across navigations, which lands you
+  // mid-page on the next screen. Jump (not smooth-scroll — that would animate
+  // *away* from content that is already gone) before the enter transition runs.
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })
+  }, [pathname])
+
+  return (
+    <>
+      <nav className="nav nav-desktop">
+        <NavItems items={nav} />
+      </nav>
+
+      <div className="shell">
+        <header className="topbar">
+          <div className="brand">
+            Skill<span>Switch</span>
+          </div>
+          <div className="row" style={{ gap: '0.5rem' }}>
+            {/* Language is a product-level switch for students, not a setting
+                buried in a menu — it's the thing that makes lessons usable. */}
+            {me?.role === 'student' && (
+              <select
+                aria-label="Lesson language"
+                value={language}
+                onChange={(e) => setLanguage(e.target.value as Language)}
+                style={{ width: 'auto', minHeight: 36, padding: '0.3rem 1.6rem 0.3rem 0.6rem', fontSize: '0.82rem' }}
+              >
+                {SUPPORTED_LANGUAGES.map((l) => (
+                  <option key={l} value={l}>
+                    {LANGUAGE_LABELS[l]}
+                  </option>
+                ))}
+              </select>
+            )}
+            <NavLink to="/account" className="pill">
+              {me?.name?.split(' ')[0] ?? 'Account'}
+            </NavLink>
+            <button className="btn btn-ghost btn-sm" onClick={signOut}>
+              Exit
+            </button>
+          </div>
+        </header>
+
+        {/* Keyed on the route so every navigation replays the enter animation
+            instead of swapping content in place. */}
+        <main className="page" key={pathname}>
+          {children}
+        </main>
+      </div>
+
+      <nav className="nav nav-mobile">
+        <NavItems items={nav} />
+      </nav>
+    </>
+  )
+}

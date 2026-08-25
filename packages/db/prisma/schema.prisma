@@ -1,0 +1,436 @@
+// SkillSwitch data model
+//
+// Dev provider is SQLite so the stack runs with zero external services.
+// Production target is Postgres — see docs/adr/0001-sqlite-dev-postgres-prod.md.
+// Prisma 6.2+ supports Json AND enums on SQLite, but scalar lists (String[])
+// are Postgres-only. So:
+//   - list columns are Json (become native text[] on Postgres)
+//   - enum-ish columns are String, validated by zod unions in @skillswitch/shared,
+//     because the web app needs those same values and cannot import a DB enum
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Tenancy: colleges buy seats, students belong to a college, MENTORS DO NOT.
+// The mentor pool is deliberately cross-institutional — switching only has
+// meaning if a student can reach mentors beyond their own campus.
+// ---------------------------------------------------------------------------
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  state     String?
+  city      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memberships   OrgMembership[]
+  cohorts       Cohort[]
+  subscriptions Subscription[]
+
+  @@map("organizations")
+}
+
+model OrgMembership {
+  id        String   @id @default(cuid())
+  orgId     String
+  userId    String
+  role      String // student | college_admin
+  createdAt DateTime @default(now())
+
+  org  Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, userId])
+  @@index([userId])
+  @@map("org_memberships")
+}
+
+model Cohort {
+  id        String   @id @default(cuid())
+  orgId     String
+  name      String // "TE Computer 2026"
+  year      Int
+  createdAt DateTime @default(now())
+
+  org      Organization     @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  students StudentProfile[]
+
+  @@unique([orgId, name])
+  @@map("cohorts")
+}
+
+model Subscription {
+  id       String    @id @default(cuid())
+  orgId    String
+  seats    Int
+  status   String    @default("trial") // trial | active | past_due | cancelled
+  pricePerSeat Int? // paise, per student per year
+  startsAt DateTime  @default(now())
+  endsAt   DateTime?
+
+  org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId])
+  @@map("subscriptions")
+}
+
+// ---------------------------------------------------------------------------
+// Identity
+// ---------------------------------------------------------------------------
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         String // student | mentor | college_admin | platform_admin
+  phone        String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  studentProfile StudentProfile?
+  mentorProfile  MentorProfile?
+  memberships    OrgMembership[]
+  consents       ConsentRecord[]
+  mediaAssets    MediaAsset[]
+
+  @@map("users")
+}
+
+model StudentProfile {
+  id       String @id @default(cuid())
+  userId   String @unique
+  cohortId String?
+  // Json string[] — drives mentor matching, not just subtitle choice.
+  // No @default: Prisma emits Json defaults as unquoted literals on SQLite
+  // (DEFAULT {}), which is invalid SQL. Callers pass the value explicitly.
+  preferredLanguages Json
+  yearOfStudy        Int?
+  branch             String?
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cohort Cohort? @relation(fields: [cohortId], references: [id], onDelete: SetNull)
+
+  submissions       Submission[]
+  mentorAssignments MentorAssignment[]
+  switchEvents      MentorSwitchEvent[]
+  weeklyPlans       WeeklyPlan[]
+  liveSessions      LiveSession[]
+
+  @@index([cohortId])
+  @@map("student_profiles")
+}
+
+model MentorProfile {
+  id       String @id @default(cuid())
+  userId   String @unique
+  headline String?
+  bio      String?
+  // Json string[] — languages the mentor can actually mentor in
+  languages Json
+  // Json string[] — skill slugs from shared/enums SKILLS
+  skills    Json
+  // Capacity cap: without this every student stampedes onto the top mentor
+  maxActiveStudents Int     @default(25)
+  ratePerSession    Int? // paise
+  isAcceptingStudents Boolean @default(true)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  assignments   MentorAssignment[]
+  feedback      Feedback[]
+  availability  MentorAvailability[]
+  liveSessions  LiveSession[]
+  switchesFrom  MentorSwitchEvent[]  @relation("switch_from")
+  switchesTo    MentorSwitchEvent[]  @relation("switch_to")
+
+  @@map("mentor_profiles")
+}
+
+// ---------------------------------------------------------------------------
+// Curriculum. A Lesson is language-agnostic; LessonAsset carries one video
+// per language so "multilingual" is structural, not a subtitle track.
+// ---------------------------------------------------------------------------
+
+model Track {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  description String?
+  order       Int      @default(0)
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  modules Module[]
+
+  @@map("tracks")
+}
+
+model Module {
+  id      String @id @default(cuid())
+  trackId String
+  title   String
+  summary String?
+  order   Int    @default(0)
+
+  track   Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  lessons Lesson[]
+
+  @@index([trackId])
+  @@map("modules")
+}
+
+model Lesson {
+  id       String @id @default(cuid())
+  moduleId String
+  title    String
+  summary  String?
+  order    Int    @default(0)
+  durationSeconds Int?
+
+  module      Module        @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  assets      LessonAsset[]
+  assignments Assignment[]
+
+  @@index([moduleId])
+  @@map("lessons")
+}
+
+model LessonAsset {
+  id       String @id @default(cuid())
+  lessonId String
+  language String // en | hi | mr — see SUPPORTED_LANGUAGES
+  mediaId  String?
+
+  lesson Lesson      @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  media  MediaAsset? @relation(fields: [mediaId], references: [id], onDelete: SetNull)
+
+  @@unique([lessonId, language])
+  @@map("lesson_assets")
+}
+
+// ---------------------------------------------------------------------------
+// The core loop: assignment -> submission -> HUMAN feedback -> derived plan
+// ---------------------------------------------------------------------------
+
+model Assignment {
+  id       String @id @default(cuid())
+  lessonId String
+  title    String
+  brief    String
+  // Json: rubric criteria [{ key, label, max }] — structured so feedback
+  // aggregates into the NAAC/NBA dashboard instead of dying as prose
+  rubric   Json
+  maxDurationSeconds Int @default(120)
+  weekOf   DateTime?
+  isPublished Boolean @default(true)
+  createdAt DateTime @default(now())
+
+  lesson      Lesson       @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  submissions Submission[]
+
+  @@index([lessonId])
+  @@map("assignments")
+}
+
+model Submission {
+  id           String   @id @default(cuid())
+  assignmentId String
+  studentId    String
+  mediaId      String?
+  status       String   @default("draft") // draft | uploading | submitted | in_review | reviewed
+  note         String?
+  submittedAt  DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  assignment Assignment     @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  student    StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  media      MediaAsset?    @relation(fields: [mediaId], references: [id], onDelete: SetNull)
+  feedback   Feedback?
+
+  @@unique([assignmentId, studentId])
+  @@index([studentId])
+  @@index([status])
+  @@map("submissions")
+}
+
+// Feedback hangs off the SUBMISSION, not off MentorAssignment — so a student
+// who switches mentors keeps their whole history and the new mentor has context.
+model Feedback {
+  id           String @id @default(cuid())
+  submissionId String @unique
+  mentorId     String
+  // Json: { [rubricKey]: number } — the structured half
+  rubricScores Json
+  // The human half. This is the trust-critical artifact; AI never writes it.
+  freeform     String
+  strengths    String?
+  nextStep     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  submission Submission    @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  mentor     MentorProfile @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+
+  @@index([mentorId])
+  @@map("feedback")
+}
+
+// AI output is DERIVED ONLY. sourceFeedbackIds is required by convention:
+// a plan with no source feedback is a generic to-do list, which is the exact
+// commodity feature the research paper warns about.
+model WeeklyPlan {
+  id        String   @id @default(cuid())
+  studentId String
+  weekOf    DateTime
+  sourceFeedbackIds Json // Json string[] — provenance, non-empty
+  items     Json         // Json [{ title, why, done }]
+  model     String?      // which LLM produced it
+  version   Int      @default(1)
+  createdAt DateTime @default(now())
+
+  student StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, weekOf, version])
+  @@index([studentId])
+  @@map("weekly_plans")
+}
+
+// ---------------------------------------------------------------------------
+// Mentor switching — the differentiator. Assignments are append-only history:
+// closing endedAt and opening a new row, never UPDATE-in-place.
+// ---------------------------------------------------------------------------
+
+model MentorAssignment {
+  id        String    @id @default(cuid())
+  studentId String
+  mentorId  String
+  startedAt DateTime  @default(now())
+  endedAt   DateTime? // null == currently active
+
+  student StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  mentor  MentorProfile  @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, endedAt])
+  @@index([mentorId, endedAt])
+  @@map("mentor_assignments")
+}
+
+// reasonCode is the compounding data asset: knowing WHY students leave a
+// mentor is the thing a competitor repositioning into this market won't have.
+model MentorSwitchEvent {
+  id           String   @id @default(cuid())
+  studentId    String
+  fromMentorId String?
+  toMentorId   String
+  reasonCode   String // see SWITCH_REASON_CODES
+  note         String?
+  createdAt    DateTime @default(now())
+
+  student    StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  fromMentor MentorProfile? @relation("switch_from", fields: [fromMentorId], references: [id], onDelete: SetNull)
+  toMentor   MentorProfile  @relation("switch_to", fields: [toMentorId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([reasonCode])
+  @@map("mentor_switch_events")
+}
+
+// ---------------------------------------------------------------------------
+// Live 1:1 — modelled now, built last (highest cost, lowest differentiation)
+// ---------------------------------------------------------------------------
+
+model MentorAvailability {
+  id       String   @id @default(cuid())
+  mentorId String
+  startsAt DateTime
+  endsAt   DateTime
+  isBooked Boolean  @default(false)
+
+  mentor  MentorProfile @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  session LiveSession?
+
+  @@index([mentorId, startsAt])
+  @@map("mentor_availability")
+}
+
+model LiveSession {
+  id             String   @id @default(cuid())
+  studentId      String
+  mentorId       String
+  availabilityId String?  @unique
+  roomId         String?
+  status         String   @default("booked") // booked | completed | cancelled | no_show
+  scheduledAt    DateTime
+  durationMinutes Int     @default(30)
+  createdAt      DateTime @default(now())
+
+  student      StudentProfile      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  mentor       MentorProfile       @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  availability MentorAvailability? @relation(fields: [availabilityId], references: [id], onDelete: SetNull)
+
+  @@index([studentId])
+  @@index([mentorId])
+  @@map("live_sessions")
+}
+
+// ---------------------------------------------------------------------------
+// Media + DPDP compliance. Both exist in v1 on purpose: retrofitting
+// hard-delete into a platform already holding thousands of student videos
+// is genuinely painful, and student video is the sensitive asset here.
+// ---------------------------------------------------------------------------
+
+model MediaAsset {
+  id          String   @id @default(cuid())
+  provider    String   @default("local") // local | bunny | cloudflare
+  externalId  String?
+  kind        String // lesson_video | submission_video
+  status      String   @default("pending") // pending | ready | failed | deleted
+  ownerUserId String?
+  localPath   String?
+  playbackUrl String?
+  sizeBytes   Int?
+  durationSeconds Int?
+  // DPDP: every student-owned asset gets a retention deadline at creation
+  retentionUntil DateTime?
+  deletedAt      DateTime?
+  createdAt      DateTime @default(now())
+
+  owner        User?          @relation(fields: [ownerUserId], references: [id], onDelete: SetNull)
+  lessonAssets LessonAsset[]
+  submissions  Submission[]
+
+  @@index([status])
+  @@index([retentionUntil])
+  @@map("media_assets")
+}
+
+model ConsentRecord {
+  id            String   @id @default(cuid())
+  userId        String
+  policyVersion String
+  scope         String // video_recording | data_processing | marketing
+  granted       Boolean  @default(true)
+  grantedAt     DateTime @default(now())
+  revokedAt     DateTime?
+  // School segment: under-18 students need a verifiable guardian record
+  guardianName  String?
+  guardianEmail String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, scope])
+  @@map("consent_records")
+}

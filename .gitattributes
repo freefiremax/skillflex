@@ -1,0 +1,11 @@
+# Normalise line endings: repo stores LF, Windows checkouts get CRLF.
+# Without this, every file a Windows contributor touches shows as fully rewritten.
+* text=auto eol=lf
+
+# Binary — never diff or convert
+*.pptx binary
+*.png binary
+*.jpg binary
+*.webm binary
+*.mp4 binary
+*.db binary
