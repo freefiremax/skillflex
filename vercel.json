@@ -4,12 +4,16 @@
   "buildCommand": "npm run vercel-build",
   "outputDirectory": "apps/web/dist",
   "functions": {
-    "api/[...path].mjs": {
+    "api/server.mjs": {
       "maxDuration": 30,
       "includeFiles": "apps/api/dist/**"
     }
   },
   "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/server?__path=$1"
+    },
     {
       "source": "/((?!api/).*)",
       "destination": "/index.html"

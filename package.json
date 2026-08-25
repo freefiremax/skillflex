@@ -12,7 +12,7 @@
     "dev:api": "npm run dev -w @skillswitch/api",
     "dev:web": "npm run dev -w @skillswitch/web",
     "build": "npm run typecheck && npm run build:api && npm run build -w @skillswitch/web",
-    "build:api": "esbuild apps/api/src/vercel.ts --bundle --platform=node --format=esm --target=node20 --outfile=apps/api/dist/vercel.js --external:fastify --external:@fastify/cors --external:@fastify/jwt --external:@fastify/multipart --external:@fastify/static --external:@prisma/client --external:.prisma/client --external:zod --external:bcryptjs --external:dotenv",
+    "build:api": "esbuild apps/api/src/vercel.ts --bundle --platform=node --format=esm --target=node20 --outfile=apps/api/dist/vercel.mjs --external:fastify --external:@fastify/cors --external:@fastify/jwt --external:@fastify/multipart --external:@fastify/static --external:@prisma/client --external:.prisma/client --external:zod --external:bcryptjs --external:dotenv",
     "vercel-build": "npm run db:generate && npm run build:api && npm run build -w @skillswitch/web",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "db:generate": "npm run generate -w @skillswitch/db",
