@@ -128,7 +128,18 @@ export function asDatabaseError(err: unknown): HttpError | undefined {
     return new HttpError(500, `The database is misconfigured: ${PERMANENT[code]}. ${detail}`, 'DB_MISCONFIGURED')
   }
 
-  if ((code && code in TRANSIENT) || isConnectFailure(err)) {
+  /**
+   * `PrismaClientUnknownRequestError` is what the engine throws when the pooler
+   * drops or refuses a connection mid-flight and no P-code is attached — the
+   * residual blind 500s in the concurrent-login burst were exactly this. It is
+   * not a query bug: a bug in a query surfaces as a *Known*RequestError with a
+   * P2xxx code, which is handled by the branch below or, when it is a genuine
+   * constraint violation, left to the generic handler. So treat the Unknown
+   * class as transient too.
+   */
+  const transientByClass = isConnectFailure(err) || name === 'PrismaClientUnknownRequestError'
+
+  if ((code && code in TRANSIENT) || transientByClass) {
     /**
      * Measured on Prisma 6.19.3: a connect failure populates neither `errorCode`
      * nor `retryable` — both properties exist on the error and are left
@@ -145,8 +156,8 @@ export function asDatabaseError(err: unknown): HttpError | undefined {
     )
   }
 
-  // A PrismaClient* error that is none of the above is a real bug in a query —
-  // a unique-constraint violation, a bad include. Let the generic handler own
-  // it, because the message can quote row data.
+  // A coded PrismaClientKnownRequestError that is none of the above is a real
+  // bug in a query — a unique-constraint violation, a bad include. Let the
+  // generic handler own it, because the message can quote row data.
   return undefined
 }

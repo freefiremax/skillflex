@@ -175,22 +175,24 @@ export async function buildApp() {
   await app.register(internalRoutes, { prefix: '/api/internal' })
 
   /**
-   * Open the database connection while the container is still warming up.
+   * Warm the database connection in the background — deliberately not awaited.
    *
-   * Prisma connects lazily on first query, which on serverless means the first
-   * real request pays the connect — and eats the failure if the pooler refuses
-   * it. Doing it here moves both the latency and the retry off the request path,
-   * and it is the only protection the four interactive transactions get, since a
-   * client extension cannot wrap the BEGIN that starts one.
+   * An earlier version awaited this, and it was a mistake: getApp() awaits the
+   * whole buildApp() promise, so blocking here on a retried connect meant every
+   * request to a cold container waited out the retries. Under a saturated pooler
+   * each connect attempt burns Prisma's ~5s connect timeout, so three of them
+   * turned a 4s cold start into a 15s one — measured on the live deploy, that
+   * regressed the burst it was meant to help.
    *
-   * A failure is logged, not thrown: the error handler answers each request with
-   * a 503 that names the database, which is far more useful than a container that
-   * refuses to boot.
+   * Fire-and-forget instead: Prisma still connects lazily on the first query if
+   * this has not landed yet, so the worst case is unchanged and the common case
+   * gets a connection ready with no latency added to any request. The .catch is
+   * required only so an unhandled rejection cannot crash the process — the real
+   * failure resurfaces, with a 503, on the first query that needs the connection.
    */
-  const connectError = await connectWithRetry()
-  if (connectError) {
-    app.log.error({ err: connectError }, 'could not reach Postgres during warmup')
-  }
+  void connectWithRetry().then((err) => {
+    if (err) app.log.error({ err }, 'could not reach Postgres during warmup')
+  })
 
   return app
 }
