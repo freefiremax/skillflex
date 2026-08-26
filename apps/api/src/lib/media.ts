@@ -4,6 +4,7 @@ import { pipeline } from 'node:stream/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { Readable } from 'node:stream'
+import { HttpError } from './auth.js'
 import { env } from './env.js'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
@@ -103,6 +104,36 @@ function extensionFor(contentType: string | undefined): string {
 }
 
 /**
+ * Turn a Storage HTTP failure into something an operator can act on.
+ *
+ * Every one of these is a deploy-configuration problem, and the generic 500
+ * ("Something broke on our side") is the worst possible answer to it — it points
+ * at the code when the fix is one field in a dashboard. So name the likely cause
+ * per status and pass Supabase's own message through.
+ *
+ * Nothing secret goes out: Storage error bodies carry a reason string, never the
+ * service key and never the signed token we sent.
+ */
+function storageFailure(status: number, detail: string): HttpError {
+  const hint =
+    status === 404
+      ? `bucket "${env.SUPABASE_STORAGE_BUCKET}" does not exist in this Supabase project — create it (private), or fix SUPABASE_STORAGE_BUCKET`
+      : status === 400
+        ? 'Supabase rejected the request — usually a bucket name or object path problem'
+        : status === 401 || status === 403
+          ? 'SUPABASE_SERVICE_ROLE_KEY is missing, wrong, or is the anon key rather than service_role'
+          : status === 413
+            ? 'the file is larger than the bucket\'s upload limit'
+            : 'Supabase Storage returned an unexpected status'
+  const trimmed = detail.trim().slice(0, 300)
+  return new HttpError(
+    502,
+    `Video storage is misconfigured: ${hint}. Supabase said ${status}${trimmed ? `: ${trimmed}` : ''}.`,
+    'STORAGE_MISCONFIGURED',
+  )
+}
+
+/**
  * Supabase Storage, private bucket.
  *
  * Deliberately no @supabase/supabase-js: all three operations we need are one
@@ -127,19 +158,29 @@ class SupabaseMediaProvider implements MediaProvider {
   }
 
   private async call<T>(method: string, urlPath: string, body?: unknown): Promise<T> {
-    const res = await fetch(`${this.base}${urlPath}`, {
-      method,
-      headers: {
-        Authorization: `Bearer ${this.key}`,
-        apikey: this.key,
-        'Content-Type': 'application/json',
-      },
-      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-    })
+    let res: Response
+    try {
+      res = await fetch(`${this.base}${urlPath}`, {
+        method,
+        headers: {
+          Authorization: `Bearer ${this.key}`,
+          apikey: this.key,
+          'Content-Type': 'application/json',
+        },
+        ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+      })
+    } catch (cause) {
+      // A DNS or TLS failure here means SUPABASE_URL points somewhere that isn't
+      // a Supabase project. Distinguish it from a project that answered badly.
+      throw new HttpError(
+        502,
+        `Video storage is unreachable at SUPABASE_URL — ${(cause as Error).message}`,
+        'STORAGE_UNREACHABLE',
+      )
+    }
 
     if (!res.ok) {
-      const detail = await res.text().catch(() => '')
-      throw new Error(`Supabase Storage ${method} ${urlPath} failed (${res.status}): ${detail}`)
+      throw storageFailure(res.status, await res.text().catch(() => ''))
     }
     return (await res.json()) as T
   }
