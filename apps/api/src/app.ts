@@ -1,12 +1,14 @@
 import { mkdir } from 'node:fs/promises'
-import Fastify, { type FastifyError } from 'fastify'
+import Fastify, { type FastifyError, type FastifyReply, type FastifyRequest } from 'fastify'
 import cors from '@fastify/cors'
 import jwt from '@fastify/jwt'
 import multipart from '@fastify/multipart'
 import fastifyStatic from '@fastify/static'
 import { ZodError } from 'zod'
+import { connectWithRetry, prisma } from '@skillswitch/db'
 import { env, isProd, isServerless } from './lib/env.js'
 import { HttpError } from './lib/auth.js'
+import { asDatabaseError } from './lib/db-errors.js'
 import { storageRoot } from './lib/media.js'
 import { authRoutes } from './modules/auth/routes.js'
 import { mentorshipRoutes } from './modules/mentorship/routes.js'
@@ -87,6 +89,26 @@ export async function buildApp() {
     }
 
     const status = error.statusCode ?? 500
+
+    /**
+     * A database that is busy, asleep, or misconfigured is not a bug in this
+     * code, and answering it with the generic 500 below throws away the only
+     * clue anyone gets. Checked before the 500 branch because Prisma errors
+     * arrive with no statusCode and would otherwise land there.
+     */
+    const dbError = asDatabaseError(error)
+    if (dbError) {
+      request.log.error({ err: error }, 'database error')
+      if (dbError.statusCode === 503) {
+        // Tells fetch-based clients and Vercel's edge that this is worth
+        // retrying, and roughly when.
+        reply.header('retry-after', '3')
+      }
+      return reply.code(dbError.statusCode).send({
+        error: { message: dbError.message, ...(dbError.code ? { code: dbError.code } : {}) },
+      })
+    }
+
     if (status >= 500) {
       request.log.error({ err: error }, 'unhandled error')
       return reply.code(500).send({
@@ -108,13 +130,34 @@ export async function buildApp() {
   /**
    * Health lives under /api like everything else. Outside it, the SPA rewrite
    * in vercel.json would hand back index.html instead.
+   *
+   * It probes Postgres rather than just reporting that the process is up. A
+   * health check that answers ok:true while the database is unreachable is worse
+   * than no health check: the plan for this deploy treated `curl /api/health` as
+   * the confirmation that Postgres was wired correctly, and it could never have
+   * shown otherwise.
    */
-  const health = async () => ({
-    ok: true,
-    mediaProvider: env.MEDIA_PROVIDER,
-    env: env.NODE_ENV,
-    serverless: isServerless,
-  })
+  const health = async (_request: FastifyRequest, reply: FastifyReply) => {
+    let dbError: HttpError | undefined
+    try {
+      // SELECT 1 rather than a table count: it needs no schema, so it separates
+      // "cannot reach Postgres" from "migrations have not run".
+      await prisma.$queryRaw`SELECT 1`
+    } catch (err) {
+      dbError = asDatabaseError(err) ?? new HttpError(503, 'The database did not answer', 'DB_UNAVAILABLE')
+    }
+
+    if (dbError) reply.code(503)
+
+    return {
+      ok: !dbError,
+      db: dbError ? 'down' : 'up',
+      ...(dbError ? { dbError: dbError.message } : {}),
+      mediaProvider: env.MEDIA_PROVIDER,
+      env: env.NODE_ENV,
+      serverless: isServerless,
+    }
+  }
 
   app.get('/api/health', health)
   // Kept for local tooling and anything already pointing at the old path.
@@ -130,6 +173,24 @@ export async function buildApp() {
   await app.register(orgRoutes, { prefix: '/api/orgs' })
   await app.register(consentRoutes, { prefix: '/api/consent' })
   await app.register(internalRoutes, { prefix: '/api/internal' })
+
+  /**
+   * Open the database connection while the container is still warming up.
+   *
+   * Prisma connects lazily on first query, which on serverless means the first
+   * real request pays the connect — and eats the failure if the pooler refuses
+   * it. Doing it here moves both the latency and the retry off the request path,
+   * and it is the only protection the four interactive transactions get, since a
+   * client extension cannot wrap the BEGIN that starts one.
+   *
+   * A failure is logged, not thrown: the error handler answers each request with
+   * a 503 that names the database, which is far more useful than a container that
+   * refuses to boot.
+   */
+  const connectError = await connectWithRetry()
+  if (connectError) {
+    app.log.error({ err: connectError }, 'could not reach Postgres during warmup')
+  }
 
   return app
 }
