@@ -208,13 +208,18 @@ async function main() {
 
   // --- A reviewed submission + feedback + weekly plan (Rahul) -------------
   const rahul = students[0]!
+  // No playbackUrl: the seed has no real bytes to point at. It used to seed
+  // '/media/submissions/demo-selfintro.webm', which no repo file ever provided — so
+  // it 404'd in local dev, and on Vercel it was worse than a 404: the SPA fallback
+  // answers /media/* with index.html, so the element got handed HTML and rendered as
+  // a permanently blank player. Null is honest; the UI has a real empty state for it.
   const media = await prisma.mediaAsset.create({
     data: {
       provider: 'local',
       kind: 'submission_video',
       status: 'ready',
       ownerUserId: (await prisma.studentProfile.findUniqueOrThrow({ where: { id: rahul.profile.id } })).userId,
-      playbackUrl: '/media/submissions/demo-selfintro.webm',
+      playbackUrl: null,
       retentionUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
     },
   })

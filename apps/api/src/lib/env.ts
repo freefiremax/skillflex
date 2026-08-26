@@ -51,6 +51,24 @@ const envSchema = z.object({
   CRON_SECRET: z.string().min(16).optional(),
 })
 
+/**
+ * NODE_ENV is the one variable here that is not worth dying over.
+ *
+ * It drives log formatting and nothing else — unlike DATABASE_URL or
+ * JWT_SECRET, where continuing with a wrong value would be worse than not
+ * booting. A typo in a hosting dashboard field taking down every route is a bad
+ * trade, so normalise instead of rejecting, and say so in the log.
+ */
+function normaliseNodeEnv(raw: string | undefined): 'development' | 'test' | 'production' {
+  if (raw === 'development' || raw === 'test' || raw === 'production') return raw
+  // Being deployed is the strongest signal available about which way to guess.
+  const fallback = process.env.VERCEL ? 'production' : 'development'
+  if (raw !== undefined) {
+    console.warn(`[env] NODE_ENV="${raw}" is not a known value — treating it as "${fallback}".`)
+  }
+  return fallback
+}
+
 const parsed = envSchema
   .superRefine((value, ctx) => {
     // Fail at boot rather than on the first upload, which is where a missing
@@ -66,7 +84,7 @@ const parsed = envSchema
       }
     }
   })
-  .safeParse(process.env)
+  .safeParse({ ...process.env, NODE_ENV: normaliseNodeEnv(process.env.NODE_ENV) })
 
 if (!parsed.success) {
   const detail = parsed.error.issues

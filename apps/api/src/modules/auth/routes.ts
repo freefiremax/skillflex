@@ -139,9 +139,15 @@ export async function authRoutes(app: FastifyInstance) {
         ? {
             id: user.mentorProfile.id,
             headline: user.mentorProfile.headline,
+            // bio and isAcceptingStudents are returned because the mentor profile
+            // form PATCHes them back. Omitting them meant the form posted an empty
+            // bio and a hardcoded "accepting" flag on every save — wiping the bio
+            // students read, and silently re-opening a mentor who had closed intake.
+            bio: user.mentorProfile.bio,
             languages: readList(user.mentorProfile.languages) as Language[],
             skills: readList(user.mentorProfile.skills),
             maxActiveStudents: user.mentorProfile.maxActiveStudents,
+            isAcceptingStudents: user.mentorProfile.isAcceptingStudents,
           }
         : null,
     }

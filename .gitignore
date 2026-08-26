@@ -39,6 +39,9 @@ Thumbs.db
 # scratch
 work/
 
+# local session handoff notes — working state, not project docs
+PROGRESS.md
+
 # local PATH shim from the gh CLI install — machine-specific, not project code
 powershell.cmd
 
