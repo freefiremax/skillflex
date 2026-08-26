@@ -119,3 +119,27 @@ export const SUBMISSION_RETENTION_DAYS = 365
 
 /** Anti-thrash guard on mentor switching. */
 export const SWITCH_COOLDOWN_DAYS = 7
+
+/**
+ * Monday 00:00 India time, as a UTC instant. Weekly plans are keyed by this.
+ *
+ * It must not read the server's local timezone, which is what `getDay()` and
+ * `setHours()` do. That made the week boundary depend on which machine answered
+ * the request: the seed ran on an IST laptop and wrote 2026-08-23T18:30:00Z,
+ * then a Vercel container (always UTC) computed 2026-08-24T00:00:00Z for the
+ * same real week, failed to find the existing row, and inserted a second plan
+ * for one week. Both showed up in the student's history.
+ *
+ * A fixed +05:30 is exact rather than a simplification — India has one timezone
+ * and has never observed DST — so no tz database is needed. Shift into IST, floor
+ * to Monday there using the UTC accessors (which ignore the host's zone), shift
+ * back. The result is the same instant on every machine.
+ */
+const IST_OFFSET_MS = (5 * 60 + 30) * 60 * 1000
+
+export function startOfWeekIST(at: Date): Date {
+  const ist = new Date(at.getTime() + IST_OFFSET_MS)
+  ist.setUTCDate(ist.getUTCDate() - ((ist.getUTCDay() + 6) % 7)) // Monday = 0
+  ist.setUTCHours(0, 0, 0, 0)
+  return new Date(ist.getTime() - IST_OFFSET_MS)
+}

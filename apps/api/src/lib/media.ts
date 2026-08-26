@@ -104,6 +104,21 @@ function extensionFor(contentType: string | undefined): string {
 }
 
 /**
+ * A Storage failure that remembers the status Supabase actually reported, so
+ * callers can branch on it (retry a missing bucket, ignore a create race)
+ * without pattern-matching the human-readable message.
+ */
+class StorageError extends HttpError {
+  constructor(
+    readonly storageStatus: number,
+    message: string,
+    code: string,
+  ) {
+    super(502, message, code)
+  }
+}
+
+/**
  * Turn a Storage HTTP failure into something an operator can act on.
  *
  * Every one of these is a deploy-configuration problem, and the generic 500
@@ -114,7 +129,7 @@ function extensionFor(contentType: string | undefined): string {
  * Nothing secret goes out: Storage error bodies carry a reason string, never the
  * service key and never the signed token we sent.
  */
-function storageFailure(httpStatus: number, detail: string): HttpError {
+function storageFailure(httpStatus: number, detail: string): StorageError {
   const trimmed = detail.trim().slice(0, 300)
 
   /**
@@ -142,10 +157,10 @@ function storageFailure(httpStatus: number, detail: string): HttpError {
             ? "the file is larger than the bucket's upload limit"
             : 'Supabase Storage returned an unexpected status'
 
-  return new HttpError(
-    502,
+  return new StorageError(
+    status,
     `Video storage is misconfigured: ${hint}. Supabase said ${status}${trimmed ? `: ${trimmed}` : ''}.`,
-    'STORAGE_MISCONFIGURED',
+    status === 404 ? 'STORAGE_BUCKET_MISSING' : 'STORAGE_MISCONFIGURED',
   )
 }
 
@@ -221,17 +236,53 @@ class SupabaseMediaProvider implements MediaProvider {
     contentType?: string
   }): Promise<UploadTicket> {
     const objectPath = this.objectPath(mediaId, kind, contentType)
-    // Response url is relative and already carries ?token=<jwt>.
-    const { url } = await this.call<{ url: string }>(
-      'POST',
-      `/object/upload/sign/${this.bucket}/${objectPath}`,
-      {},
-    )
+
+    let url: string
+    try {
+      url = await this.signUpload(objectPath)
+    } catch (err) {
+      // A brand new Supabase project has no buckets, so the very first upload of
+      // every deploy would otherwise fail on a step no code path can recover from
+      // and no student can act on. Create it and retry once.
+      if (!(err instanceof StorageError) || err.code !== 'STORAGE_BUCKET_MISSING') throw err
+      await this.createBucket()
+      url = await this.signUpload(objectPath)
+    }
 
     return {
       uploadUrl: `${this.base}${url}`,
       externalId: objectPath,
       headers: { 'content-type': contentType ?? 'video/webm' },
+    }
+  }
+
+  /** Response url is relative and already carries ?token=<jwt>. */
+  private async signUpload(objectPath: string): Promise<string> {
+    const { url } = await this.call<{ url: string }>(
+      'POST',
+      `/object/upload/sign/${this.bucket}/${objectPath}`,
+      {},
+    )
+    return url
+  }
+
+  /**
+   * Create the bucket, private.
+   *
+   * `public: false` is not a default being restated — it is the single most
+   * important line in this file. A public bucket puts every student's practice
+   * video on the open internet behind a guessable path, which breaks the DPDP
+   * promise the whole product rests on. Playback goes through signedPlaybackUrl()
+   * precisely so the bucket never has to be public.
+   *
+   * A 409 means another container won the race. That is success, not failure.
+   */
+  private async createBucket(): Promise<void> {
+    try {
+      await this.call('POST', '/bucket', { name: this.bucket, id: this.bucket, public: false })
+      console.warn(`[media] created missing private Supabase bucket "${this.bucket}"`)
+    } catch (err) {
+      if (!(err instanceof StorageError) || err.storageStatus !== 409) throw err
     }
   }
 

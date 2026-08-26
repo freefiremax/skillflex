@@ -17,7 +17,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@prisma/client": "^6.2.1"
+    "@prisma/client": "^6.2.1",
+    "@skillswitch/shared": "*"
   },
   "devDependencies": {
     "dotenv-cli": "^8.0.0",

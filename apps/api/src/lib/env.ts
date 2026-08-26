@@ -69,6 +69,42 @@ function normaliseNodeEnv(raw: string | undefined): 'development' | 'test' | 'pr
   return fallback
 }
 
+/**
+ * Treat obvious paste artefacts as "not set" rather than as real values.
+ *
+ * Hosting dashboards make two mistakes easy: pasting a variable's own name into
+ * its value field, and pasting a REPLACE_WITH_* placeholder straight out of a
+ * template. Both satisfy `z.string().min(1)` and then fail much later, somewhere
+ * with no obvious connection to the real cause. This deploy hit exactly that:
+ * Vercel held SUPABASE_STORAGE_BUCKET="SUPABASE_STORAGE_BUCKET", so the API went
+ * looking for a bucket named after the variable and only complained at upload
+ * time, three layers away from the field that was wrong.
+ *
+ * Dropping the value lets a zod default apply where there is one, and turns a
+ * required-but-placeholder var into a boot failure that names the variable.
+ *
+ * Only keys this schema knows about are inspected — process.env is full of
+ * unrelated OS entries and some of them legitimately echo their own name.
+ */
+function scrubPlaceholders(source: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
+  const out: NodeJS.ProcessEnv = { ...source }
+  for (const key of Object.keys(envSchema.shape)) {
+    const value = out[key]?.trim()
+    if (!value) continue
+    const isPlaceholder =
+      value === key ||
+      value === `<${key}>` ||
+      value === `\${${key}}` ||
+      /^replace[-_ ]?with/i.test(value) ||
+      /^(your|my|the)[-_ ]?(value|key|secret|url|password)[-_ ]?here$/i.test(value)
+    if (isPlaceholder) {
+      console.warn(`[env] ${key} is set to the placeholder "${value}" — treating it as unset.`)
+      delete out[key]
+    }
+  }
+  return out
+}
+
 const parsed = envSchema
   .superRefine((value, ctx) => {
     // Fail at boot rather than on the first upload, which is where a missing
@@ -84,7 +120,7 @@ const parsed = envSchema
       }
     }
   })
-  .safeParse({ ...process.env, NODE_ENV: normaliseNodeEnv(process.env.NODE_ENV) })
+  .safeParse(scrubPlaceholders({ ...process.env, NODE_ENV: normaliseNodeEnv(process.env.NODE_ENV) }))
 
 if (!parsed.success) {
   const detail = parsed.error.issues

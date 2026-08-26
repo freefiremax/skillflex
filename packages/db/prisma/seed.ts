@@ -8,6 +8,7 @@
  */
 import bcrypt from 'bcryptjs'
 import { PrismaClient } from '@prisma/client'
+import { startOfWeekIST } from '@skillswitch/shared'
 
 const prisma = new PrismaClient()
 const PASSWORD = 'password123'
@@ -247,7 +248,7 @@ async function main() {
   await prisma.weeklyPlan.create({
     data: {
       studentId: rahul.profile.id,
-      weekOf: startOfWeek(new Date()),
+      weekOf: startOfWeekIST(new Date()),
       sourceFeedbackIds: [feedback.id],
       model: 'rule-based-v1',
       items: [
@@ -279,14 +280,6 @@ Seed complete.
   Students        rahul@student.avcoe.in  (has feedback + a weekly plan)
                   priya@student.avcoe.in / aditya@student.avcoe.in
 `)
-}
-
-function startOfWeek(d: Date): Date {
-  const copy = new Date(d)
-  const day = copy.getDay()
-  copy.setDate(copy.getDate() - ((day + 6) % 7))
-  copy.setHours(0, 0, 0, 0)
-  return copy
 }
 
 main()

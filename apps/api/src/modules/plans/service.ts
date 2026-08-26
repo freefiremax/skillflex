@@ -1,5 +1,5 @@
 import { prisma, readObjectList, readRecord } from '@skillswitch/db'
-import type { RubricCriterion } from '@skillswitch/shared'
+import { startOfWeekIST, type RubricCriterion } from '@skillswitch/shared'
 
 /**
  * A type alias, not an interface, on purpose: TypeScript only infers an implicit
@@ -16,12 +16,9 @@ export type PlanItem = {
 
 /** Monday 00:00 of the week containing `d` — plans are keyed by week. */
 function startOfWeek(d: Date): Date {
-  const copy = new Date(d)
-  const day = copy.getDay()
-  const diff = (day + 6) % 7 // Monday = 0
-  copy.setDate(copy.getDate() - diff)
-  copy.setHours(0, 0, 0, 0)
-  return copy
+  // Delegated to shared so the seed and the API agree on the boundary, and so it
+  // is India time rather than whatever timezone the host happens to be in.
+  return startOfWeekIST(d)
 }
 
 /**
