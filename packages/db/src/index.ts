@@ -80,34 +80,16 @@ const globalForPrisma = globalThis as unknown as { prisma?: Client }
 // reloads; on Vercel it survives warm invocations of the same container, which
 // is the difference between reusing one pooled connection and opening a new one
 // on every request.
+//
+// Connection is left lazy on purpose. An eager $connect() at module load looked
+// tempting — warm the pool before the first query — but on serverless it front-
+// loads every cold container's connection demand to the same instant a burst
+// arrives, and holds a connection for the whole warm lifetime even across idle
+// gaps. Against Supabase's free-tier session pooler, whose connection cap is the
+// binding limit, that made a concurrent-login burst worse, not better. Lazy
+// connect staggers the demand across the queries that actually need it.
 export const prisma: Client = globalForPrisma.prisma ?? createClient()
 globalForPrisma.prisma = prisma
-
-/**
- * Open the connection before the first request needs it, retrying a refusal.
- *
- * The per-operation retry above cannot cover `$transaction()` — a client
- * extension sees the operations inside a transaction, not the BEGIN that opens
- * it — and four of the most important writes in the product are interactive
- * transactions (register, feedback, mentor switch, org create). Establishing the
- * connection during container warmup protects them too, because by the time a
- * route runs there is already a live connection to reuse.
- *
- * Never throws: a database that is down should produce a 503 naming the database
- * on each request, not a container that refuses to boot and reports the far more
- * confusing BOOT_FAILED.
- */
-export async function connectWithRetry(): Promise<Error | undefined> {
-  for (let attempt = 0; ; attempt += 1) {
-    try {
-      await prisma.$connect()
-      return undefined
-    } catch (err) {
-      if (attempt >= BACKOFF_MS.length || !isRetriable(err)) return err as Error
-      await sleep(BACKOFF_MS[attempt]! + Math.floor(Math.random() * 150))
-    }
-  }
-}
 
 // Prisma scalar lists (String[]) are Postgres-only, so list-ish columns are Json.
 // These helpers keep the parse-or-cast in one place instead of scattered across

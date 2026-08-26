@@ -5,7 +5,7 @@ import jwt from '@fastify/jwt'
 import multipart from '@fastify/multipart'
 import fastifyStatic from '@fastify/static'
 import { ZodError } from 'zod'
-import { connectWithRetry, prisma } from '@skillswitch/db'
+import { prisma } from '@skillswitch/db'
 import { env, isProd, isServerless } from './lib/env.js'
 import { HttpError } from './lib/auth.js'
 import { asDatabaseError } from './lib/db-errors.js'
@@ -173,26 +173,6 @@ export async function buildApp() {
   await app.register(orgRoutes, { prefix: '/api/orgs' })
   await app.register(consentRoutes, { prefix: '/api/consent' })
   await app.register(internalRoutes, { prefix: '/api/internal' })
-
-  /**
-   * Warm the database connection in the background — deliberately not awaited.
-   *
-   * An earlier version awaited this, and it was a mistake: getApp() awaits the
-   * whole buildApp() promise, so blocking here on a retried connect meant every
-   * request to a cold container waited out the retries. Under a saturated pooler
-   * each connect attempt burns Prisma's ~5s connect timeout, so three of them
-   * turned a 4s cold start into a 15s one — measured on the live deploy, that
-   * regressed the burst it was meant to help.
-   *
-   * Fire-and-forget instead: Prisma still connects lazily on the first query if
-   * this has not landed yet, so the worst case is unchanged and the common case
-   * gets a connection ready with no latency added to any request. The .catch is
-   * required only so an unhandled rejection cannot crash the process — the real
-   * failure resurfaces, with a 503, on the first query that needs the connection.
-   */
-  void connectWithRetry().then((err) => {
-    if (err) app.log.error({ err }, 'could not reach Postgres during warmup')
-  })
 
   return app
 }
