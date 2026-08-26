@@ -114,18 +114,34 @@ function extensionFor(contentType: string | undefined): string {
  * Nothing secret goes out: Storage error bodies carry a reason string, never the
  * service key and never the signed token we sent.
  */
-function storageFailure(status: number, detail: string): HttpError {
+function storageFailure(httpStatus: number, detail: string): HttpError {
+  const trimmed = detail.trim().slice(0, 300)
+
+  /**
+   * Prefer the status inside the body over the HTTP one. A missing bucket comes
+   * back as HTTP 400 wrapping {"statusCode":"404","message":"The related resource
+   * does not exist"} — read only the outer 400 and you tell the operator to check
+   * the object path when the bucket simply isn't there.
+   */
+  let status = httpStatus
+  try {
+    const inner = Number((JSON.parse(trimmed) as { statusCode?: string | number }).statusCode)
+    if (Number.isFinite(inner) && inner >= 400) status = inner
+  } catch {
+    // Not JSON, or truncated mid-object. The HTTP status is all we have.
+  }
+
   const hint =
     status === 404
-      ? `bucket "${env.SUPABASE_STORAGE_BUCKET}" does not exist in this Supabase project — create it (private), or fix SUPABASE_STORAGE_BUCKET`
+      ? `bucket "${env.SUPABASE_STORAGE_BUCKET}" does not exist in this Supabase project — create it with the public toggle OFF, or fix SUPABASE_STORAGE_BUCKET`
       : status === 400
         ? 'Supabase rejected the request — usually a bucket name or object path problem'
         : status === 401 || status === 403
           ? 'SUPABASE_SERVICE_ROLE_KEY is missing, wrong, or is the anon key rather than service_role'
           : status === 413
-            ? 'the file is larger than the bucket\'s upload limit'
+            ? "the file is larger than the bucket's upload limit"
             : 'Supabase Storage returned an unexpected status'
-  const trimmed = detail.trim().slice(0, 300)
+
   return new HttpError(
     502,
     `Video storage is misconfigured: ${hint}. Supabase said ${status}${trimmed ? `: ${trimmed}` : ''}.`,
