@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 import { prisma, readObjectList } from '@skillswitch/db'
-import { currentStudentId, requireRole } from '../../lib/auth.js'
+import { badRequest, currentStudentId, notFound, requireRole } from '../../lib/auth.js'
 import { buildWeeklyPlan, type PlanItem } from './service.js'
 
 /**
@@ -60,14 +60,34 @@ export async function planRoutes(app: FastifyInstance) {
     const { id, index } = request.params as { id: string; index: string }
     const { done } = (request.body ?? {}) as { done?: boolean }
 
+    /**
+     * All three failures below used to answer 200 — a missing plan returned
+     * { ok: false }, and a bad index returned { ok: true } having changed
+     * nothing. The client treats both as success and refetches, so the tick
+     * silently bounces back with nothing to explain it. A plan can be
+     * regenerated between render and click, which makes a stale index a real
+     * case rather than a hypothetical one.
+     */
+    const i = Number(index)
+    if (!Number.isInteger(i) || i < 0) {
+      throw badRequest('Item index must be a non-negative integer', 'BAD_ITEM_INDEX')
+    }
+
+    // Scoped to studentId, so another student's plan is indistinguishable from a
+    // plan that does not exist. That is deliberate.
     const plan = await prisma.weeklyPlan.findFirst({ where: { id, studentId } })
-    if (!plan) return { ok: false }
+    if (!plan) throw notFound('Plan not found')
 
     const items = readObjectList<PlanItem>(plan.items)
-    const i = Number(index)
-    if (items[i]) items[i].done = Boolean(done)
+    const item = items[i]
+    if (!item) throw notFound(`This plan has no item ${i} — it may have been regenerated`)
 
-    await prisma.weeklyPlan.update({ where: { id }, data: { items } })
+    // Nothing to write when the box is already in the requested state.
+    if (item.done !== Boolean(done)) {
+      item.done = Boolean(done)
+      await prisma.weeklyPlan.update({ where: { id }, data: { items } })
+    }
+
     return { ok: true, items }
   })
 }

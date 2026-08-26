@@ -77,6 +77,12 @@ export default function PlanPage() {
             </span>
           </div>
 
+          {/* A failed tick used to be invisible: the mutation succeeded as far as
+              react-query was concerned, the refetch put the box back, and the
+              student got no reason. Now the API 404s a stale index and this says
+              so. */}
+          <ErrorNote error={toggle.error} />
+
           <div className="stack-sm">
             {plan.items.map((item, i) => (
               <Card key={`${plan.id}-${i}`} className="card-tight">
