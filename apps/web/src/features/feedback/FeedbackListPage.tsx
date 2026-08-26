@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../../lib/api'
-import { Card, Empty, ErrorNote, Loading, Meter, formatDate } from '../../components/ui'
+import { Card, Empty, ErrorNote, Loading, Meter, PlaybackVideo, formatDate } from '../../components/ui'
 
 interface FeedbackItem {
   id: string
@@ -55,12 +55,12 @@ export default function FeedbackListPage() {
             </div>
 
             {f.playbackUrl && (
-              <video
+              <PlaybackVideo
                 className="video-frame video-frame-wide"
                 style={{ maxHeight: '34vh', marginBottom: '0.75rem' }}
                 src={f.playbackUrl}
-                controls
-                playsInline
+                missingTitle="Recording unavailable"
+                missingBody="Your mentor's notes below are unaffected."
               />
             )}
 

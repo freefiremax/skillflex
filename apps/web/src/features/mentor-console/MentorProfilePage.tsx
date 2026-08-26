@@ -26,9 +26,14 @@ export default function MentorProfilePage() {
   useEffect(() => {
     if (!me?.mentor) return
     setHeadline(me.mentor.headline ?? '')
+    // Hydrate every field the save below sends. A field left at its useState
+    // default still gets PATCHed, so an unloaded bio saves as '' and an unloaded
+    // checkbox saves as "accepting" — both destructive, neither visible.
+    setBio(me.mentor.bio ?? '')
     setLanguages(me.mentor.languages)
     setSkills(me.mentor.skills as Skill[])
     setMaxActiveStudents(me.mentor.maxActiveStudents)
+    setIsAccepting(me.mentor.isAcceptingStudents)
   }, [me])
 
   const save = useMutation({

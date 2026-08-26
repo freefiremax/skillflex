@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
 import { api } from '../../lib/api'
-import { Alert, Card, ErrorNote, Loading } from '../../components/ui'
+import { Alert, Card, ErrorNote, Loading, PlaybackVideo } from '../../components/ui'
 
 interface SubmissionDetail {
   id: string
@@ -72,11 +72,12 @@ export default function ReviewPage() {
         <p className="small">{data.assignment.title}</p>
       </div>
 
-      {data.playbackUrl ? (
-        <video className="video-frame" src={data.playbackUrl} controls playsInline />
-      ) : (
-        <Alert tone="error">The recording is missing or still processing.</Alert>
-      )}
+      <PlaybackVideo
+        className="video-frame"
+        src={data.playbackUrl}
+        missingTitle="Recording unavailable"
+        missingBody="It is missing, still processing, or its playback link expired. You can still leave written feedback."
+      />
 
       {data.note && (
         <Card className="card-tight">

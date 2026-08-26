@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { LANGUAGE_LABELS, type Language } from '@skillswitch/shared'
 import { api } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
-import { Card, Empty, ErrorNote, Loading, Pill } from '../../components/ui'
+import { Card, ErrorNote, Loading, Pill, PlaybackVideo } from '../../components/ui'
 
 interface LessonDetail {
   id: string
@@ -52,17 +52,12 @@ export default function LessonPage() {
         {data.summary && <p className="small">{data.summary}</p>}
       </div>
 
-      {data.playbackUrl ? (
-        <video className="video-frame video-frame-wide" src={data.playbackUrl} controls playsInline />
-      ) : (
-        <Card>
-          <Empty
-            icon="▶"
-            title="Video coming soon"
-            body="This lesson's recording hasn't been uploaded to this environment yet."
-          />
-        </Card>
-      )}
+      <PlaybackVideo
+        className="video-frame video-frame-wide"
+        src={data.playbackUrl}
+        missingTitle="Video coming soon"
+        missingBody="This lesson's recording hasn't been uploaded to this environment yet."
+      />
 
       {/* Language availability is honest: we say which languages exist rather
           than silently serving English and calling it multilingual. */}

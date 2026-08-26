@@ -98,7 +98,9 @@ export default function LearnPage() {
         </Card>
       )}
 
-      <ErrorNote error={week.error} />
+      {/* All three queries, not just the week: a failed tracks or mentor call used
+          to render as a bare heading over an empty div with nothing explaining why. */}
+      <ErrorNote error={week.error ?? mentor.error} />
 
       <div className="section-title">This week</div>
       {week.isLoading ? (
@@ -139,6 +141,10 @@ export default function LearnPage() {
       <div className="section-title">Lessons</div>
       {tracks.isLoading ? (
         <Loading rows={2} />
+      ) : tracks.error ? (
+        <ErrorNote error={tracks.error} />
+      ) : tracks.data?.tracks.length === 0 ? (
+        <Empty icon="▤" title="No lessons yet" body="Your college is still setting up the curriculum." />
       ) : (
         <div className="stack">
           {tracks.data?.tracks.map((t) => (

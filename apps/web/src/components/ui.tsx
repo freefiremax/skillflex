@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useState, type CSSProperties, type ReactNode } from 'react'
 import { ApiRequestError } from '../lib/api'
 
 export function Card({
@@ -85,6 +85,50 @@ export function Empty({ icon = '·', title, body }: { icon?: string; title: stri
       <div className="strong">{title}</div>
       {body ? <div className="small" style={{ marginTop: 4 }}>{body}</div> : null}
     </div>
+  )
+}
+
+/**
+ * A <video> that admits when its source is dead.
+ *
+ * A bare <video src> whose URL 404s renders as a permanently blank player with no
+ * error anywhere — and on this deploy a stale URL does not even 404: the SPA
+ * fallback rewrite answers with index.html, so the element is handed HTML and just
+ * sits there. Signed playback URLs also expire, which produces the same silence.
+ * Surface it instead of letting the user conclude the app is broken.
+ */
+export function PlaybackVideo({
+  src,
+  className = 'video-frame',
+  style,
+  missingTitle = 'Recording unavailable',
+  missingBody = 'This video could not be loaded. It may have expired or been removed.',
+}: {
+  src: string | null | undefined
+  className?: string
+  style?: CSSProperties
+  missingTitle?: string
+  missingBody?: string
+}) {
+  const [failed, setFailed] = useState(false)
+
+  if (!src || failed) {
+    return (
+      <Card>
+        <Empty icon="▶" title={missingTitle} body={missingBody} />
+      </Card>
+    )
+  }
+
+  return (
+    <video
+      className={className}
+      style={style}
+      src={src}
+      controls
+      playsInline
+      onError={() => setFailed(true)}
+    />
   )
 }
 

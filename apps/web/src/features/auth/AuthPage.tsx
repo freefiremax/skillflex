@@ -11,7 +11,7 @@ import { ErrorNote } from '../../components/ui'
 type Mode = 'signin' | 'signup'
 
 export default function AuthPage() {
-  const { signIn, signUp } = useAuth()
+  const { signIn, signUp, authError } = useAuth()
   const [mode, setMode] = useState<Mode>('signin')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<unknown>(null)
@@ -214,7 +214,12 @@ export default function AuthPage() {
           </>
         )}
 
-        {error ? <div style={{ marginBottom: '0.9rem' }}><ErrorNote error={error} /></div> : null}
+        {/* authError covers the case where a stored token fails to hydrate for a
+            reason other than expiry — a down API, a bad deploy — which otherwise
+            renders as an empty form and reads like a wrong password. */}
+        {error || authError ? (
+          <div style={{ marginBottom: '0.9rem' }}><ErrorNote error={error ?? authError} /></div>
+        ) : null}
 
         <button className="btn btn-primary btn-block" disabled={busy} type="submit">
           {busy ? 'One moment…' : mode === 'signin' ? 'Sign in' : 'Create account'}
