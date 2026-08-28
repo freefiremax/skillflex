@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../lib/api'
+import { useAuth } from '../lib/auth'
 
 interface PlanItem {
   title: string
@@ -37,6 +38,7 @@ function useReducedMotion() {
 }
 
 export function PetCompanion() {
+  const { me } = useAuth()
   const reduced = useReducedMotion()
   const [open, setOpen] = useState(false)
   const [pos, setPos] = useState(() => ({
@@ -51,12 +53,16 @@ export function PetCompanion() {
   const xRef = useRef(pos.x)
   const wrapRef = useRef<HTMLDivElement>(null)
 
+  // Only students have a plan. On the sign-in screen there is no token at all,
+  // so asking for one would just earn a 401.
+  const isStudent = me?.role === 'student'
+
   // Only fetched when the bubble opens. Shares react-query's ['plan-current']
   // cache with PlanPage, so opening the pet after visiting Plan costs nothing.
   const { data, isLoading, isError } = useQuery({
     queryKey: ['plan-current'],
     queryFn: () => api.get<PlanResponse>('/plans/current'),
-    enabled: open,
+    enabled: open && isStudent,
   })
 
   useEffect(() => {
@@ -99,7 +105,7 @@ export function PetCompanion() {
   return (
     <div
       ref={wrapRef}
-      className="pet-wrap"
+      className={`pet-wrap${me ? '' : ' pet-wrap-bare'}`}
       style={{
         left: `${pos.x}%`,
         transition: pos.ms ? `left ${pos.ms}ms linear` : 'none',
@@ -109,13 +115,19 @@ export function PetCompanion() {
         <div
           className={`pet-bubble${pos.x > 55 ? ' pet-bubble-flip' : ''}`}
           role="dialog"
-          aria-label="This week's plan"
+          aria-label={isStudent ? "This week's plan" : 'Your study buddy'}
         >
           <div className="tiny strong" style={{ color: 'var(--accent)' }}>
-            THIS WEEK'S PLAN
+            {isStudent ? "THIS WEEK'S PLAN" : 'YOUR STUDY BUDDY'}
           </div>
 
-          {isLoading ? (
+          {!isStudent ? (
+            <div className="tiny dim">
+              {me
+                ? "I look after weekly plans. Students get one built from their mentor's own words."
+                : "Sign in and I'll keep this week's plan right here — built from what your mentor actually wrote."}
+            </div>
+          ) : isLoading ? (
             <div className="tiny dim">Fetching your plan…</div>
           ) : isError ? (
             <div className="tiny dim">Couldn't load your plan just now.</div>
@@ -145,16 +157,18 @@ export function PetCompanion() {
             </>
           )}
 
-          <Link to="/plan" className="tiny strong" onClick={() => setOpen(false)}>
-            See full plan →
-          </Link>
+          {isStudent && (
+            <Link to="/plan" className="tiny strong" onClick={() => setOpen(false)}>
+              See full plan →
+            </Link>
+          )}
         </div>
       )}
 
       <button
         type="button"
         className={`pet${open ? ' pet-awake' : ''}`}
-        aria-label="Your study buddy — show this week's plan"
+        aria-label={isStudent ? "Your study buddy — show this week's plan" : 'Your study buddy'}
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
         style={{ transform: `scaleX(${pos.facing})` }}

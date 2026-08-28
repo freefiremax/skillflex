@@ -105,9 +105,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         <NavItems items={nav} />
       </nav>
 
-      {/* Students only — the plan it reads out is a student-side concept, and a
-          mentor's screen has no /plan route to send them to. */}
-      {me?.role === 'student' && <PetCompanion />}
+      {/* Every signed-in page. The sign-in screen renders outside this shell, so
+          it mounts its own copy — see App.tsx. */}
+      <PetCompanion />
     </>
   )
 }

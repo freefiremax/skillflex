@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { useAuth } from './lib/auth'
 import { Loading } from './components/ui'
 import { AppShell } from './components/AppShell'
+import { PetCompanion } from './components/PetCompanion'
 import AuthPage from './features/auth/AuthPage'
 import LearnPage from './features/learn/LearnPage'
 import LessonPage from './features/learn/LessonPage'
@@ -29,9 +30,13 @@ export default function App() {
 
   if (!me) {
     return (
-      <Routes>
-        <Route path="/*" element={<AuthPage />} />
-      </Routes>
+      <>
+        <Routes>
+          <Route path="/*" element={<AuthPage />} />
+        </Routes>
+        {/* The buddy greets you before you have an account to attach it to. */}
+        <PetCompanion />
+      </>
     )
   }
 
