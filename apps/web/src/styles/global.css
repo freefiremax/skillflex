@@ -536,6 +536,128 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   100% { transform: translateY(-1px) scale(1); }
 }
 
+/* --- Study buddy -------------------------------------------------------- */
+
+/* Fixed to the viewport and walked sideways by a transition on `left` (set
+   inline, since the target is random). Sits above the mobile nav bar; on
+   desktop that bar becomes a pill at the top, which leaves the whole bottom
+   strip free — the empty space this thing exists to fill. */
+.pet-wrap {
+  position: fixed;
+  bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 4px);
+  z-index: 45;
+  /* Only the pet and its bubble should catch clicks, not the full-width strip
+     the wrapper occupies. */
+  pointer-events: none;
+}
+.pet-wrap > * { pointer-events: auto; }
+
+.pet {
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  line-height: 0;
+  -webkit-tap-highlight-color: transparent;
+  filter: drop-shadow(3px 5px 6px rgba(163, 177, 202, 0.7));
+}
+.pet:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 6px;
+  border-radius: 999px;
+}
+
+/* The bob lives on the svg, not the button: the button carries an inline
+   scaleX() for which way the pet is facing, and an animated transform there
+   would win over it and freeze the flip. */
+.pet-svg {
+  width: 46px;
+  height: 40px;
+  overflow: visible;
+  animation: pet-bob 2.6s var(--ease-soft) infinite;
+}
+
+.pet-foot { fill: var(--brand-deep); opacity: 0.45; }
+.pet-smile { fill: none; stroke: rgba(255, 255, 255, 0.92); stroke-width: 2.4; stroke-linecap: round; }
+
+/* SVG geometry has no CSS box by default, so percentage transform-origins need
+   fill-box to mean "this shape" rather than "the whole canvas". */
+.pet-shape, .pet-eye { transform-box: fill-box; }
+.pet-shape { transform-origin: 50% 100%; }
+.pet-eye { fill: #fff; transform-origin: center; animation: pet-blink 5.4s steps(1, end) infinite; }
+
+.pet:hover .pet-shape, .pet-awake .pet-shape { animation: pet-squish 460ms var(--ease); }
+
+@keyframes pet-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-5px); }
+}
+@keyframes pet-squish {
+  0%   { transform: scale(1, 1); }
+  35%  { transform: scale(1.12, 0.86); }
+  70%  { transform: scale(0.94, 1.06); }
+  100% { transform: scale(1, 1); }
+}
+@keyframes pet-blink {
+  0%, 93%, 100% { transform: scaleY(1); }
+  96%           { transform: scaleY(0.1); }
+}
+
+.pet-bubble {
+  position: absolute;
+  bottom: calc(100% + 11px);
+  left: -8px;
+  width: min(16rem, calc(100vw - 2.5rem));
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.7rem 0.85rem;
+  background: var(--surface-2);
+  border: 1px solid var(--highlight);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--neu-out);
+  transform-origin: 14% 100%;
+  animation: pet-pop var(--t) var(--ease) both;
+}
+
+/* Past the middle of the screen a left-anchored bubble would run off the right
+   edge, so it hangs from the pet's other shoulder instead. */
+.pet-bubble-flip { left: auto; right: -8px; transform-origin: 86% 100%; }
+
+.pet-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 20px;
+  width: 11px;
+  height: 11px;
+  background: var(--surface-2);
+  border-right: 1px solid var(--highlight);
+  border-bottom: 1px solid var(--highlight);
+  transform: rotate(45deg);
+}
+.pet-bubble-flip::after { left: auto; right: 20px; }
+
+.pet-list {
+  margin: 0;
+  padding-left: 1.05rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.pet-list li { font-size: 0.78rem; line-height: 1.4; color: var(--text-dim); }
+
+@keyframes pet-pop {
+  0%   { opacity: 0; transform: scale(0.9) translateY(6px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* No bottom bar to clear on desktop, so it walks the actual floor. */
+@media (min-width: 860px) {
+  .pet-wrap { bottom: 14px; }
+  .pet-svg { width: 54px; height: 47px; }
+}
+
 /* --- Top bar ------------------------------------------------------------ */
 
 .topbar {

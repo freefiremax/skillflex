@@ -2,6 +2,7 @@ import { useEffect, type ReactNode } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { LANGUAGE_LABELS, SUPPORTED_LANGUAGES, type Language } from '@skillflex/shared'
 import { useAuth } from '../lib/auth'
+import { PetCompanion } from './PetCompanion'
 
 interface NavEntry {
   to: string
@@ -103,6 +104,10 @@ export function AppShell({ children }: { children: ReactNode }) {
       <nav className="nav nav-mobile">
         <NavItems items={nav} />
       </nav>
+
+      {/* Students only — the plan it reads out is a student-side concept, and a
+          mentor's screen has no /plan route to send them to. */}
+      {me?.role === 'student' && <PetCompanion />}
     </>
   )
 }
