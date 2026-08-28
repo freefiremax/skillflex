@@ -80,6 +80,17 @@
 
   --max-w: 780px;
   --nav-h: 68px;
+
+  /* Study buddy. Lighter and warmer than the UI brand pair — the mascot reads
+     as a toy, and --brand/--accent were darkened for text contrast. */
+  --pet-fur-top: #8b6af5;
+  --pet-fur-bottom: #2a9ec4;
+  --pet-cream: #fdfaf6;
+  --pet-pink: #f4a7b4;
+  --pet-nose: #ef94a4;
+  --pet-iris: #1a6f8c;
+  --pet-pupil: #0e2233;
+  --pet-mouth: #a8495e;
 }
 
 * {
@@ -572,19 +583,25 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
    would win over it and freeze the flip. */
 .pet-svg {
   width: 46px;
-  height: 40px;
+  height: 43px;
   overflow: visible;
   animation: pet-bob 2.6s var(--ease-soft) infinite;
 }
 
-.pet-foot { fill: var(--brand-deep); opacity: 0.45; }
-.pet-smile { fill: none; stroke: rgba(255, 255, 255, 0.92); stroke-width: 2.4; stroke-linecap: round; }
+.pet-tail { fill: none; stroke-width: 8; stroke-linecap: round; }
+.pet-blush { fill: var(--pet-pink); opacity: 0.55; }
+.pet-smile { fill: none; stroke: var(--pet-mouth); stroke-width: 1.6; stroke-linecap: round; }
 
-/* SVG geometry has no CSS box by default, so percentage transform-origins need
-   fill-box to mean "this shape" rather than "the whole canvas". */
-.pet-shape, .pet-eye { transform-box: fill-box; }
-.pet-shape { transform-origin: 50% 100%; }
-.pet-eye { fill: #fff; transform-origin: center; animation: pet-blink 5.4s steps(1, end) infinite; }
+/* SVG geometry has no CSS box of its own, so transform-origin needs an explicit
+   box to resolve against. view-box lets the percentages below mean "the 72x68
+   canvas", which is what puts the squish origin on the cat's feet. */
+.pet-shape { transform-box: view-box; transform-origin: 50% 100%; }
+
+/* Eyes blink independently, so each one pins its origin to its own centre in
+   canvas units — a shared `center` would collapse them toward the midline. */
+.pet-eye { transform-box: view-box; animation: pet-blink 5.4s steps(1, end) infinite; }
+.pet-eye-l { transform-origin: 28.5px 23px; }
+.pet-eye-r { transform-origin: 43.5px 23px; }
 
 .pet:hover .pet-shape, .pet-awake .pet-shape { animation: pet-squish 460ms var(--ease); }
 
@@ -658,7 +675,7 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
 /* No bottom bar to clear on desktop, so it walks the actual floor. */
 @media (min-width: 860px) {
   .pet-wrap { bottom: 14px; }
-  .pet-svg { width: 54px; height: 47px; }
+  .pet-svg { width: 54px; height: 51px; }
 }
 
 /* --- Top bar ------------------------------------------------------------ */

@@ -173,23 +173,54 @@ export function PetCompanion() {
         onClick={() => setOpen((v) => !v)}
         style={{ transform: `scaleX(${pos.facing})` }}
       >
-        <svg className="pet-svg" viewBox="0 0 64 56" aria-hidden="true">
+        <svg className="pet-svg" viewBox="0 0 72 68" aria-hidden="true">
           <defs>
-            <linearGradient id="petGrad" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="var(--brand)" />
-              <stop offset="100%" stopColor="var(--accent)" />
+            <linearGradient id="petFur" x1="0.2" y1="0" x2="0.8" y2="1">
+              <stop offset="0%" stopColor="var(--pet-fur-top)" />
+              <stop offset="100%" stopColor="var(--pet-fur-bottom)" />
+            </linearGradient>
+            <linearGradient id="petTailFur" x1="1" y1="1" x2="0" y2="0">
+              <stop offset="0%" stopColor="var(--pet-fur-bottom)" />
+              <stop offset="75%" stopColor="var(--pet-cream)" />
             </linearGradient>
           </defs>
-          <ellipse className="pet-foot" cx="24" cy="50" rx="7" ry="4" />
-          <ellipse className="pet-foot" cx="40" cy="50" rx="7" ry="4" />
-          <path
-            className="pet-shape"
-            d="M32 4C16 4 6 15 6 30c0 12 11 20 26 20s26-8 26-20C58 15 48 4 32 4Z"
-            fill="url(#petGrad)"
-          />
-          <ellipse className="pet-eye" cx="23" cy="27" rx="3.2" ry="4" />
-          <ellipse className="pet-eye" cx="41" cy="27" rx="3.2" ry="4" />
-          <path className="pet-smile" d="M26 36q6 5 12 0" />
+
+          <g className="pet-shape">
+            {/* Tail first, so it reads as sitting behind the body */}
+            <path className="pet-tail" d="M26 57C17 59 10 53 11 45c1-6 6-9 10-7" stroke="url(#petTailFur)" />
+
+            <path d="M36 29c-11 0-18 8-18 18 0 9 8 14 18 14s18-5 18-14c0-10-7-18-18-18Z" fill="url(#petFur)" />
+            <ellipse cx="36" cy="50" rx="10" ry="11" fill="var(--pet-cream)" />
+            <ellipse cx="28" cy="60" rx="5.5" ry="4" fill="var(--pet-cream)" />
+            <ellipse cx="44" cy="60" rx="5.5" ry="4" fill="var(--pet-cream)" />
+
+            <path d="M21 17 24.5 3 34.5 12Z" fill="url(#petFur)" />
+            <path d="M51 17 47.5 3 37.5 12Z" fill="url(#petFur)" />
+            <path d="M24 15 25.5 7.5 30.5 12Z" fill="var(--pet-pink)" />
+            <path d="M48 15 46.5 7.5 41.5 12Z" fill="var(--pet-pink)" />
+
+            <ellipse cx="36" cy="24" rx="19" ry="17" fill="url(#petFur)" />
+            <ellipse cx="36" cy="30" rx="12.5" ry="9.5" fill="var(--pet-cream)" />
+            <ellipse className="pet-blush" cx="21.5" cy="29" rx="4" ry="2.6" />
+            <ellipse className="pet-blush" cx="50.5" cy="29" rx="4" ry="2.6" />
+
+            <g className="pet-eye pet-eye-l">
+              <ellipse cx="28.5" cy="23" rx="5.2" ry="6.2" fill="var(--pet-iris)" />
+              <ellipse cx="28.5" cy="23.4" rx="3.8" ry="4.8" fill="var(--pet-pupil)" />
+              <circle cx="26.7" cy="20.4" r="1.7" fill="#fff" />
+            </g>
+            <g className="pet-eye pet-eye-r">
+              <ellipse cx="43.5" cy="23" rx="5.2" ry="6.2" fill="var(--pet-iris)" />
+              <ellipse cx="43.5" cy="23.4" rx="3.8" ry="4.8" fill="var(--pet-pupil)" />
+              <circle cx="41.7" cy="20.4" r="1.7" fill="#fff" />
+            </g>
+
+            <path
+              d="M34.4 28.8h3.2c.8 0 1.1.9.5 1.4l-1.6 1.5c-.3.3-.7.3-1 0l-1.6-1.5c-.6-.5-.3-1.4.5-1.4Z"
+              fill="var(--pet-nose)"
+            />
+            <path className="pet-smile" d="M33.2 33.4q2.8 2.4 5.6 0" />
+          </g>
         </svg>
       </button>
     </div>
