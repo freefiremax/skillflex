@@ -62,7 +62,7 @@ export default function AuthPage() {
     <div className="auth-shell">
       <div className="center" style={{ marginBottom: '1.5rem' }}>
         <div className="brand" style={{ fontSize: '1.6rem' }}>
-          Skill<span>Switch</span>
+          Skill<span>Flex</span>
         </div>
         <p className="small" style={{ marginTop: '0.4rem' }}>
           Real mentors. Your language. Switch anytime.
