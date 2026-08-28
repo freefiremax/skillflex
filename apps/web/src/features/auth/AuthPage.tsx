@@ -4,7 +4,7 @@ import {
   SUPPORTED_LANGUAGES,
   type Language,
   type Role,
-} from '@skillswitch/shared'
+} from '@skillflex/shared'
 import { useAuth } from '../../lib/auth'
 import { ErrorNote } from '../../components/ui'
 
@@ -235,7 +235,7 @@ export default function AuthPage() {
             <button className="btn btn-ghost btn-sm" type="button" onClick={() => { setEmail('rahul@student.avcoe.in'); setPassword('password123') }}>
               Student (has feedback + plan)
             </button>
-            <button className="btn btn-ghost btn-sm" type="button" onClick={() => { setEmail('anjali@mentor.skillswitch.in'); setPassword('password123') }}>
+            <button className="btn btn-ghost btn-sm" type="button" onClick={() => { setEmail('anjali@mentor.skillflex.in'); setPassword('password123') }}>
               Mentor
             </button>
             <button className="btn btn-ghost btn-sm" type="button" onClick={() => { setEmail('tpo@avcoe.in'); setPassword('password123') }}>

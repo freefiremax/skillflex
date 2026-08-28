@@ -1,5 +1,5 @@
 {
-  "name": "@skillswitch/api",
+  "name": "@skillflex/api",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -15,8 +15,8 @@
     "@fastify/multipart": "^9.0.3",
     "@fastify/static": "^8.0.4",
     "@prisma/client": "^6.2.1",
-    "@skillswitch/db": "*",
-    "@skillswitch/shared": "*",
+    "@skillflex/db": "*",
+    "@skillflex/shared": "*",
     "bcryptjs": "^2.4.3",
     "dotenv": "^16.4.7",
     "fastify": "^5.2.1",

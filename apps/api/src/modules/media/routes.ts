@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify'
-import { prisma } from '@skillswitch/db'
+import { prisma } from '@skillflex/db'
 import { z } from 'zod'
-import { MEDIA_KINDS, SUBMISSION_RETENTION_DAYS } from '@skillswitch/shared'
+import { MEDIA_KINDS, SUBMISSION_RETENTION_DAYS } from '@skillflex/shared'
 import { badRequest, currentUser, forbidden, notFound, requireAuth } from '../../lib/auth.js'
 import { mediaProvider } from '../../lib/media.js'
 

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import { LANGUAGE_LABELS, type Language } from '@skillswitch/shared'
+import { LANGUAGE_LABELS, type Language } from '@skillflex/shared'
 import { api } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
 import { Card, Empty, ErrorNote, Loading, Pill, StatusPill, formatDate } from '../../components/ui'

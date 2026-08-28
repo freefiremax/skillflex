@@ -1,6 +1,6 @@
 import type { FastifyInstance, FastifyRequest } from 'fastify'
-import { prisma, readList, readObjectList, readRecord } from '@skillswitch/db'
-import { createOrgSchema, createCohortSchema, SKILL_LABELS, type Language } from '@skillswitch/shared'
+import { prisma, readList, readObjectList, readRecord } from '@skillflex/db'
+import { createOrgSchema, createCohortSchema, SKILL_LABELS, type Language } from '@skillflex/shared'
 import {
   conflict,
   currentUser,

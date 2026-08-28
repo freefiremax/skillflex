@@ -1,5 +1,5 @@
 import type { FastifyReply, FastifyRequest } from 'fastify'
-import type { Role } from '@skillswitch/shared'
+import type { Role } from '@skillflex/shared'
 
 /** Shape of our JWT payload. */
 export interface AuthUser {

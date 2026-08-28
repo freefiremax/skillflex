@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify'
-import { prisma, readObjectList } from '@skillswitch/db'
-import { createSubmissionSchema, type RubricCriterion } from '@skillswitch/shared'
+import { prisma, readObjectList } from '@skillflex/db'
+import { createSubmissionSchema, type RubricCriterion } from '@skillflex/shared'
 import { badRequest, currentMentorId, currentStudentId, currentUser, forbidden, notFound, requireRole } from '../../lib/auth.js'
 import { currentMentorFor } from '../mentorship/service.js'
 

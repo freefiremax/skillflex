@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { LANGUAGE_LABELS, SWITCH_REASON_LABELS, type Language } from '@skillswitch/shared'
+import { LANGUAGE_LABELS, SWITCH_REASON_LABELS, type Language } from '@skillflex/shared'
 import { api } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
 import { Alert, Card, Empty, ErrorNote, Loading, Meter, Pill } from '../../components/ui'

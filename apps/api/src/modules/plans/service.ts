@@ -1,5 +1,5 @@
-import { prisma, readObjectList, readRecord } from '@skillswitch/db'
-import { startOfWeekIST, type RubricCriterion } from '@skillswitch/shared'
+import { prisma, readObjectList, readRecord } from '@skillflex/db'
+import { startOfWeekIST, type RubricCriterion } from '@skillflex/shared'
 
 /**
  * A type alias, not an interface, on purpose: TypeScript only infers an implicit

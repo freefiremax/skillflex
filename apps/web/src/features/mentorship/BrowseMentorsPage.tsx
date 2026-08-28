@@ -11,7 +11,7 @@ import {
   type Language,
   type Skill,
   type SwitchReasonCode,
-} from '@skillswitch/shared'
+} from '@skillflex/shared'
 import { api } from '../../lib/api'
 import { Alert, Card, Empty, ErrorNote, Loading, Pill } from '../../components/ui'
 

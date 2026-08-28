@@ -6,7 +6,7 @@ import {
   CURRENT_POLICY_VERSION,
   ROLE_LABELS,
   type ConsentScope,
-} from '@skillswitch/shared'
+} from '@skillflex/shared'
 import { api } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
 import { Alert, Card, ErrorNote, Loading, Pill, formatDate } from '../../components/ui'
@@ -64,7 +64,7 @@ export default function AccountPage() {
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = 'skillswitch-my-data.json'
+      a.download = 'skillflex-my-data.json'
       a.click()
       URL.revokeObjectURL(url)
     },
@@ -223,7 +223,7 @@ export default function AccountPage() {
       </button>
 
       <div className="tiny faint center">
-        SkillSwitch · policy {CURRENT_POLICY_VERSION} · DPDP Act 2023
+        SkillFlex · policy {CURRENT_POLICY_VERSION} · DPDP Act 2023
       </div>
     </div>
   )

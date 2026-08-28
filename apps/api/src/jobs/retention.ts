@@ -1,5 +1,5 @@
 import { unlink } from 'node:fs/promises'
-import { prisma } from '@skillswitch/db'
+import { prisma } from '@skillflex/db'
 import type { FastifyBaseLogger } from 'fastify'
 import { mediaProvider } from '../lib/media.js'
 

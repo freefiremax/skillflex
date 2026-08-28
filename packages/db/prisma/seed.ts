@@ -8,13 +8,13 @@
  */
 import bcrypt from 'bcryptjs'
 import { PrismaClient } from '@prisma/client'
-import { startOfWeekIST } from '@skillswitch/shared'
+import { startOfWeekIST } from '@skillflex/shared'
 
 const prisma = new PrismaClient()
 const PASSWORD = 'password123'
 
 async function main() {
-  console.log('Seeding SkillSwitch demo data...')
+  console.log('Seeding SkillFlex demo data...')
   const passwordHash = await bcrypt.hash(PASSWORD, 10)
 
   // --- Clean slate (dev only) --------------------------------------------
@@ -53,7 +53,7 @@ async function main() {
 
   // --- Platform + college admin ------------------------------------------
   await prisma.user.create({
-    data: { name: 'Platform Admin', email: 'admin@skillswitch.in', passwordHash, role: 'platform_admin' },
+    data: { name: 'Platform Admin', email: 'admin@skillflex.in', passwordHash, role: 'platform_admin' },
   })
   const collegeAdmin = await prisma.user.create({
     data: { name: 'Prof. Deshmukh', email: 'tpo@avcoe.in', passwordHash, role: 'college_admin' },
@@ -66,7 +66,7 @@ async function main() {
   const mentorData = [
     {
       name: 'Anjali Rao',
-      email: 'anjali@mentor.skillswitch.in',
+      email: 'anjali@mentor.skillflex.in',
       headline: 'Interview coach, ex-TCS',
       bio: 'Ten years taking freshers from campus to first offer. I go slow on fundamentals.',
       languages: ['en', 'hi'],
@@ -74,7 +74,7 @@ async function main() {
     },
     {
       name: 'Sagar Patil',
-      email: 'sagar@mentor.skillswitch.in',
+      email: 'sagar@mentor.skillflex.in',
       headline: 'GD & presentation specialist (Marathi/Hindi)',
       bio: 'Marathi-first mentor. I fix the fear of speaking before we touch technique.',
       languages: ['mr', 'hi', 'en'],
@@ -82,7 +82,7 @@ async function main() {
     },
     {
       name: 'Neha Verma',
-      email: 'neha@mentor.skillswitch.in',
+      email: 'neha@mentor.skillflex.in',
       headline: 'Written & email communication',
       bio: 'Corporate comms trainer. Emails, conflict conversations, the awkward stuff.',
       languages: ['en', 'hi'],
@@ -274,9 +274,9 @@ Seed complete.
   College:        Amrutvahini College of Engineering  (slug: avcoe)
   Password (all): ${PASSWORD}
 
-  Platform admin  admin@skillswitch.in
+  Platform admin  admin@skillflex.in
   College admin   tpo@avcoe.in
-  Mentors         anjali@mentor.skillswitch.in / sagar@... / neha@...
+  Mentors         anjali@mentor.skillflex.in / sagar@... / neha@...
   Students        rahul@student.avcoe.in  (has feedback + a weekly plan)
                   priya@student.avcoe.in / aditya@student.avcoe.in
 `)

@@ -1,4 +1,4 @@
-# SkillSwitch
+# SkillFlex
 
 **Human, multilingual & switchable soft-skills mentorship for Indian students.**
 
@@ -74,9 +74,9 @@ All seeded accounts use the password **`password123`**.
 | --- | --- | --- |
 | Student | `rahul@student.avcoe.in` | Has a reviewed submission, mentor feedback and a generated plan |
 | Student | `priya@student.avcoe.in` | Fresh — good for walking the record → submit loop |
-| Mentor | `anjali@mentor.skillswitch.in` | Review queue with work waiting |
+| Mentor | `anjali@mentor.skillflex.in` | Review queue with work waiting |
 | College admin | `tpo@avcoe.in` | The accreditation dashboard |
-| Platform admin | `admin@skillswitch.in` | API-only provisioning |
+| Platform admin | `admin@skillflex.in` | API-only provisioning |
 
 **The demo path that matters:** sign in as Priya → record an assignment → sign in
 as her mentor → review it → sign back in as Priya and watch the human feedback,

@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify'
-import { prisma } from '@skillswitch/db'
-import { grantConsentSchema, CURRENT_POLICY_VERSION } from '@skillswitch/shared'
+import { prisma } from '@skillflex/db'
+import { grantConsentSchema, CURRENT_POLICY_VERSION } from '@skillflex/shared'
 import { currentUser, requireAuth } from '../../lib/auth.js'
 
 /**

@@ -1,4 +1,4 @@
-import { isConnectFailure } from '@skillswitch/db'
+import { isConnectFailure } from '@skillflex/db'
 import { HttpError } from './auth.js'
 
 /**
@@ -43,7 +43,7 @@ function prismaCode(err: PrismaLikeError): string | undefined {
 
 /**
  * A connect-time failure means the query never reached Postgres, so no write
- * can have half-happened. `isConnectFailure` is imported from @skillswitch/db
+ * can have half-happened. `isConnectFailure` is imported from @skillflex/db
  * rather than redefined here because the retry in that package keys off the
  * same predicate, and a divergence between the two would mean either retrying
  * something unsafe or reporting a retriable failure as permanent.

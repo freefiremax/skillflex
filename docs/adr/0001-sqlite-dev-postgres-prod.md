@@ -3,11 +3,11 @@
 **Status:** Superseded · accepted 2026-08-24, superseded 2026-08-25
 **Superseded by:** the Vercel deploy — `provider` is now `postgresql` everywhere.
 See [Outcome](#outcome-2026-08-25) for what actually happened and what is left.
-**Context:** SkillSwitch P1 (watch → record → human feedback loop)
+**Context:** SkillFlex P1 (watch → record → human feedback loop)
 
 ## Context
 
-SkillSwitch has to be demonstrable on a student laptop, offline, in under five
+SkillFlex has to be demonstrable on a student laptop, offline, in under five
 minutes — E-Cell judging, college TPO demos, and hackathon rounds all happen on
 whatever machine is in the room. At the same time the data model is genuinely
 relational (tenants, cohorts, append-only mentor history, per-language lesson

@@ -1,12 +1,12 @@
 import type { FastifyInstance } from 'fastify'
 import bcrypt from 'bcryptjs'
-import { prisma, readList } from '@skillswitch/db'
+import { prisma, readList } from '@skillflex/db'
 import {
   registerSchema,
   loginSchema,
   CURRENT_POLICY_VERSION,
   type Language,
-} from '@skillswitch/shared'
+} from '@skillflex/shared'
 import { badRequest, conflict, currentUser, notFound, requireAuth, unauthorized } from '../../lib/auth.js'
 import type { AuthUser } from '../../lib/auth.js'
 import { assignInitialMentor } from '../mentorship/service.js'

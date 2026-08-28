@@ -1,6 +1,6 @@
 import { useEffect, type ReactNode } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
-import { LANGUAGE_LABELS, SUPPORTED_LANGUAGES, type Language } from '@skillswitch/shared'
+import { LANGUAGE_LABELS, SUPPORTED_LANGUAGES, type Language } from '@skillflex/shared'
 import { useAuth } from '../lib/auth'
 
 interface NavEntry {

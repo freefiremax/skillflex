@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify'
-import { prisma, readObjectList } from '@skillswitch/db'
+import { prisma, readObjectList } from '@skillflex/db'
 import { badRequest, currentStudentId, notFound, requireRole } from '../../lib/auth.js'
 import { buildWeeklyPlan, type PlanItem } from './service.js'
 

@@ -7,7 +7,7 @@ import {
   SUPPORTED_LANGUAGES,
   type Language,
   type Skill,
-} from '@skillswitch/shared'
+} from '@skillflex/shared'
 import { api } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
 import { Alert, Card, ErrorNote } from '../../components/ui'

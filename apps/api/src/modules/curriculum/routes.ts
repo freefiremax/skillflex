@@ -1,11 +1,11 @@
 import type { FastifyInstance } from 'fastify'
-import { prisma, readObjectList, readRecord } from '@skillswitch/db'
+import { prisma, readObjectList, readRecord } from '@skillflex/db'
 import {
   createTrackSchema,
   createAssignmentSchema,
   type Language,
   type RubricCriterion,
-} from '@skillswitch/shared'
+} from '@skillflex/shared'
 import { currentStudentId, notFound, requireAuth, requireRole } from '../../lib/auth.js'
 import { mediaProvider } from '../../lib/media.js'
 

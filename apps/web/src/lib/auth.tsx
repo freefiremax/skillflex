@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
-import type { Language, Role } from '@skillswitch/shared'
+import type { Language, Role } from '@skillflex/shared'
 import { api, ApiRequestError, getToken, onUnauthorized, setToken } from './api'
 
 export interface Me {
@@ -40,7 +40,7 @@ interface AuthState {
 }
 
 const AuthContext = createContext<AuthState | null>(null)
-const LANG_KEY = 'skillswitch.language'
+const LANG_KEY = 'skillflex.language'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [me, setMe] = useState<Me | null>(null)

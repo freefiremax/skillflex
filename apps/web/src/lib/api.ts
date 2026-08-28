@@ -4,7 +4,7 @@
  * threat model; a refresh-token dance is deferred until there's a reason.
  */
 
-const TOKEN_KEY = 'skillswitch.token'
+const TOKEN_KEY = 'skillflex.token'
 
 export function getToken(): string | null {
   return localStorage.getItem(TOKEN_KEY)

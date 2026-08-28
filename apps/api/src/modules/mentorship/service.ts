@@ -1,9 +1,9 @@
-import { prisma, readList } from '@skillswitch/db'
+import { prisma, readList } from '@skillflex/db'
 import {
   SWITCH_COOLDOWN_DAYS,
   type Language,
   type SwitchReasonCode,
-} from '@skillswitch/shared'
+} from '@skillflex/shared'
 import { HttpError } from '../../lib/auth.js'
 
 /**

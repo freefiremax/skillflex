@@ -1,6 +1,6 @@
 # DPDP Act 2023 — what is implemented, and what isn't
 
-SkillSwitch collects **video of identifiable students**, most of them 18–22, some
+SkillFlex collects **video of identifiable students**, most of them 18–22, some
 younger. Under India's Digital Personal Data Protection Act 2023 that is personal
 data on the sensitive end of the scale, and the college is not the only party with
 obligations — we are the Data Fiduciary for the platform.
@@ -13,7 +13,7 @@ does not. The second list is the useful one.
 | Act term | Who |
 | --- | --- |
 | Data Principal | The student (or their guardian, if under 18) |
-| Data Fiduciary | SkillSwitch |
+| Data Fiduciary | SkillFlex |
 | Data Processor | The video provider (Bunny/Cloudflare), the hosting provider |
 | Consent Manager | Not used |
 

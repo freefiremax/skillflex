@@ -9,7 +9,7 @@
  *
  * The real handler is bundled from TypeScript into apps/api/dist/vercel.mjs
  * during the build (see `build:api` in the root package.json). Bundling first is
- * not optional — @skillswitch/db and @skillswitch/shared are consumed as raw
+ * not optional — @skillflex/db and @skillflex/shared are consumed as raw
  * TypeScript, and Vercel's Node builder will not compile TypeScript it finds
  * inside node_modules.
  *

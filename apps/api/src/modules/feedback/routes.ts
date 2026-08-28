@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify'
-import { prisma, readObjectList, readRecord } from '@skillswitch/db'
-import { createFeedbackSchema, type RubricCriterion } from '@skillswitch/shared'
+import { prisma, readObjectList, readRecord } from '@skillflex/db'
+import { createFeedbackSchema, type RubricCriterion } from '@skillflex/shared'
 import {
   badRequest,
   conflict,

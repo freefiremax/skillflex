@@ -1,12 +1,12 @@
 import type { FastifyInstance } from 'fastify'
-import { prisma, readList } from '@skillswitch/db'
+import { prisma, readList } from '@skillflex/db'
 import {
   mentorSearchSchema,
   switchMentorSchema,
   updateMentorProfileSchema,
   SWITCH_REASON_LABELS,
   type Language,
-} from '@skillswitch/shared'
+} from '@skillflex/shared'
 import {
   currentMentorId,
   currentStudentId,
