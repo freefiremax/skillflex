@@ -9,6 +9,13 @@ interface Report {
   totalSubmissions: number
   totalReviewed: number
   reviewRate: number
+  live: {
+    registrations: number
+    attended: number
+    attendanceRate: number
+    recordingsWatched: number
+    recordingsCompleted: number
+  }
   skillAverages: Array<{ key: string; label: string; average: number; sampleSize: number }>
   switchReasons: Array<{ reasonCode: string; count: number }>
   note: string
@@ -120,6 +127,43 @@ export default function AdminPage() {
               </div>
             </Card>
           </div>
+
+          {/* Attendance is the one number a TPO can act on the same week: a low
+              rate means the lecture slot is wrong, not that the cohort is weak. */}
+          <div className="section-title">Live lectures</div>
+          {r.live.registrations === 0 ? (
+            <Empty
+              icon="◉"
+              title="No registrations yet"
+              body="Attendance appears once students sign up for a live lecture."
+            />
+          ) : (
+            <Card>
+              <div className="stack-sm">
+                <div>
+                  <div className="row-between tiny" style={{ marginBottom: 3 }}>
+                    <span className="dim">Attendance</span>
+                    <span className="mono strong">
+                      {Math.round(r.live.attendanceRate * 100)}%
+                      <span className="faint">
+                        {' '}
+                        ({r.live.attended}/{r.live.registrations})
+                      </span>
+                    </span>
+                  </div>
+                  <Meter value={r.live.attended} max={r.live.registrations} />
+                </div>
+                <div className="row-between small">
+                  <span className="dim">Recordings started</span>
+                  <span className="mono strong">{r.live.recordingsWatched}</span>
+                </div>
+                <div className="row-between small">
+                  <span className="dim">Recordings finished</span>
+                  <span className="mono strong">{r.live.recordingsCompleted}</span>
+                </div>
+              </div>
+            </Card>
+          )}
 
           <div className="section-title">Skill averages</div>
           {r.skillAverages.length === 0 ? (

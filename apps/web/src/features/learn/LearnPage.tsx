@@ -2,7 +2,17 @@ import { useQuery } from '@tanstack/react-query'
 import { Link, useNavigate } from 'react-router-dom'
 import { api } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
-import { Card, Empty, ErrorNote, Loading, Pill, StatusPill } from '../../components/ui'
+import {
+  Card,
+  Empty,
+  ErrorNote,
+  Loading,
+  Pill,
+  StatusPill,
+  formatDateTime,
+  formatRelative,
+} from '../../components/ui'
+import type { LiveClassView } from '../live/LiveBits'
 
 interface WeekAssignment {
   id: string
@@ -59,6 +69,15 @@ export default function LearnPage() {
       ),
   })
 
+  /**
+   * The next lecture the student is actually signed up for. Shared cache key with
+   * the pet companion, which asks the same question.
+   */
+  const nextLive = useQuery({
+    queryKey: ['live-next'],
+    queryFn: () => api.get<{ class: LiveClassView | null }>('/live/next'),
+  })
+
   const pending = week.data?.assignments.filter((a) => a.status === 'not_started') ?? []
   const awaiting = week.data?.assignments.filter((a) => ['submitted', 'in_review'].includes(a.status)) ?? []
   const done = week.data?.assignments.filter((a) => a.status === 'reviewed') ?? []
@@ -87,6 +106,38 @@ export default function LearnPage() {
               )}
             </div>
             <Pill tone="brand">Switch →</Pill>
+          </div>
+        </Card>
+      )}
+
+      {/* A lecture in progress outranks everything else on this page — it is the
+          one thing that stops being available if the student scrolls past it. */}
+      {nextLive.data?.class && (
+        <Card
+          accent={nextLive.data.class.status === 'live'}
+          onClick={() => navigate(`/live/${nextLive.data!.class!.id}`)}
+        >
+          <div className="row-between">
+            <div>
+              <div className="tiny faint">
+                {nextLive.data.class.status === 'live' ? 'LIVE RIGHT NOW' : 'YOUR NEXT LIVE LECTURE'}
+              </div>
+              <div className="strong">{nextLive.data.class.title}</div>
+              <div className="tiny dim">
+                {nextLive.data.class.mentor.name} ·{' '}
+                {nextLive.data.class.status === 'live'
+                  ? 'under way'
+                  : `${formatDateTime(nextLive.data.class.scheduledAt)} (${formatRelative(nextLive.data.class.scheduledAt)})`}
+              </div>
+            </div>
+            {nextLive.data.class.status === 'live' ? (
+              <span className="pill pill-danger">
+                <span className="rec-dot" />
+                Join
+              </span>
+            ) : (
+              <Pill tone="brand">Details →</Pill>
+            )}
           </div>
         </Card>
       )}

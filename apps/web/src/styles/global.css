@@ -667,6 +667,23 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
 }
 .pet-list li { font-size: 0.78rem; line-height: 1.4; color: var(--text-dim); }
 
+/* The live-lecture line in the bubble. Pressed rather than raised so it reads as
+   a slot cut into the bubble, not a second bubble sitting on top of it. */
+.pet-live {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  padding: 0.4rem 0.5rem;
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--neu-in-sm);
+  text-decoration: none;
+  color: var(--text-dim);
+}
+.pet-live:hover { color: var(--brand-deep); }
+.pet-live .rec-dot { flex: 0 0 auto; }
+
 @keyframes pet-pop {
   0%   { opacity: 0; transform: scale(0.9) translateY(6px); }
   100% { opacity: 1; transform: scale(1) translateY(0); }

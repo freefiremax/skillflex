@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../lib/api'
 import { useAuth } from '../lib/auth'
+import { formatRelative } from './ui'
 
 interface PlanItem {
   title: string
@@ -13,6 +14,14 @@ interface PlanItem {
 interface PlanResponse {
   plan: { id: string; items: PlanItem[] } | null
   message?: string
+}
+
+/** Only the fields the bubble shows — see LiveBits for the full shape. */
+interface NextLive {
+  id: string
+  title: string
+  status: string
+  scheduledAt: string
 }
 
 /** Roaming range, as a percentage of the viewport width. Kept off both edges so
@@ -65,6 +74,14 @@ export function PetCompanion() {
     enabled: open && isStudent,
   })
 
+  // Same deal, shared with LearnPage's card. A lecture about to start is more
+  // urgent than any plan item, so it gets the top of the bubble.
+  const live = useQuery({
+    queryKey: ['live-next'],
+    queryFn: () => api.get<{ class: NextLive | null }>('/live/next'),
+    enabled: open && isStudent,
+  })
+
   useEffect(() => {
     // Standing still while the bubble is open: a pet that walks out from under
     // its own speech bubble is worse than no animation at all.
@@ -101,6 +118,7 @@ export function PetCompanion() {
   const plan = data?.plan
   const todo = plan?.items.filter((i) => !i.done) ?? []
   const doneCount = (plan?.items.length ?? 0) - todo.length
+  const nextLive = live.data?.class ?? null
 
   return (
     <div
@@ -120,6 +138,27 @@ export function PetCompanion() {
           <div className="tiny strong" style={{ color: 'var(--accent)' }}>
             {isStudent ? "THIS WEEK'S PLAN" : 'YOUR STUDY BUDDY'}
           </div>
+
+          {/* Above the plan on purpose: a lecture is time-bound and a plan item
+              is not, so it is the only thing here that can be missed. */}
+          {isStudent && nextLive && (
+            <Link
+              to={`/live/${nextLive.id}`}
+              className="pet-live"
+              onClick={() => setOpen(false)}
+            >
+              {nextLive.status === 'live' && <span className="rec-dot" />}
+              <span className="tiny strong">
+                {nextLive.status === 'live' ? 'Live now: ' : 'Next lecture: '}
+                {nextLive.title}
+              </span>
+              <span className="tiny faint">
+                {nextLive.status === 'live'
+                  ? 'tap to join'
+                  : formatRelative(nextLive.scheduledAt)}
+              </span>
+            </Link>
+          )}
 
           {!isStudent ? (
             <div className="tiny dim">

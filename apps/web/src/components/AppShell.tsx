@@ -10,8 +10,12 @@ interface NavEntry {
   icon: string
 }
 
+// Five is the ceiling for the mobile bottom bar — past that the targets get too
+// narrow to hit. Live lectures and their recordings share one entry for exactly
+// that reason; the split lives in tabs inside the page.
 const STUDENT_NAV: NavEntry[] = [
   { to: '/', label: 'Learn', icon: '▶' },
+  { to: '/live', label: 'Live', icon: '◉' },
   { to: '/feedback', label: 'Feedback', icon: '✎' },
   { to: '/plan', label: 'Plan', icon: '✓' },
   { to: '/mentor', label: 'Mentor', icon: '☺' },
@@ -19,6 +23,7 @@ const STUDENT_NAV: NavEntry[] = [
 
 const MENTOR_NAV: NavEntry[] = [
   { to: '/', label: 'Queue', icon: '▤' },
+  { to: '/live', label: 'Live', icon: '◉' },
   { to: '/profile', label: 'Profile', icon: '☺' },
 ]
 

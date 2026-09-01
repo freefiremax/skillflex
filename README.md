@@ -8,13 +8,14 @@ that feedback into a weekly plan, and nothing else.
 
 ---
 
-## The four things it does
+## The five things it does
 
 | | |
 | --- | --- |
 | **Learn in your language** | Lessons carry a separate video per language (English / हिंदी / मराठी). Not subtitles — a different recording. |
 | **Practice on camera** | Weekly task-based assignments recorded in the browser, capped by the assignment's duration limit. |
 | **A human reviews it** | A real mentor watches the video and writes scores + specific feedback. No AI scores anyone. |
+| **Attend live, or watch it later** | Mentors schedule one-to-many live lectures; the recording lands in an on-demand library that resumes where you left off. |
 | **Switch mentors freely** | Not the right fit? Switch, keep all your history, pay nothing extra. The reason is recorded. |
 
 The switch is the product. Every incumbent locks you to whoever you were
@@ -97,7 +98,7 @@ npm run db:reset     # wipe + reseed (destroys local data)
 api/
   [...path].mjs   Vercel entry — re-exports the bundled Fastify app
 apps/
-  api/    Fastify server — 10 route modules under src/modules/
+  api/    Fastify server — 11 route modules under src/modules/
   web/    React PWA — one folder per feature under src/features/
 packages/
   db/     Prisma schema, client singleton, Json read helpers, seed
@@ -130,6 +131,13 @@ signed ticket; the browser uploads directly to a private Supabase Storage bucket
 and then calls `POST /api/media/:id/complete`. `LocalMediaProvider` accepts bytes
 through the API and is dev-only. This also sidesteps Vercel's 4.5 MB request-body
 cap, which a phone recording would blow through immediately.
+
+**A live lecture's status is derived, not trusted.** Mentors forget to press
+"End". `effectiveLiveClassStatus()` decides from the clock whether a class is
+over, and the stored column is treated as the mentor's intent — so a class left
+at `live` since Tuesday stops advertising itself as in progress. The room link is
+withheld from every payload except `POST /api/live/classes/:id/join`, which
+stamps attendance in the same call.
 
 **DPDP consent is versioned, append-only, and withdrawal does something.**
 Revoking video consent schedules every recording you own for deletion in 7 days
@@ -174,7 +182,12 @@ nothing in a serverless function lives long enough to hold a timer.
 
 ## Not built yet
 
-- Live 1:1 sessions — `MentorAvailability` and `LiveSession` are in the schema, no routes
+- Live **1:1** sessions — `MentorAvailability` and `LiveSession` are in the schema, no
+  routes. (One-to-many live *lectures* are built — that is `LiveClass`, a different table.)
+- No video conferencing of our own — a mentor pastes a Meet/Zoom/Jitsi link and we
+  gate access to it. Hosting the room is a much larger build than it looks.
+- Lecture recordings are uploaded by the mentor after the fact; nothing records
+  the live room automatically.
 - Payments / invoicing (colleges are onboarded by hand at this stage)
 - Notifications of any kind — email, push, WhatsApp
 - Automated tests

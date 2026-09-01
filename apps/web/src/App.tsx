@@ -11,7 +11,10 @@ import FeedbackListPage from './features/feedback/FeedbackListPage'
 import PlanPage from './features/plans/PlanPage'
 import MentorPage from './features/mentorship/MentorPage'
 import BrowseMentorsPage from './features/mentorship/BrowseMentorsPage'
+import LivePage from './features/live/LivePage'
+import LiveClassPage from './features/live/LiveClassPage'
 import MentorQueuePage from './features/mentor-console/MentorQueuePage'
+import MentorLivePage from './features/mentor-console/MentorLivePage'
 import ReviewPage from './features/mentor-console/ReviewPage'
 import MentorProfilePage from './features/mentor-console/MentorProfilePage'
 import AdminPage from './features/admin/AdminPage'
@@ -50,6 +53,8 @@ export default function App() {
             <Route path="/assignments/:id/record" element={<RecordPage />} />
             <Route path="/feedback" element={<FeedbackListPage />} />
             <Route path="/plan" element={<PlanPage />} />
+            <Route path="/live" element={<LivePage />} />
+            <Route path="/live/:id" element={<LiveClassPage />} />
             <Route path="/mentor" element={<MentorPage />} />
             <Route path="/mentor/browse" element={<BrowseMentorsPage />} />
           </>
@@ -59,6 +64,7 @@ export default function App() {
           <>
             <Route path="/" element={<MentorQueuePage />} />
             <Route path="/review/:id" element={<ReviewPage />} />
+            <Route path="/live" element={<MentorLivePage />} />
             <Route path="/profile" element={<MentorProfilePage />} />
           </>
         )}

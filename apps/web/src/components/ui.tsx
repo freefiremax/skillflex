@@ -178,3 +178,43 @@ export function formatDate(value: string | Date | null): string {
     year: 'numeric',
   })
 }
+
+/** Date *and* clock time — a lecture at "3 Sep" tells a student nothing. */
+export function formatDateTime(value: string | Date | null): string {
+  if (!value) return '—'
+  return new Date(value).toLocaleString('en-IN', {
+    day: 'numeric',
+    month: 'short',
+    hour: 'numeric',
+    minute: '2-digit',
+  })
+}
+
+/**
+ * "in 40 min", "in 3 days", "25 min ago".
+ *
+ * Coarser the further out it is, on purpose: "in 2 days 4 hours 12 minutes" is
+ * technically better and practically worse, and a lecture three days out does
+ * not need minute precision.
+ */
+export function formatRelative(value: string | Date | null): string {
+  if (!value) return '—'
+  const diff = new Date(value).getTime() - Date.now()
+  const ahead = diff >= 0
+  const mins = Math.round(Math.abs(diff) / 60_000)
+
+  let text: string
+  if (mins < 1) text = 'now'
+  else if (mins < 60) text = `${mins} min`
+  else if (mins < 60 * 24) {
+    const h = Math.floor(mins / 60)
+    const m = mins % 60
+    text = m === 0 ? `${h} hr` : `${h} hr ${m} min`
+  } else {
+    const days = Math.round(mins / (60 * 24))
+    text = `${days} day${days > 1 ? 's' : ''}`
+  }
+
+  if (text === 'now') return 'now'
+  return ahead ? `in ${text}` : `${text} ago`
+}
