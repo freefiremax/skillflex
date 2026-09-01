@@ -5,9 +5,17 @@ import { MEDIA_KINDS, SUBMISSION_RETENTION_DAYS } from '@skillflex/shared'
 import { badRequest, currentUser, forbidden, notFound, requireAuth } from '../../lib/auth.js'
 import { mediaProvider } from '../../lib/media.js'
 
+/**
+ * A student practice clip is capped at two minutes; a recorded lecture is hours.
+ * One bound has to cover both, so it is the generous one — this is a sanity
+ * check against garbage, not the assignment's duration limit (which is enforced
+ * per-assignment in the submissions module).
+ */
+const MAX_DURATION_SECONDS = 6 * 60 * 60
+
 const createMediaSchema = z.object({
   kind: z.enum(MEDIA_KINDS).default('submission_video'),
-  durationSeconds: z.number().int().min(1).max(3600).optional(),
+  durationSeconds: z.number().int().min(1).max(MAX_DURATION_SECONDS).optional(),
   /**
    * What MediaRecorder produced. Providers that store to object storage need it
    * to pick a file extension at reserve time, before any bytes exist.
@@ -17,7 +25,7 @@ const createMediaSchema = z.object({
 
 const completeMediaSchema = z.object({
   sizeBytes: z.number().int().positive().optional(),
-  durationSeconds: z.number().int().min(1).max(3600).optional(),
+  durationSeconds: z.number().int().min(1).max(MAX_DURATION_SECONDS).optional(),
 })
 
 /** A signed link must never outlive the video it points at. */

@@ -19,6 +19,7 @@ import { mediaRoutes } from './modules/media/routes.js'
 import { planRoutes } from './modules/plans/routes.js'
 import { orgRoutes } from './modules/orgs/routes.js'
 import { consentRoutes } from './modules/consent/routes.js'
+import { liveRoutes } from './modules/live/routes.js'
 import { internalRoutes } from './modules/internal/routes.js'
 
 export async function buildApp() {
@@ -41,7 +42,10 @@ export async function buildApp() {
 
   await app.register(multipart, {
     limits: {
-      fileSize: 200 * 1024 * 1024, // 200 MB — a 2-minute phone recording
+      // A 2-minute phone recording is ~20 MB; a 45-minute lecture recording is
+      // the reason this is not 200 MB. Only local dev posts bytes through here
+      // at all — signed-upload providers never touch this limit.
+      fileSize: 2 * 1024 * 1024 * 1024, // 2 GB
       files: 1,
     },
   })
@@ -172,6 +176,7 @@ export async function buildApp() {
   await app.register(planRoutes, { prefix: '/api/plans' })
   await app.register(orgRoutes, { prefix: '/api/orgs' })
   await app.register(consentRoutes, { prefix: '/api/consent' })
+  await app.register(liveRoutes, { prefix: '/api/live' })
   await app.register(internalRoutes, { prefix: '/api/internal' })
 
   return app

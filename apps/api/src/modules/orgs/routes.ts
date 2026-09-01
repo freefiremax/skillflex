@@ -142,11 +142,38 @@ export async function orgRoutes(app: FastifyInstance) {
       where: { studentId: { in: studentIds } },
     })
 
+    /**
+     * Live-lecture engagement, same aggregate-only rule as the rest of this
+     * report. `attended` vs `registered` is the interesting pair — a TPO wants to
+     * know whether the seats their college booked were actually used, and
+     * `recordingsWatched` is what catches the cohort that turns up for none of
+     * the lectures and watches all of them at 1am before placements.
+     */
+    const [registered, attended, recordingsWatched, recordingsCompleted] = await Promise.all([
+      prisma.liveClassRegistration.count({ where: { studentId: { in: studentIds } } }),
+      prisma.liveClassRegistration.count({
+        where: { studentId: { in: studentIds }, attendedAt: { not: null } },
+      }),
+      prisma.liveClassRegistration.count({
+        where: { studentId: { in: studentIds }, watchedSeconds: { gt: 0 } },
+      }),
+      prisma.liveClassRegistration.count({
+        where: { studentId: { in: studentIds }, completedAt: { not: null } },
+      }),
+    ])
+
     return {
       cohortSize: studentIds.length,
       totalSubmissions,
       totalReviewed: feedback.length,
       reviewRate: totalSubmissions === 0 ? 0 : Number((feedback.length / totalSubmissions).toFixed(2)),
+      live: {
+        registrations: registered,
+        attended,
+        attendanceRate: registered === 0 ? 0 : Number((attended / registered).toFixed(2)),
+        recordingsWatched,
+        recordingsCompleted,
+      },
       skillAverages: [...byKey.entries()].map(([key, b]) => ({
         key,
         label: b.label,
