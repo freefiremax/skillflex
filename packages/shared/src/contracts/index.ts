@@ -132,6 +132,60 @@ export const createCohortSchema = z.object({
 })
 
 // ---------------------------------------------------------------------------
+// Live lectures + recordings
+// ---------------------------------------------------------------------------
+
+/**
+ * Plain object, no refinements — `.partial()` below needs it to still be a
+ * ZodObject, and a `.refine()` would turn it into a ZodEffects that has no
+ * `.partial()`.
+ */
+const liveClassFields = z.object({
+  title: z.string().min(4).max(160),
+  description: z.string().max(4000).optional(),
+  /** Ties a lecture to the same skill vocabulary mentors are matched on. */
+  skill: z.enum(SKILLS).optional(),
+  language: z.enum(SUPPORTED_LANGUAGES).default('en'),
+  scheduledAt: z.coerce.date(),
+  durationMinutes: z.number().int().min(10).max(240).default(45),
+  capacity: z.number().int().min(1).max(1000).default(100),
+  /** Whatever room the mentor is using — Meet, Zoom, Jitsi. */
+  joinUrl: z.string().url().max(500).optional(),
+})
+
+export const createLiveClassSchema = liveClassFields.extend({
+  /**
+   * A minute of slack rather than a hard `> now`: the mentor's clock, the
+   * browser's clock and the server's clock are never quite the same, and
+   * rejecting "in 30 seconds" as being in the past is indefensible.
+   */
+  scheduledAt: z.coerce
+    .date()
+    .refine((d) => d.getTime() > Date.now() - 60_000, 'Pick a time in the future'),
+})
+export type CreateLiveClassInput = z.infer<typeof createLiveClassSchema>
+
+/** Reschedule/retitle. Every field optional; the past-time guard is dropped so
+ *  a mentor can still correct the details of a class already under way. */
+export const updateLiveClassSchema = liveClassFields.partial()
+export type UpdateLiveClassInput = z.infer<typeof updateLiveClassSchema>
+
+export const liveClassSearchSchema = z.object({
+  language: z.enum(SUPPORTED_LANGUAGES).optional(),
+  skill: z.enum(SKILLS).optional(),
+  q: z.string().max(120).optional(),
+})
+
+export const publishRecordingSchema = z.object({
+  mediaId: cuid,
+  durationSeconds: z.number().int().min(1).max(6 * 60 * 60).optional(),
+})
+
+export const recordingProgressSchema = z.object({
+  watchedSeconds: z.number().int().min(0).max(6 * 60 * 60),
+})
+
+// ---------------------------------------------------------------------------
 // Consent (DPDP)
 // ---------------------------------------------------------------------------
 

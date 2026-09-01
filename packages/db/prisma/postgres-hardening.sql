@@ -45,6 +45,20 @@ CREATE INDEX IF NOT EXISTS media_assets_retention_sweep
   WHERE "deletedAt" IS NULL;
 
 -- ---------------------------------------------------------------------------
+-- 3. The recordings library.
+--
+-- GET /api/live/recordings (apps/api/src/modules/live/routes.ts) asks for
+-- published recordings, newest first. The schema's @@index([recordingPublishedAt])
+-- covers the ordering, but it indexes every live class ever scheduled — and most
+-- of them never get a recording, so the majority of that index is NULLs the query
+-- can never use.
+--
+-- Partial index over the published subset only. Same shape as #2, same reason.
+CREATE INDEX IF NOT EXISTS live_classes_published_recordings
+  ON live_classes ("recordingPublishedAt" DESC)
+  WHERE "recordingPublishedAt" IS NOT NULL;
+
+-- ---------------------------------------------------------------------------
 -- What is deliberately NOT here
 --
 -- * Json list columns -> native String[]. ADR 0001 calls this the highest-value

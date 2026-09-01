@@ -41,6 +41,7 @@ model Organization {
   memberships   OrgMembership[]
   cohorts       Cohort[]
   subscriptions Subscription[]
+  liveClasses   LiveClass[]
 
   @@map("organizations")
 }
@@ -75,13 +76,13 @@ model Cohort {
 }
 
 model Subscription {
-  id       String    @id @default(cuid())
-  orgId    String
-  seats    Int
-  status   String    @default("trial") // trial | active | past_due | cancelled
+  id           String    @id @default(cuid())
+  orgId        String
+  seats        Int
+  status       String    @default("trial") // trial | active | past_due | cancelled
   pricePerSeat Int? // paise, per student per year
-  startsAt DateTime  @default(now())
-  endsAt   DateTime?
+  startsAt     DateTime  @default(now())
+  endsAt       DateTime?
 
   org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
@@ -114,9 +115,9 @@ model User {
 }
 
 model StudentProfile {
-  id       String @id @default(cuid())
-  userId   String @unique
-  cohortId String?
+  id                 String  @id @default(cuid())
+  userId             String  @unique
+  cohortId           String?
   // Json string[] — drives mentor matching, not just subtitle choice.
   // No @default: Prisma emits Json defaults as unquoted literals on SQLite
   // (DEFAULT {}), which is invalid SQL. Callers pass the value explicitly.
@@ -127,39 +128,41 @@ model StudentProfile {
   user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   cohort Cohort? @relation(fields: [cohortId], references: [id], onDelete: SetNull)
 
-  submissions       Submission[]
-  mentorAssignments MentorAssignment[]
-  switchEvents      MentorSwitchEvent[]
-  weeklyPlans       WeeklyPlan[]
-  liveSessions      LiveSession[]
+  submissions            Submission[]
+  mentorAssignments      MentorAssignment[]
+  switchEvents           MentorSwitchEvent[]
+  weeklyPlans            WeeklyPlan[]
+  liveSessions           LiveSession[]
+  liveClassRegistrations LiveClassRegistration[]
 
   @@index([cohortId])
   @@map("student_profiles")
 }
 
 model MentorProfile {
-  id       String @id @default(cuid())
-  userId   String @unique
-  headline String?
-  bio      String?
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  headline            String?
+  bio                 String?
   // Json string[] — languages the mentor can actually mentor in
-  languages Json
+  languages           Json
   // Json string[] — skill slugs from shared/enums SKILLS
-  skills    Json
+  skills              Json
   // Capacity cap: without this every student stampedes onto the top mentor
-  maxActiveStudents Int     @default(25)
-  ratePerSession    Int? // paise
-  isAcceptingStudents Boolean @default(true)
-  createdAt DateTime @default(now())
+  maxActiveStudents   Int      @default(25)
+  ratePerSession      Int? // paise
+  isAcceptingStudents Boolean  @default(true)
+  createdAt           DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  assignments   MentorAssignment[]
-  feedback      Feedback[]
-  availability  MentorAvailability[]
-  liveSessions  LiveSession[]
-  switchesFrom  MentorSwitchEvent[]  @relation("switch_from")
-  switchesTo    MentorSwitchEvent[]  @relation("switch_to")
+  assignments  MentorAssignment[]
+  feedback     Feedback[]
+  availability MentorAvailability[]
+  liveSessions LiveSession[]
+  liveClasses  LiveClass[]
+  switchesFrom MentorSwitchEvent[]  @relation("switch_from")
+  switchesTo   MentorSwitchEvent[]  @relation("switch_to")
 
   @@map("mentor_profiles")
 }
@@ -184,11 +187,11 @@ model Track {
 }
 
 model Module {
-  id      String @id @default(cuid())
+  id      String  @id @default(cuid())
   trackId String
   title   String
   summary String?
-  order   Int    @default(0)
+  order   Int     @default(0)
 
   track   Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
   lessons Lesson[]
@@ -198,11 +201,11 @@ model Module {
 }
 
 model Lesson {
-  id       String @id @default(cuid())
-  moduleId String
-  title    String
-  summary  String?
-  order    Int    @default(0)
+  id              String  @id @default(cuid())
+  moduleId        String
+  title           String
+  summary         String?
+  order           Int     @default(0)
   durationSeconds Int?
 
   module      Module        @relation(fields: [moduleId], references: [id], onDelete: Cascade)
@@ -214,7 +217,7 @@ model Lesson {
 }
 
 model LessonAsset {
-  id       String @id @default(cuid())
+  id       String  @id @default(cuid())
   lessonId String
   language String // en | hi | mr — see SUPPORTED_LANGUAGES
   mediaId  String?
@@ -231,17 +234,17 @@ model LessonAsset {
 // ---------------------------------------------------------------------------
 
 model Assignment {
-  id       String @id @default(cuid())
-  lessonId String
-  title    String
-  brief    String
+  id                 String    @id @default(cuid())
+  lessonId           String
+  title              String
+  brief              String
   // Json: rubric criteria [{ key, label, max }] — structured so feedback
   // aggregates into the NAAC/NBA dashboard instead of dying as prose
-  rubric   Json
-  maxDurationSeconds Int @default(120)
-  weekOf   DateTime?
-  isPublished Boolean @default(true)
-  createdAt DateTime @default(now())
+  rubric             Json
+  maxDurationSeconds Int       @default(120)
+  weekOf             DateTime?
+  isPublished        Boolean   @default(true)
+  createdAt          DateTime  @default(now())
 
   lesson      Lesson       @relation(fields: [lessonId], references: [id], onDelete: Cascade)
   submissions Submission[]
@@ -251,15 +254,15 @@ model Assignment {
 }
 
 model Submission {
-  id           String   @id @default(cuid())
+  id           String    @id @default(cuid())
   assignmentId String
   studentId    String
   mediaId      String?
-  status       String   @default("draft") // draft | uploading | submitted | in_review | reviewed
+  status       String    @default("draft") // draft | uploading | submitted | in_review | reviewed
   note         String?
   submittedAt  DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   assignment Assignment     @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
   student    StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
@@ -275,8 +278,8 @@ model Submission {
 // Feedback hangs off the SUBMISSION, not off MentorAssignment — so a student
 // who switches mentors keeps their whole history and the new mentor has context.
 model Feedback {
-  id           String @id @default(cuid())
-  submissionId String @unique
+  id           String   @id @default(cuid())
+  submissionId String   @unique
   mentorId     String
   // Json: { [rubricKey]: number } — the structured half
   rubricScores Json
@@ -298,14 +301,14 @@ model Feedback {
 // a plan with no source feedback is a generic to-do list, which is the exact
 // commodity feature the research paper warns about.
 model WeeklyPlan {
-  id        String   @id @default(cuid())
-  studentId String
-  weekOf    DateTime
+  id                String   @id @default(cuid())
+  studentId         String
+  weekOf            DateTime
   sourceFeedbackIds Json // Json string[] — provenance, non-empty
-  items     Json         // Json [{ title, why, done }]
-  model     String?      // which LLM produced it
-  version   Int      @default(1)
-  createdAt DateTime @default(now())
+  items             Json // Json [{ title, why, done }]
+  model             String? // which LLM produced it
+  version           Int      @default(1)
+  createdAt         DateTime @default(now())
 
   student StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
@@ -355,6 +358,92 @@ model MentorSwitchEvent {
 }
 
 // ---------------------------------------------------------------------------
+// Live lectures (one mentor, many students) + their recordings.
+//
+// Deliberately NOT folded into LiveSession below: that model is a 1:1 booking
+// against a mentor's availability slot and has no capacity, no registration
+// list and no recording. Overloading one table with a nullable "isGroup" would
+// make every query in both features check a flag.
+//
+// A lecture is cross-institutional by default (orgId null) — same argument as
+// the mentor pool. A college that wants a private cohort session sets orgId.
+// ---------------------------------------------------------------------------
+
+model LiveClass {
+  id          String  @id @default(cuid())
+  mentorId    String
+  /**
+   * null == open to every college, which is the default.
+   */
+  orgId       String?
+  title       String
+  description String?
+  skill       String? // SKILLS slug — same vocabulary mentors are matched on
+  language    String // en | hi | mr
+  status      String  @default("scheduled") // scheduled | live | ended | cancelled
+
+  scheduledAt     DateTime
+  durationMinutes Int      @default(45)
+  capacity        Int      @default(100)
+
+  /**
+   * The room. Held back from students until the join window opens.
+   */
+  joinUrl   String?
+  startedAt DateTime?
+  endedAt   DateTime?
+
+  /**
+   * The recording, once the mentor publishes it. Nullable through the whole
+   * lifecycle: most classes are live-only until someone uploads the file, and
+   * a lecture with no recording is a normal end state, not a broken one.
+   */
+  recordingMediaId     String?
+  recordingPublishedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  mentor         MentorProfile           @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  org            Organization?           @relation(fields: [orgId], references: [id], onDelete: SetNull)
+  recordingMedia MediaAsset?             @relation("live_class_recording", fields: [recordingMediaId], references: [id], onDelete: SetNull)
+  registrations  LiveClassRegistration[]
+
+  @@index([status, scheduledAt])
+  @@index([mentorId, scheduledAt])
+  @@index([recordingPublishedAt])
+  @@map("live_classes")
+}
+
+/**
+ * One row per student per lecture, carrying both halves of engagement:
+ * registration + live attendance, and watch progress on the recording. Keeping
+ * them together is what lets "registered but never showed, watched it later"
+ * be answerable — which is the question a TPO actually asks.
+ */
+model LiveClassRegistration {
+  id        String @id @default(cuid())
+  classId   String
+  studentId String
+
+  registeredAt DateTime  @default(now())
+  attendedAt   DateTime? // set when they enter the live room
+
+  /**
+   * Recording progress. Resume-where-you-left-off, and a completion signal.
+   */
+  watchedSeconds Int       @default(0)
+  completedAt    DateTime?
+
+  liveClass LiveClass      @relation(fields: [classId], references: [id], onDelete: Cascade)
+  student   StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([classId, studentId])
+  @@index([studentId])
+  @@map("live_class_registrations")
+}
+
+// ---------------------------------------------------------------------------
 // Live 1:1 — modelled now, built last (highest cost, lowest differentiation)
 // ---------------------------------------------------------------------------
 
@@ -373,15 +462,15 @@ model MentorAvailability {
 }
 
 model LiveSession {
-  id             String   @id @default(cuid())
-  studentId      String
-  mentorId       String
-  availabilityId String?  @unique
-  roomId         String?
-  status         String   @default("booked") // booked | completed | cancelled | no_show
-  scheduledAt    DateTime
-  durationMinutes Int     @default(30)
-  createdAt      DateTime @default(now())
+  id              String   @id @default(cuid())
+  studentId       String
+  mentorId        String
+  availabilityId  String?  @unique
+  roomId          String?
+  status          String   @default("booked") // booked | completed | cancelled | no_show
+  scheduledAt     DateTime
+  durationMinutes Int      @default(30)
+  createdAt       DateTime @default(now())
 
   student      StudentProfile      @relation(fields: [studentId], references: [id], onDelete: Cascade)
   mentor       MentorProfile       @relation(fields: [mentorId], references: [id], onDelete: Cascade)
@@ -399,24 +488,25 @@ model LiveSession {
 // ---------------------------------------------------------------------------
 
 model MediaAsset {
-  id          String   @id @default(cuid())
-  provider    String   @default("local") // local | bunny | cloudflare
-  externalId  String?
-  kind        String // lesson_video | submission_video
-  status      String   @default("pending") // pending | ready | failed | deleted
-  ownerUserId String?
-  localPath   String?
-  playbackUrl String?
-  sizeBytes   Int?
+  id              String    @id @default(cuid())
+  provider        String    @default("local") // local | bunny | cloudflare
+  externalId      String?
+  kind            String // lesson_video | submission_video
+  status          String    @default("pending") // pending | ready | failed | deleted
+  ownerUserId     String?
+  localPath       String?
+  playbackUrl     String?
+  sizeBytes       Int?
   durationSeconds Int?
   // DPDP: every student-owned asset gets a retention deadline at creation
-  retentionUntil DateTime?
-  deletedAt      DateTime?
-  createdAt      DateTime @default(now())
+  retentionUntil  DateTime?
+  deletedAt       DateTime?
+  createdAt       DateTime  @default(now())
 
-  owner        User?          @relation(fields: [ownerUserId], references: [id], onDelete: SetNull)
-  lessonAssets LessonAsset[]
-  submissions  Submission[]
+  owner               User?         @relation(fields: [ownerUserId], references: [id], onDelete: SetNull)
+  lessonAssets        LessonAsset[]
+  submissions         Submission[]
+  liveClassRecordings LiveClass[]   @relation("live_class_recording")
 
   @@index([status])
   @@index([retentionUntil])
@@ -424,12 +514,12 @@ model MediaAsset {
 }
 
 model ConsentRecord {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   userId        String
   policyVersion String
   scope         String // video_recording | data_processing | marketing
-  granted       Boolean  @default(true)
-  grantedAt     DateTime @default(now())
+  granted       Boolean   @default(true)
+  grantedAt     DateTime  @default(now())
   revokedAt     DateTime?
   // School segment: under-18 students need a verifiable guardian record
   guardianName  String?

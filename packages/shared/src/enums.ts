@@ -62,11 +62,82 @@ export const SUBMISSION_STATUSES = [
 ] as const
 export type SubmissionStatus = (typeof SUBMISSION_STATUSES)[number]
 
-export const MEDIA_KINDS = ['lesson_video', 'submission_video'] as const
+export const MEDIA_KINDS = ['lesson_video', 'submission_video', 'lecture_recording'] as const
 export type MediaKind = (typeof MEDIA_KINDS)[number]
 
 export const MEDIA_STATUSES = ['pending', 'ready', 'failed', 'deleted'] as const
 export type MediaStatus = (typeof MEDIA_STATUSES)[number]
+
+// ---------------------------------------------------------------------------
+// Live lectures + their recordings.
+//
+// A LiveClass is one-to-many: one mentor teaching a room of students. That is a
+// different thing from the 1:1 LiveSession booked off MentorAvailability, and
+// they stay separate models on purpose — a lecture has capacity, registration
+// and a recording, and a 1:1 has none of those.
+// ---------------------------------------------------------------------------
+
+export const LIVE_CLASS_STATUSES = ['scheduled', 'live', 'ended', 'cancelled'] as const
+export type LiveClassStatus = (typeof LIVE_CLASS_STATUSES)[number]
+
+export const LIVE_CLASS_STATUS_LABELS: Record<LiveClassStatus, string> = {
+  scheduled: 'Scheduled',
+  live: 'Live now',
+  ended: 'Ended',
+  cancelled: 'Cancelled',
+}
+
+/**
+ * The room opens this long before the scheduled start. Students arriving early
+ * is the normal case, not an edge case, and a locked door at 10:59 for an 11:00
+ * class reads as a broken product.
+ */
+export const LIVE_CLASS_JOIN_LEAD_MINUTES = 10
+
+/**
+ * And it stays open this long past the scheduled end. Lectures overrun, and the
+ * scheduled duration is the mentor's estimate rather than a contract.
+ */
+export const LIVE_CLASS_JOIN_GRACE_MINUTES = 20
+
+/** How much of a recording counts as having watched it. */
+export const RECORDING_COMPLETE_FRACTION = 0.9
+
+/**
+ * When the room is enterable. Derived from the schedule rather than stored, so
+ * it cannot drift out of sync with a rescheduled class.
+ */
+export function liveClassJoinWindow(scheduledAt: Date, durationMinutes: number) {
+  const start = scheduledAt.getTime()
+  return {
+    opensAt: new Date(start - LIVE_CLASS_JOIN_LEAD_MINUTES * 60_000),
+    closesAt: new Date(start + (durationMinutes + LIVE_CLASS_JOIN_GRACE_MINUTES) * 60_000),
+  }
+}
+
+/**
+ * The status to actually show, which is not always the stored one.
+ *
+ * Mentors forget to press "End" — every video product learns this — and a class
+ * left at `live` three days later would sit at the top of every student's list
+ * claiming to be in progress. So `ended` is derived from the clock once the join
+ * window has closed, and the stored value wins only while it is still plausible.
+ *
+ * `live` is deliberately NOT derived: a class whose start time has passed but
+ * which the mentor has not started yet is not live, and saying so would send
+ * students into an empty room. The UI says "waiting for the mentor" instead.
+ */
+export function effectiveLiveClassStatus(input: {
+  status: string
+  scheduledAt: Date
+  durationMinutes: number
+}): LiveClassStatus {
+  if (input.status === 'cancelled') return 'cancelled'
+  if (input.status === 'ended') return 'ended'
+  const { closesAt } = liveClassJoinWindow(input.scheduledAt, input.durationMinutes)
+  if (Date.now() > closesAt.getTime()) return 'ended'
+  return input.status === 'live' ? 'live' : 'scheduled'
+}
 
 /**
  * Why a student left a mentor. This is the compounding data asset — a

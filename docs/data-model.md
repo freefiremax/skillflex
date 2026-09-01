@@ -127,9 +127,9 @@ MediaAsset (provider, externalId, kind, status, ownerUserId, localPath,
             playbackUrl, retentionUntil, deletedAt)
 ```
 
-One table for both lesson video and student submissions, distinguished by
-`kind`. `provider` records which backend holds the bytes, so a provider
-migration is per-row rather than all-or-nothing.
+One table for lesson video, student submissions, and lecture recordings,
+distinguished by `kind`. `provider` records which backend holds the bytes, so a
+provider migration is per-row rather than all-or-nothing.
 
 `retentionUntil` is set **at creation time**, not by a later job — a row that
 never gets a retention date is a row that never gets deleted, and that is the
@@ -154,8 +154,61 @@ Append-only. Granting, re-confirming, and withdrawing all INSERT; "we updated th
 row" is not an audit trail. Latest row per scope wins. See
 [DPDP compliance](dpdp-compliance.md).
 
+## Live lectures + recordings
+
+```
+LiveClass (mentorId, orgId?, title, description, skill?, language, status,
+           scheduledAt, durationMinutes, capacity, joinUrl?, startedAt?,
+           endedAt?, recordingMediaId?, recordingPublishedAt?)
+
+LiveClassRegistration (classId, studentId, registeredAt, attendedAt?,
+                       watchedSeconds, completedAt?)
+```
+
+One mentor teaching a room. Deliberately **not** `LiveSession` — that is the 1:1
+booking below, and conflating "35 students in a lecture" with "one student in a
+call" would force capacity, registration, and recording concerns into a table
+that needs none of them.
+
+`orgId` is null by default, meaning *open to every college*. A non-null `orgId`
+restricts the class to that college's students. Every student-facing query goes
+through `visibilityFilter()` in `apps/api/src/modules/live/service.ts`, which is
+`{ OR: [{ orgId: null }, { orgId: { in: myOrgIds } }] }` — so a class is either
+public or scoped, never accidentally both.
+
+**Status is stored but not trusted.** A mentor who forgets to press "End" leaves
+`status: 'live'` in the row forever, and every list would keep advertising a
+lecture that finished last Tuesday. `effectiveLiveClassStatus()` in
+`@skillflex/shared` derives the real status from the clock —
+`scheduledAt + durationMinutes` in the past means ended, whatever the column
+says. The column is the mentor's *intent*; the derived value is what students
+see. The consequence is that "ended" cannot appear in a `WHERE` clause, so both
+list routes select `status in ('scheduled','live')` and drop ended rows in JS.
+Mentors additionally get `storedStatus` alongside `status`, which is what lets
+the console say "auto-ended — you never pressed End".
+
+**`joinUrl` is not part of the class payload.** It is nulled in every serialized
+response unless the caller is registered *and* inside the join window, and the
+only route that ever returns it is `POST /live/classes/:id/join` — which stamps
+`attendedAt` in the same call, so the link and the record of having used it
+cannot disagree. Starting a class with no `joinUrl` is rejected (400
+`NO_JOIN_URL`) rather than showing a room full of students a Join button that
+goes nowhere.
+
+`LiveClassRegistration` is the single row for both halves of the lifecycle:
+`attendedAt` for the live room, `watchedSeconds`/`completedAt` for the
+recording. It is created lazily by `POST /live/recordings/:id/progress` for
+students who never registered and only ever watched the recording — otherwise
+library-only viewers would have nowhere to store a resume point. `watchedSeconds`
+only ever moves forward (`Math.max`) and `completedAt` latches once set, so
+scrubbing backwards cannot un-complete a lecture. Registrations survive a
+cancelled class; cancelling is a soft status change, because the attendance
+record is what the college's report is made of.
+
 ## Scheduled sessions (P2, schema only)
 
 `MentorAvailability` and `LiveSession` are in the schema but have no routes yet.
-They are the 1:1 live-session upsell; the P1 loop is asynchronous video review on
-purpose, because async is what makes one mentor able to serve 25 students.
+They are the **1:1** live-session upsell — one student, one mentor, one booked
+slot — and are unrelated to `LiveClass` above despite the similar name. The P1
+loop is asynchronous video review on purpose, because async is what makes one
+mentor able to serve 25 students.

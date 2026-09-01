@@ -19,6 +19,8 @@ async function main() {
 
   // --- Clean slate (dev only) --------------------------------------------
   await prisma.$transaction([
+    prisma.liveClassRegistration.deleteMany(),
+    prisma.liveClass.deleteMany(),
     prisma.weeklyPlan.deleteMany(),
     prisma.feedback.deleteMany(),
     prisma.submission.deleteMany(),
@@ -268,6 +270,132 @@ async function main() {
     },
   })
 
+  // --- Live lectures + one published recording ----------------------------
+  // Four classes on purpose, because each one exercises a different branch of
+  // the join/visibility logic: an ended class with a recording, a class that is
+  // live *right now* (so the pet and the Learn card have something to shout
+  // about the moment you sign in), an open upcoming one, and one restricted to
+  // this college so the org filter is visibly doing something.
+  const MINUTE = 60_000
+  const anjali = mentors[0]!
+  const sagar = mentors[1]!
+  const neha = mentors[2]!
+  const priya = students[1]!
+  const aditya = students[2]!
+
+  const recordingMedia = await prisma.mediaAsset.create({
+    data: {
+      provider: 'local',
+      kind: 'lecture_recording',
+      status: 'ready',
+      ownerUserId: anjali.userId,
+      // Same honesty as the submission above: no bytes in the repo, so no URL.
+      // The player renders its "recording unavailable" state instead of a
+      // permanently blank <video>.
+      playbackUrl: null,
+      durationSeconds: 40 * 60,
+    },
+  })
+
+  const endedClass = await prisma.liveClass.create({
+    data: {
+      mentorId: anjali.id,
+      title: 'Cracking "Tell me about yourself"',
+      description:
+        'The 3-part structure, then eight live rewrites from whoever puts their intro in the chat.',
+      skill: 'self_introduction',
+      language: 'en',
+      status: 'ended',
+      scheduledAt: new Date(Date.now() - 6 * 24 * 60 * MINUTE),
+      durationMinutes: 45,
+      capacity: 100,
+      startedAt: new Date(Date.now() - 6 * 24 * 60 * MINUTE),
+      endedAt: new Date(Date.now() - (6 * 24 * 60 - 42) * MINUTE),
+      recordingMediaId: recordingMedia.id,
+      recordingPublishedAt: new Date(Date.now() - 5 * 24 * 60 * MINUTE),
+    },
+  })
+
+  const liveNow = await prisma.liveClass.create({
+    data: {
+      mentorId: sagar.id,
+      title: 'GD मध्ये कसं शिरायचं — without interrupting',
+      description: 'Marathi-first. How to take the floor in a group discussion without talking over anyone.',
+      skill: 'group_discussion',
+      language: 'mr',
+      status: 'live',
+      scheduledAt: new Date(Date.now() - 15 * MINUTE),
+      durationMinutes: 60,
+      capacity: 80,
+      joinUrl: 'https://meet.example.com/skillflex-gd-demo',
+      startedAt: new Date(Date.now() - 12 * MINUTE),
+    },
+  })
+
+  const upcomingOpen = await prisma.liveClass.create({
+    data: {
+      mentorId: neha.id,
+      title: 'The email that actually gets a reply',
+      description: 'Subject lines, the ask-in-the-first-line rule, and how to follow up without nagging.',
+      skill: 'email_writing',
+      language: 'en',
+      status: 'scheduled',
+      scheduledAt: new Date(Date.now() + 2 * 24 * 60 * MINUTE),
+      durationMinutes: 45,
+      capacity: 150,
+      joinUrl: 'https://meet.example.com/skillflex-email-demo',
+    },
+  })
+
+  const upcomingCollegeOnly = await prisma.liveClass.create({
+    data: {
+      mentorId: anjali.id,
+      // orgId set == only AVCOE students see this one.
+      orgId: org.id,
+      title: 'Mock interview clinic — AVCOE TE Computer',
+      description: 'Bring one question you got destroyed by. We do it again, on camera, in front of everyone.',
+      skill: 'interview_answering',
+      language: 'hi',
+      status: 'scheduled',
+      scheduledAt: new Date(Date.now() + 5 * 24 * 60 * MINUTE),
+      durationMinutes: 90,
+      capacity: 30,
+    },
+  })
+
+  await prisma.liveClassRegistration.createMany({
+    data: [
+      // The ended class: two showed up, one didn't. Rahul finished the
+      // recording, Priya is a third of the way in, Aditya missed it entirely
+      // and has not opened the recording either — the exact shape the TPO's
+      // attendance meter is there to surface.
+      {
+        classId: endedClass.id,
+        studentId: rahul.profile.id,
+        attendedAt: new Date(Date.now() - 6 * 24 * 60 * MINUTE),
+        watchedSeconds: 40 * 60,
+        completedAt: new Date(Date.now() - 4 * 24 * 60 * MINUTE),
+      },
+      {
+        classId: endedClass.id,
+        studentId: priya.profile.id,
+        attendedAt: new Date(Date.now() - (6 * 24 * 60 - 3) * MINUTE),
+        watchedSeconds: 14 * 60,
+      },
+      { classId: endedClass.id, studentId: aditya.profile.id },
+
+      // Live now: registered but not yet in the room, so Join is a live action
+      // rather than something already used up.
+      { classId: liveNow.id, studentId: rahul.profile.id },
+      { classId: liveNow.id, studentId: priya.profile.id },
+
+      { classId: upcomingOpen.id, studentId: priya.profile.id },
+      { classId: upcomingOpen.id, studentId: aditya.profile.id },
+
+      { classId: upcomingCollegeOnly.id, studentId: rahul.profile.id },
+    ],
+  })
+
   console.log(`
 Seed complete.
 
@@ -279,6 +407,9 @@ Seed complete.
   Mentors         anjali@mentor.skillflex.in / sagar@... / neha@...
   Students        rahul@student.avcoe.in  (has feedback + a weekly plan)
                   priya@student.avcoe.in / aditya@student.avcoe.in
+
+  Live lectures   1 ended (recording published) · 1 live right now · 2 upcoming
+                  Rahul is registered for the live one — sign in as him to join.
 `)
 }
 
