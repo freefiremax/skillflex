@@ -71,7 +71,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="shell">
         <header className="topbar">
           <div className="brand">
-            Skill<span>Flex</span>
+            Skill<span className="brand-flex">Flex</span>
           </div>
           <div className="row" style={{ gap: '0.5rem' }}>
             {/* Language is a product-level switch for students, not a setting

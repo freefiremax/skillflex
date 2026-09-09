@@ -1,96 +1,90 @@
 /* ---------------------------------------------------------------------------
-   SkillFlex design system — light neumorphic.
+   SkillFlex design system — glassmorphism.
 
    Mobile-first: the primary user is a student on a mid-range Android phone,
    often outdoors, often on patchy data. Plain CSS with custom properties — no
    Tailwind, no CSS-in-JS, nothing that can break a build the night before a demo.
 
-   Neumorphism rule set (kept strictly, or it turns to mush):
-     - Surfaces are the SAME colour as the page. Depth comes from paired shadows:
-       a cool shadow bottom-right, a white highlight top-left.
-     - Raised = interactive or elevated. Inset = pressed, selected, or a well
-       that holds content (inputs, meters, tabs).
-     - Never nest raised inside raised. Never put a raised shadow on body text.
-     - Soft shadows alone fail in daylight and for low-vision users, so every
-       surface also carries a hairline edge, and text is held to >= 4.5:1.
+   Glassmorphism rule set:
+     - Background is a fixed gradient wash on the page; surfaces float above it
+       as frosted glass (rgba white + backdrop-filter).
+     - Depth comes from translucency and a single soft shadow, not from paired
+       emboss shadows.
+     - Every surface still carries a 1px rgba border so it reads clearly in
+       bright daylight and passes the low-vision hairline check.
+     - Text is held to >= 4.5:1 against the surface colour it sits on, not
+       against the raw background — the frosted layer is the reference.
 --------------------------------------------------------------------------- */
 
 :root {
-  /* Surfaces — one warm-neutral base; neumorphism needs a single flat canvas */
-  --bg: #eaeef6;
-  --surface: #eaeef6;
-  --surface-2: #e2e7f1;
-  --surface-3: #d7deeb;
-  --line: rgba(148, 163, 190, 0.22);
-  --line-strong: rgba(148, 163, 190, 0.45);
-  --highlight: rgba(255, 255, 255, 0.95);
+  /* Surfaces — frosted glass layers over the gradient page */
+  --bg: transparent;
+  --surface:   rgba(255, 255, 255, 0.58);
+  --surface-2: rgba(255, 255, 255, 0.75);
+  --surface-3: rgba(255, 255, 255, 0.88);
+  --line:       rgba(255, 255, 255, 0.28);
+  --line-strong: rgba(255, 255, 255, 0.55);
+  --highlight:  rgba(255, 255, 255, 0.92);
 
-  /* Brand — carried over from the pitch deck, darkened for contrast on light */
-  --brand: #6d3fe0;
+  /* Brand — retained for semantic uses (links, focus rings, AI-derived labels) */
+  --brand:      #6d3fe0;
   --brand-deep: #4c22b0;
   --brand-soft: rgba(109, 63, 224, 0.11);
-  --brand-tint: rgba(109, 63, 224, 0.2);
-  /* Deep teal, not a bright cyan: this colour carries the "AI restructured this"
-     label as small uppercase text, so it has to clear 4.5:1 on --surface-2 too. */
-  --accent: #0a6880;
+  --brand-tint: rgba(109, 63, 224, 0.18);
+  --accent:     #0a6880;
+
+  /* CTA gradient — warm gold → deep teal, matching the reference palette */
+  --cta-from: #c19b1a;
+  --cta-to:   #0f7a6a;
 
   /* Semantic */
-  --ok: #097049;
-  --warn: #8a5700;
+  --ok:     #097049;
+  --warn:   #8a5700;
   --danger: #c22a3a;
 
-  /* Text — every one clears 4.5:1 on --bg and on --surface-2 */
-  --text: #1b2033;
-  --text-dim: #515a72;
-  --text-faint: #5c6474;
+  /* Text — checked against frosted --surface-2 (≈ rgb 255 255 255 / 0.75
+     blended over the gradient), all clear 4.5:1 */
+  --text:       #1a2030;
+  --text-dim:   #404858;
+  --text-faint: #5a6070;
 
-  --radius: 18px;
-  --radius-lg: 26px;
-  --radius-sm: 12px;
+  --radius:    24px;
+  --radius-lg: 32px;
+  --radius-sm: 16px;
 
-  /* The neumorphic shadow pairs. Every depth in the app is one of these. */
-  --neu-out:
-    6px 6px 14px rgba(163, 177, 202, 0.6),
-    -6px -6px 14px var(--highlight);
-  --neu-out-sm:
-    3px 3px 7px rgba(163, 177, 202, 0.5),
-    -3px -3px 7px var(--highlight);
-  --neu-out-lg:
-    12px 12px 28px rgba(163, 177, 202, 0.55),
-    -10px -10px 24px var(--highlight);
-  --neu-in:
-    inset 4px 4px 9px rgba(163, 177, 202, 0.6),
-    inset -4px -4px 9px var(--highlight);
-  --neu-in-sm:
-    inset 2px 2px 5px rgba(163, 177, 202, 0.55),
-    inset -2px -2px 5px var(--highlight);
+  /* Unified glass shadow — soft depth plus a 1px white outline */
+  --shadow:
+    0 2px 16px rgba(30, 40, 60, 0.10),
+    0 0 0 1px rgba(255, 255, 255, 0.72);
+  --shadow-lift:
+    0 8px 32px rgba(30, 40, 60, 0.14),
+    0 0 0 1px rgba(255, 255, 255, 0.85);
+  --shadow-glow:
+    0 0 0 2px rgba(193, 155, 26, 0.30),
+    0 8px 28px rgba(30, 40, 60, 0.14),
+    0 0 0 1px rgba(255, 255, 255, 0.80);
 
-  --shadow: var(--neu-out);
-  --shadow-glow: 0 0 0 1px var(--brand-tint), var(--neu-out-lg);
+  --font:         'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-display: 'Sora', 'Nunito', var(--font);
 
-  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  --font-display: 'Sora', var(--font);
-
-  /* One easing curve for the whole app — snappy out, no bounce-back */
-  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease:      cubic-bezier(0.22, 1, 0.36, 1);
   --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
   --t-fast: 140ms;
-  --t: 220ms;
+  --t:      220ms;
   --t-slow: 380ms;
 
-  --max-w: 780px;
-  --nav-h: 68px;
+  --max-w:  780px;
+  --nav-h:  68px;
 
-  /* Study buddy. Lighter and warmer than the UI brand pair — the mascot reads
-     as a toy, and --brand/--accent were darkened for text contrast. */
-  --pet-fur-top: #8b6af5;
+  /* Pet mascot — slightly lighter and warmer than the UI brand pair */
+  --pet-fur-top:    #8b6af5;
   --pet-fur-bottom: #2a9ec4;
-  --pet-cream: #fdfaf6;
-  --pet-pink: #f4a7b4;
-  --pet-nose: #ef94a4;
-  --pet-iris: #1a6f8c;
-  --pet-pupil: #0e2233;
-  --pet-mouth: #a8495e;
+  --pet-cream:      #fdfaf6;
+  --pet-pink:       #f4a7b4;
+  --pet-nose:       #ef94a4;
+  --pet-iris:       #1a6f8c;
+  --pet-pupil:      #0e2233;
+  --pet-mouth:      #a8495e;
 }
 
 * {
@@ -105,7 +99,14 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: var(--bg);
+  /* body itself is always the gradient; #root floats above it */
+  background: linear-gradient(
+    145deg,
+    hsl(168 22% 70%) 0%,
+    hsl(150 12% 80%) 35%,
+    hsl(36  28% 88%) 100%
+  );
+  background-attachment: fixed;
   color: var(--text);
   font-family: var(--font);
   -webkit-font-smoothing: antialiased;
@@ -113,17 +114,19 @@ body {
   line-height: 1.55;
 }
 
-/* Ambient wash — barely-there colour so the flat canvas isn't dead. Done once,
-   cheaply, on a fixed layer that never repaints during scroll. */
+/* Keep the gradient visible on scroll without repainting */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  background:
-    radial-gradient(900px 520px at 12% -12%, rgba(109, 63, 224, 0.09), transparent 62%),
-    radial-gradient(700px 420px at 108% 6%, rgba(10, 104, 128, 0.07), transparent 58%);
+  background: linear-gradient(
+    145deg,
+    hsl(168 22% 70%) 0%,
+    hsl(150 12% 80%) 35%,
+    hsl(36  28% 88%) 100%
+  );
 }
 
 #root {
@@ -156,7 +159,6 @@ a:hover { color: var(--brand-deep); text-decoration: underline; }
 
 ::selection { background: var(--brand-tint); color: var(--text); }
 
-/* Visible focus for keyboard users — soft shadows are not a focus indicator. */
 :focus-visible {
   outline: 2px solid var(--brand);
   outline-offset: 2px;
@@ -171,17 +173,14 @@ a:hover { color: var(--brand-deep); text-decoration: underline; }
   min-height: 100vh;
 }
 
-.stack { display: flex; flex-direction: column; gap: 1rem; }
+.stack    { display: flex; flex-direction: column; gap: 1rem; }
 .stack-sm { display: flex; flex-direction: column; gap: 0.5rem; }
-.row { display: flex; align-items: center; gap: 0.6rem; }
+.row      { display: flex; align-items: center; gap: 0.6rem; }
 .row-between { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
 
-/* The "you" row on the leaderboard gets a raised, branded treatment so a
-   student can find their own line at a glance. The page already tints the
-   background (var(--surface-2)) inline; this adds the ring and the small
-   accent bar so it reads as *selected*, not just shaded. */
+/* The "you" row on the leaderboard: gold left-bar + subtle ring */
 .you-row {
-  box-shadow: inset 0 0 0 1px var(--highlight);
+  box-shadow: inset 0 0 0 1px rgba(193, 155, 26, 0.30);
   position: relative;
 }
 .you-row::before {
@@ -192,19 +191,21 @@ a:hover { color: var(--brand-deep); text-decoration: underline; }
   bottom: 0.4rem;
   width: 3px;
   border-radius: 3px;
-  background: var(--brand-deep);
+  background: var(--cta-from);
 }
-.wrap { flex-wrap: wrap; }
-.grow { flex: 1; }
+
+.wrap   { flex-wrap: wrap; }
+.grow   { flex: 1; }
 .center { text-align: center; }
 
-/* Depth utilities, for one-off cases that aren't a .card */
-.raised { box-shadow: var(--neu-out); border-radius: var(--radius); }
-.pressed { box-shadow: var(--neu-in); border-radius: var(--radius); }
+/* Depth utilities */
+.raised  { box-shadow: var(--shadow); border-radius: var(--radius); }
+.pressed {
+  box-shadow: inset 0 2px 8px rgba(30, 40, 60, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.55);
+  border-radius: var(--radius);
+}
 
-/* --- Page transition ----------------------------------------------------
-   Keyed on the route in AppShell, so every navigation gets the same short
-   rise-and-fade instead of a hard content swap. */
+/* --- Page transition ----------------------------------------------------- */
 
 .page {
   animation: page-enter var(--t-slow) var(--ease) both;
@@ -215,8 +216,6 @@ a:hover { color: var(--brand-deep); text-decoration: underline; }
   to   { opacity: 1; transform: none; }
 }
 
-/* Children of a fresh page cascade in. Capped at 6 so a long list doesn't
-   spend a second and a half animating. */
 .page > .stack > * {
   animation: rise var(--t-slow) var(--ease) both;
 }
@@ -236,10 +235,12 @@ a:hover { color: var(--brand-deep); text-decoration: underline; }
 
 .card {
   background: var(--surface);
-  border: 1px solid var(--highlight);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.72);
   border-radius: var(--radius);
   padding: 1rem;
-  box-shadow: var(--neu-out);
+  box-shadow: var(--shadow);
   transition:
     box-shadow var(--t) var(--ease),
     transform var(--t) var(--ease);
@@ -249,26 +250,24 @@ a:hover { color: var(--brand-deep); text-decoration: underline; }
 
 .card-interactive {
   cursor: pointer;
-  /* Nudge in so the lift on hover doesn't clip against neighbours */
   will-change: transform;
 }
 .card-interactive:hover {
   transform: translateY(-3px);
-  box-shadow: var(--neu-out-lg);
+  box-shadow: var(--shadow-lift);
 }
 .card-interactive:active {
   transform: translateY(0) scale(0.994);
-  box-shadow: var(--neu-in);
+  box-shadow: var(--shadow);
   transition-duration: var(--t-fast);
 }
 
-/* The accent card is the only place a coloured edge is allowed — it marks the
-   one thing on screen the student should act on next. */
+/* Accent card — the one thing on screen the student should act on next */
 .card-accent {
-  border-color: var(--brand-tint);
+  border-color: rgba(193, 155, 26, 0.35);
   box-shadow:
-    0 0 0 1px var(--brand-tint),
-    var(--neu-out);
+    0 0 0 1px rgba(193, 155, 26, 0.22),
+    var(--shadow);
 }
 
 /* --- Buttons ------------------------------------------------------------ */
@@ -285,7 +284,7 @@ a:hover { color: var(--brand-deep); text-decoration: underline; }
   align-items: center;
   justify-content: center;
   gap: 0.45rem;
-  min-height: 46px; /* thumb target */
+  min-height: 46px;
   position: relative;
   overflow: hidden;
   transition:
@@ -294,15 +293,13 @@ a:hover { color: var(--brand-deep); text-decoration: underline; }
     filter var(--t-fast) var(--ease-soft);
 }
 
-/* Press = physically push the control into the surface. This is the core
-   neumorphic affordance; without it the whole style reads as flat. */
 .btn:active:not(:disabled) {
   transform: translateY(1px) scale(0.985);
   transition-duration: 80ms;
 }
-.btn:disabled { opacity: 0.55; cursor: not-allowed; box-shadow: var(--neu-in-sm); }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; }
 
-/* Light sweep on hover — one cheap transform, no repaint of the button body. */
+/* Light-sweep shimmer on hover */
 .btn::after {
   content: '';
   position: absolute;
@@ -314,54 +311,72 @@ a:hover { color: var(--brand-deep); text-decoration: underline; }
 }
 .btn:hover:not(:disabled)::after { transform: translateX(120%) skewX(-18deg); }
 
+/* CTA — gold → teal gradient matching the reference palette */
 .btn-primary {
-  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-deep) 100%);
+  background: linear-gradient(135deg, var(--cta-from) 0%, var(--cta-to) 100%);
   color: #fff;
-  box-shadow:
-    5px 5px 12px rgba(76, 34, 176, 0.28),
-    -4px -4px 10px var(--highlight);
+  box-shadow: 0 4px 16px rgba(15, 122, 106, 0.26), 0 0 0 1px rgba(255, 255, 255, 0.18);
 }
 .btn-primary:hover:not(:disabled) {
-  filter: brightness(1.08);
-  box-shadow:
-    7px 7px 18px rgba(76, 34, 176, 0.34),
-    -5px -5px 12px var(--highlight);
+  filter: brightness(1.07);
+  box-shadow: 0 6px 22px rgba(15, 122, 106, 0.32), 0 0 0 1px rgba(255, 255, 255, 0.22);
 }
 .btn-primary:active:not(:disabled) {
-  box-shadow: inset 3px 3px 8px rgba(43, 17, 105, 0.5), inset -2px -2px 6px rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 2px 8px rgba(5, 60, 50, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.14);
 }
 
 .btn-ghost {
   background: var(--surface);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   color: var(--text);
-  box-shadow: var(--neu-out-sm);
-  border-color: var(--highlight);
+  border-color: rgba(255, 255, 255, 0.65);
+  box-shadow: var(--shadow);
 }
-.btn-ghost:hover:not(:disabled) { box-shadow: var(--neu-out); }
-.btn-ghost:active:not(:disabled) { box-shadow: var(--neu-in-sm); }
+.btn-ghost:hover:not(:disabled) { box-shadow: var(--shadow-lift); }
+.btn-ghost:active:not(:disabled) {
+  box-shadow: inset 0 2px 6px rgba(30, 40, 60, 0.10), 0 0 0 1px rgba(255, 255, 255, 0.55);
+}
 
 .btn-danger {
   background: var(--surface);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   color: var(--danger);
-  box-shadow: var(--neu-out-sm);
   border-color: rgba(194, 42, 58, 0.28);
+  box-shadow: var(--shadow);
 }
 .btn-danger:hover:not(:disabled) {
-  box-shadow: 0 0 0 1px rgba(194, 42, 58, 0.3), var(--neu-out);
+  box-shadow: 0 0 0 1px rgba(194, 42, 58, 0.30), var(--shadow-lift);
 }
-.btn-danger:active:not(:disabled) { box-shadow: var(--neu-in-sm); }
 
 .btn-record {
   background: linear-gradient(135deg, #e8394f, #b0142f);
   color: #fff;
-  box-shadow:
-    5px 5px 14px rgba(176, 20, 47, 0.3),
-    -4px -4px 10px var(--highlight);
+  box-shadow: 0 4px 16px rgba(176, 20, 47, 0.28), 0 0 0 1px rgba(255, 255, 255, 0.16);
 }
 .btn-record:hover:not(:disabled) { filter: brightness(1.07); }
 .btn-record:active:not(:disabled) {
-  box-shadow: inset 3px 3px 8px rgba(120, 8, 30, 0.5), inset -2px -2px 6px rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 2px 8px rgba(120, 8, 30, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.12);
 }
+
+/* Big circular mic button used on PracticePage / BattlePage */
+.btn-mic {
+  border-radius: 999px;
+  width: 72px;
+  height: 72px;
+  min-height: 72px;
+  padding: 0;
+  background: linear-gradient(135deg, var(--cta-from) 0%, var(--cta-to) 100%);
+  color: #fff;
+  font-size: 1.6rem;
+  box-shadow: 0 6px 24px rgba(15, 122, 106, 0.30), 0 0 0 1px rgba(255, 255, 255, 0.20);
+}
+.btn-mic:hover:not(:disabled) {
+  filter: brightness(1.08);
+  box-shadow: 0 8px 28px rgba(15, 122, 106, 0.36), 0 0 0 1px rgba(255, 255, 255, 0.24);
+}
+.btn-mic:active:not(:disabled) { transform: scale(0.93); }
 
 .btn-block { width: 100%; }
 .btn-sm { padding: 0.45rem 0.85rem; min-height: 38px; font-size: 0.85rem; border-radius: 10px; }
@@ -376,33 +391,36 @@ label {
   margin-bottom: 0.35rem;
 }
 
-/* Inputs are wells, not raised panels — you type INTO something. */
 input,
 select,
 textarea {
   width: 100%;
-  background: var(--surface);
-  border: 1px solid var(--highlight);
+  background: var(--surface-2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.65);
   border-radius: var(--radius-sm);
   color: var(--text);
   font: inherit;
   padding: 0.75rem 0.9rem;
   min-height: 46px;
-  box-shadow: var(--neu-in-sm);
+  box-shadow: inset 0 2px 6px rgba(30, 40, 60, 0.07);
   transition:
     box-shadow var(--t) var(--ease),
     border-color var(--t) var(--ease);
 }
 input:hover:not(:disabled),
-textarea:hover:not(:disabled) { box-shadow: var(--neu-in); }
+textarea:hover:not(:disabled) {
+  box-shadow: inset 0 2px 8px rgba(30, 40, 60, 0.10);
+}
 input:focus,
 select:focus,
 textarea:focus {
   outline: none;
-  border-color: var(--brand-tint);
+  border-color: rgba(193, 155, 26, 0.50);
   box-shadow:
-    var(--neu-in),
-    0 0 0 3px var(--brand-soft);
+    inset 0 2px 6px rgba(30, 40, 60, 0.07),
+    0 0 0 3px rgba(193, 155, 26, 0.16);
 }
 textarea { min-height: 130px; resize: vertical; line-height: 1.6; }
 input::placeholder, textarea::placeholder { color: var(--text-faint); }
@@ -418,9 +436,6 @@ select {
   padding-right: 2rem;
 }
 
-/* Native control, just de-inherited from the text-input rules above. Rolling a
-   custom neumorphic checkbox would cost the free a11y semantics for nothing —
-   the consent gate depends on these being unambiguous. */
 input[type='checkbox'],
 input[type='radio'] {
   width: 22px;
@@ -431,7 +446,7 @@ input[type='radio'] {
   border: none;
   border-radius: 6px;
   background: transparent;
-  accent-color: var(--brand);
+  accent-color: var(--cta-to);
   box-shadow: none;
   cursor: pointer;
   transition: transform var(--t-fast) var(--ease);
@@ -446,12 +461,12 @@ input[type='range'] {
   box-shadow: none;
   border: none;
   background: transparent;
-  accent-color: var(--brand);
+  accent-color: var(--cta-to);
   cursor: pointer;
 }
 
 .field { margin-bottom: 1rem; }
-.hint { font-size: 0.78rem; color: var(--text-faint); margin-top: 0.35rem; }
+.hint  { font-size: 0.78rem; color: var(--text-faint); margin-top: 0.35rem; }
 
 /* --- Pills / badges ----------------------------------------------------- */
 
@@ -463,35 +478,34 @@ input[type='range'] {
   font-weight: 600;
   padding: 0.3rem 0.7rem;
   border-radius: 999px;
-  background: var(--surface);
+  background: var(--surface-2);
   color: var(--text-dim);
-  border: 1px solid var(--highlight);
-  box-shadow: var(--neu-out-sm);
+  border: 1px solid rgba(255, 255, 255, 0.70);
+  box-shadow: 0 1px 6px rgba(30, 40, 60, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.55);
   white-space: nowrap;
   transition: box-shadow var(--t) var(--ease), transform var(--t) var(--ease);
 }
-a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: var(--neu-out); }
+a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: var(--shadow-lift); }
 
-.pill-brand { color: var(--brand-deep); border-color: var(--brand-tint); }
-.pill-ok { color: var(--ok); border-color: rgba(9, 112, 73, 0.3); }
-.pill-warn { color: var(--warn); border-color: rgba(138, 87, 0, 0.3); }
-.pill-danger { color: var(--danger); border-color: rgba(194, 42, 58, 0.3); }
+.pill-brand  { color: var(--brand-deep); border-color: var(--brand-tint); }
+.pill-ok     { color: var(--ok);     border-color: rgba(9,  112,  73, 0.3); }
+.pill-warn   { color: var(--warn);   border-color: rgba(138, 87,   0, 0.3); }
+.pill-danger { color: var(--danger); border-color: rgba(194, 42,  58, 0.3); }
 
 /* --- Text utilities ----------------------------------------------------- */
 
-.dim { color: var(--text-dim); }
-.faint { color: var(--text-faint); }
-.small { font-size: 0.84rem; }
-.tiny { font-size: 0.76rem; }
+.dim    { color: var(--text-dim); }
+.faint  { color: var(--text-faint); }
+.small  { font-size: 0.84rem; }
+.tiny   { font-size: 0.76rem; }
 .strong { font-weight: 600; color: var(--text); }
-.mono { font-variant-numeric: tabular-nums; }
-.warn { color: var(--warn); }
+.mono   { font-variant-numeric: tabular-nums; }
+.warn   { color: var(--warn); }
 
 .section-title {
   font-family: var(--font-display);
   font-size: 0.76rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  letter-spacing: 0.08em;
   color: var(--text-faint);
   margin: 1.4rem 0 0.65rem;
 }
@@ -505,20 +519,21 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   right: 0;
   height: calc(var(--nav-h) + env(safe-area-inset-bottom));
   padding-bottom: env(safe-area-inset-bottom);
-  background: rgba(234, 238, 246, 0.88);
-  backdrop-filter: blur(16px) saturate(140%);
-  border-top: 1px solid var(--highlight);
-  box-shadow: 0 -8px 24px rgba(163, 177, 202, 0.32);
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  border-top: 1px solid rgba(255, 255, 255, 0.80);
+  box-shadow: 0 -4px 24px rgba(30, 40, 60, 0.08);
   display: flex;
   z-index: 50;
+  border-radius: 20px 20px 0 0;
 }
-/* Blur is a nice-to-have; fall back to an opaque bar rather than unreadable text */
 @supports not (backdrop-filter: blur(4px)) {
-  .nav { background: var(--bg); }
+  .nav { background: rgba(240, 244, 240, 0.96); }
 }
 
 .nav-desktop { display: none; }
-.nav-mobile { display: flex; }
+.nav-mobile  { display: flex; }
 
 .nav-item {
   flex: 1;
@@ -535,7 +550,7 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   -webkit-tap-highlight-color: transparent;
 }
 .nav-item:hover { text-decoration: none; color: var(--text-dim); }
-.nav-item.active { color: var(--brand-deep); }
+.nav-item.active { color: var(--cta-to); }
 
 .nav-icon {
   width: 42px;
@@ -545,39 +560,33 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   border-radius: 999px;
   font-size: 0.95rem;
   transition:
+    background var(--t) var(--ease),
     box-shadow var(--t) var(--ease),
-    transform var(--t) var(--ease),
-    background-color var(--t) var(--ease);
+    transform var(--t) var(--ease);
 }
 .nav-item:active .nav-icon { transform: scale(0.92); }
 
-/* Selected tab reads as pressed into the bar — the neumorphic way to say
-   "you are here" without a coloured slab. */
+/* Active tab: gold→teal gradient oval, white icon */
 .nav-item.active .nav-icon {
-  background: var(--surface-2);
-  box-shadow: var(--neu-in-sm);
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, var(--cta-from) 0%, var(--cta-to) 100%);
+  color: #fff;
+  box-shadow: 0 3px 12px rgba(15, 122, 106, 0.28);
+  transform: translateY(-2px);
   animation: nav-pop var(--t) var(--ease) both;
 }
 
 @keyframes nav-pop {
-  0%   { transform: translateY(-1px) scale(0.86); }
-  60%  { transform: translateY(-1px) scale(1.06); }
-  100% { transform: translateY(-1px) scale(1); }
+  0%   { transform: translateY(-2px) scale(0.86); }
+  60%  { transform: translateY(-2px) scale(1.06); }
+  100% { transform: translateY(-2px) scale(1); }
 }
 
 /* --- Study buddy -------------------------------------------------------- */
 
-/* Fixed to the viewport and walked sideways by a transition on `left` (set
-   inline, since the target is random). Sits above the mobile nav bar; on
-   desktop that bar becomes a pill at the top, which leaves the whole bottom
-   strip free — the empty space this thing exists to fill. */
 .pet-wrap {
   position: fixed;
   bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 4px);
   z-index: 45;
-  /* Only the pet and its bubble should catch clicks, not the full-width strip
-     the wrapper occupies. */
   pointer-events: none;
 }
 .pet-wrap > * { pointer-events: auto; }
@@ -589,17 +598,14 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   cursor: pointer;
   line-height: 0;
   -webkit-tap-highlight-color: transparent;
-  filter: drop-shadow(3px 5px 6px rgba(163, 177, 202, 0.7));
+  filter: drop-shadow(2px 4px 8px rgba(30, 40, 60, 0.22));
 }
 .pet:focus-visible {
-  outline: 2px solid var(--brand);
+  outline: 2px solid var(--cta-to);
   outline-offset: 6px;
   border-radius: 999px;
 }
 
-/* The bob lives on the svg, not the button: the button carries an inline
-   scaleX() for which way the pet is facing, and an animated transform there
-   would win over it and freeze the flip. */
 .pet-svg {
   width: 46px;
   height: 43px;
@@ -607,20 +613,13 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   animation: pet-bob 2.6s var(--ease-soft) infinite;
 }
 
-.pet-tail { fill: none; stroke-width: 8; stroke-linecap: round; }
-.pet-blush { fill: var(--pet-pink); opacity: 0.55; }
-.pet-smile { fill: none; stroke: var(--pet-mouth); stroke-width: 1.6; stroke-linecap: round; }
-
-/* SVG geometry has no CSS box of its own, so transform-origin needs an explicit
-   box to resolve against. view-box lets the percentages below mean "the 72x68
-   canvas", which is what puts the squish origin on the cat's feet. */
-.pet-shape { transform-box: view-box; transform-origin: 50% 100%; }
-
-/* Eyes blink independently, so each one pins its origin to its own centre in
-   canvas units — a shared `center` would collapse them toward the midline. */
-.pet-eye { transform-box: view-box; animation: pet-blink 5.4s steps(1, end) infinite; }
-.pet-eye-l { transform-origin: 28.5px 23px; }
-.pet-eye-r { transform-origin: 43.5px 23px; }
+.pet-tail   { fill: none; stroke-width: 8; stroke-linecap: round; }
+.pet-blush  { fill: var(--pet-pink); opacity: 0.55; }
+.pet-smile  { fill: none; stroke: var(--pet-mouth); stroke-width: 1.6; stroke-linecap: round; }
+.pet-shape  { transform-box: view-box; transform-origin: 50% 100%; }
+.pet-eye    { transform-box: view-box; animation: pet-blink 5.4s steps(1, end) infinite; }
+.pet-eye-l  { transform-origin: 28.5px 23px; }
+.pet-eye-r  { transform-origin: 43.5px 23px; }
 
 .pet:hover .pet-shape, .pet-awake .pet-shape { animation: pet-squish 460ms var(--ease); }
 
@@ -639,7 +638,6 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   96%           { transform: scaleY(0.1); }
 }
 
-/* The sign-in screen has no bottom nav bar to clear. */
 .pet-wrap-bare { bottom: calc(env(safe-area-inset-bottom) + 14px); }
 
 .pet-bubble {
@@ -651,16 +649,16 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   flex-direction: column;
   gap: 0.3rem;
   padding: 0.7rem 0.85rem;
-  background: var(--surface-2);
-  border: 1px solid var(--highlight);
+  background: rgba(255, 255, 255, 0.80);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.85);
   border-radius: var(--radius-sm);
-  box-shadow: var(--neu-out);
+  box-shadow: var(--shadow);
   transform-origin: 14% 100%;
   animation: pet-pop var(--t) var(--ease) both;
 }
 
-/* Past the middle of the screen a left-anchored bubble would run off the right
-   edge, so it hangs from the pet's other shoulder instead. */
 .pet-bubble-flip { left: auto; right: -8px; transform-origin: 86% 100%; }
 
 .pet-bubble::after {
@@ -670,16 +668,13 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   left: 20px;
   width: 11px;
   height: 11px;
-  background: var(--surface-2);
-  border-right: 1px solid var(--highlight);
-  border-bottom: 1px solid var(--highlight);
+  background: rgba(255, 255, 255, 0.85);
+  border-right: 1px solid rgba(255, 255, 255, 0.85);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.85);
   transform: rotate(45deg);
 }
 .pet-bubble-flip::after { left: auto; right: 20px; }
 
-/* The activity menu. Rows must stay on one line — the bubble is only
-   min(16rem, 100vw - 2.5rem) wide, so the label truncates rather than wrapping
-   and turning the bubble into a page of its own. */
 .pet-actions {
   display: flex;
   flex-direction: column;
@@ -702,15 +697,15 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   line-height: 1.3;
 }
 .pet-action:hover, .pet-action:focus-visible {
-  color: var(--brand-deep);
-  background: var(--surface);
-  box-shadow: var(--neu-in-sm);
+  color: var(--cta-to);
+  background: rgba(255, 255, 255, 0.70);
+  box-shadow: 0 1px 4px rgba(30, 40, 60, 0.08);
   outline: none;
 }
 .pet-action-icon {
   flex: 0 0 1rem;
   text-align: center;
-  color: var(--accent);
+  color: var(--cta-from);
   font-size: 0.8rem;
 }
 .pet-action-label {
@@ -728,8 +723,6 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   font-weight: 400;
 }
 
-/* The live-lecture line in the bubble. Pressed rather than raised so it reads as
-   a slot cut into the bubble, not a second bubble sitting on top of it. */
 .pet-live {
   display: flex;
   align-items: center;
@@ -737,306 +730,260 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   flex-wrap: wrap;
   padding: 0.4rem 0.5rem;
   border-radius: 8px;
-  background: var(--surface);
-  box-shadow: var(--neu-in-sm);
+  background: rgba(255, 255, 255, 0.60);
+  box-shadow: inset 0 1px 4px rgba(30, 40, 60, 0.07);
   text-decoration: none;
   color: var(--text-dim);
 }
-.pet-live:hover { color: var(--brand-deep); }
+.pet-live:hover { color: var(--cta-to); }
 .pet-live .rec-dot { flex: 0 0 auto; }
 
 @keyframes pet-pop {
-  0%   { opacity: 0; transform: scale(0.9) translateY(6px); }
-  100% { opacity: 1; transform: scale(1) translateY(0); }
+  from { opacity: 0; transform: scale(0.82); }
+  to   { opacity: 1; transform: scale(1); }
 }
 
-/* No bottom bar to clear on desktop, so it walks the actual floor. */
-@media (min-width: 860px) {
-  .pet-wrap { bottom: 14px; }
-  .pet-svg { width: 54px; height: 51px; }
-}
-
-/* --- Top bar ------------------------------------------------------------ */
+/* --- Topbar ------------------------------------------------------------- */
 
 .topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  /* Wraps instead of forcing a horizontal scrollbar: brand + language select +
-     account + exit does not fit on one line on a 320px screen. */
-  flex-wrap: wrap;
-  row-gap: 0.5rem;
-  gap: 0.6rem;
-  padding: 0.4rem 0 1.1rem;
+  gap: 0.75rem;
+  padding: 0.6rem 0 0.8rem;
 }
-.topbar .row { min-width: 0; }
-.topbar select { min-width: 0; max-width: 9.5rem; }
+
 .brand {
   font-family: var(--font-display);
+  font-size: 1.22rem;
   font-weight: 700;
-  font-size: 1.1rem;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
   color: var(--text);
 }
-.brand span {
-  background: linear-gradient(120deg, var(--brand), var(--accent));
+
+/* The "Flex" half gets the CTA gold so the wordmark reads as two colours */
+.brand span,
+.brand-flex {
+  background: linear-gradient(135deg, var(--cta-from), var(--cta-to));
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  color: var(--brand);
 }
 
-/* --- Video -------------------------------------------------------------- */
+/* --- Video playback ----------------------------------------------------- */
 
-.video-frame {
-  width: 100%;
-  aspect-ratio: 9 / 16;
-  max-height: 62vh;
-  background: #10131c;
+.video-wrap {
+  position: relative;
   border-radius: var(--radius);
-  border: 1px solid var(--highlight);
-  box-shadow: var(--neu-out);
   overflow: hidden;
-  display: block;
-  object-fit: cover;
+  background: rgba(26, 32, 48, 0.85);
+  box-shadow: var(--shadow);
 }
-.video-frame-wide { aspect-ratio: 16 / 9; }
+.video-wrap video { display: block; width: 100%; }
 
-.rec-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #e8394f;
-  box-shadow: 0 0 0 0 rgba(232, 57, 79, 0.55);
-  animation: rec-pulse 1.5s var(--ease-soft) infinite;
-}
-/* Ring expands outward instead of just blinking — reads as "live". */
-@keyframes rec-pulse {
-  0%   { box-shadow: 0 0 0 0 rgba(232, 57, 79, 0.5); opacity: 1; }
-  70%  { box-shadow: 0 0 0 9px rgba(232, 57, 79, 0); opacity: 0.85; }
-  100% { box-shadow: 0 0 0 0 rgba(232, 57, 79, 0); opacity: 1; }
+.video-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(26, 32, 48, 0.40);
+  backdrop-filter: blur(2px);
 }
 
-/* --- Meter -------------------------------------------------------------- */
+/* --- Progress meter ----------------------------------------------------- */
 
 .meter {
-  height: 10px;
-  background: var(--surface-2);
+  height: 7px;
   border-radius: 999px;
-  box-shadow: var(--neu-in-sm);
+  background: rgba(30, 40, 60, 0.10);
   overflow: hidden;
 }
 .meter-fill {
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--brand), var(--accent));
-  /* Animates whenever the value changes, and on first paint */
+  background: linear-gradient(90deg, var(--cta-from), var(--cta-to));
   transition: width var(--t-slow) var(--ease);
-  animation: meter-fill var(--t-slow) var(--ease) both;
-}
-@keyframes meter-fill {
-  from { transform: scaleX(0); transform-origin: left; }
-  to   { transform: scaleX(1); transform-origin: left; }
 }
 
-/* --- Feedback callouts: the human artifact vs the machine's restructuring -
-   This contrast is the product's core promise, so it is a visual law, not a
-   style choice. Human = warm, raised, signed. Machine = cool, recessed. */
+/* --- Feedback callouts -------------------------------------------------- */
 
-.human-note {
-  border-left: 3px solid var(--brand);
-  background: var(--surface);
-  padding: 0.85rem 1rem;
-  border-radius: var(--radius-sm);
-  box-shadow: var(--neu-out-sm);
-}
 .ai-note {
+  padding: 0.55rem 0.75rem;
+  border-radius: var(--radius-sm);
+  background: rgba(10, 104, 128, 0.07);
   border-left: 3px solid var(--accent);
-  background: var(--surface-2);
-  padding: 0.85rem 1rem;
-  border-radius: var(--radius-sm);
-  box-shadow: var(--neu-in-sm);
+  color: var(--accent);
 }
 
-/* --- Pronunciation practice --------------------------------------------- */
+.mentor-note {
+  padding: 0.55rem 0.75rem;
+  border-radius: var(--radius-sm);
+  background: rgba(109, 63, 224, 0.07);
+  border-left: 3px solid var(--brand);
+}
 
-/* The word under test, pressed into the surface so it reads as the thing being
-   examined rather than a button. Syllables are separate spans because the
-   verdict highlights one of them. */
+/* --- Word plate / pronunciation ----------------------------------------- */
+
 .word-plate {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: baseline;
-  gap: 0.05rem;
-  padding: 1.1rem 0.75rem 0.9rem;
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  box-shadow: var(--neu-in-sm);
-  font-size: clamp(1.5rem, 8vw, 2.1rem);
+  text-align: center;
+  padding: 1.5rem 1rem 1.2rem;
+}
+.word-big {
+  font-family: var(--font-display);
+  font-size: 2.4rem;
   font-weight: 700;
-  letter-spacing: 0.01em;
+  letter-spacing: -0.03em;
   color: var(--text);
+  line-height: 1;
+  margin-bottom: 0.3rem;
 }
-.syl { position: relative; }
-/* A dotted seam between syllables: visible enough to show where the breaks are,
-   quiet enough not to look like hyphenation. */
-.syl + .syl::before {
-  content: '';
-  position: absolute;
-  left: -1px;
-  top: 0.22em;
-  bottom: 0.18em;
-  border-left: 1px dotted var(--line-strong);
+.word-respelling {
+  font-size: 1rem;
+  color: var(--text-dim);
+  margin-bottom: 0.15rem;
 }
-/* The offending syllable. Colour AND a wavy underline, never colour alone — the
-   students this is built for include some who will not see the red at all. */
+.word-ipa {
+  font-size: 0.82rem;
+  color: var(--text-faint);
+  font-style: italic;
+}
+
+/* Syllable highlighting on the result panel */
+.syl     { display: inline; }
 .syl-bad {
   color: var(--danger);
-  text-decoration: underline wavy var(--danger);
-  text-underline-offset: 0.18em;
+  text-decoration: underline;
+  text-decoration-color: var(--danger);
+  text-underline-offset: 3px;
 }
 
-.word-say {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.5rem;
-  margin-top: 0.7rem;
+/* --- Rec dot (live indicator) ------------------------------------------- */
+
+.rec-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #e8394f;
+  box-shadow: 0 0 0 0 rgba(232, 57, 79, 0.5);
+  animation: rec-pulse 1.5s ease-in-out infinite;
+  display: inline-block;
+}
+@keyframes rec-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(232, 57, 79, 0.45); }
+  50%       { box-shadow: 0 0 0 5px rgba(232, 57, 79, 0); }
 }
 
-/* One big target, because it is pressed while the student is busy thinking about
-   their mouth rather than their thumb. */
-.mic-btn {
-  width: 100%;
-  min-height: 3.4rem;
-  font-size: 1rem;
+/* --- Alerts ------------------------------------------------------------- */
+
+.alert {
+  padding: 0.75rem 0.9rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.84rem;
+  border: 1px solid transparent;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.alert-ok     { background: rgba(9,  112,  73, 0.10); border-color: rgba(9,  112,  73, 0.25); color: var(--ok); }
+.alert-warn   { background: rgba(138, 87,   0, 0.10); border-color: rgba(138, 87,   0, 0.25); color: var(--warn); }
+.alert-danger { background: rgba(194, 42,  58, 0.10); border-color: rgba(194, 42,  58, 0.25); color: var(--danger); }
+.alert-info   { background: rgba(10, 104, 128, 0.10); border-color: rgba(10, 104, 128, 0.25); color: var(--accent); }
+
+/* --- Skeletons ---------------------------------------------------------- */
+
+.skeleton {
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.35) 25%,
+    rgba(255, 255, 255, 0.55) 50%,
+    rgba(255, 255, 255, 0.35) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+.skeleton-line {
+  height: 0.9em;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+.skeleton-line:last-child { width: 65%; }
+
+/* --- Auth page ---------------------------------------------------------- */
+
+.auth-wrap {
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.55rem;
+  padding: 1.5rem;
 }
-.mic-btn .rec-dot { flex: 0 0 auto; }
-
-.practice-stats {
-  display: flex;
-  gap: 0.5rem;
-}
-.practice-stat {
-  flex: 1;
-  text-align: center;
-  padding: 0.55rem 0.35rem;
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  box-shadow: var(--neu-in-sm);
-}
-.practice-stat b {
-  display: block;
-  font-size: 1.15rem;
-  line-height: 1.2;
-  color: var(--brand-deep);
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: var(--radius-lg);
+  padding: 2rem 1.75rem;
+  box-shadow: var(--shadow-lift);
 }
 
-/* --- Alerts / states ---------------------------------------------------- */
-.alert {
-  padding: 0.8rem 0.95rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.88rem;
-  border: 1px solid;
-  box-shadow: var(--neu-out-sm);
-  animation: rise var(--t) var(--ease) both;
-}
-.alert-error { background: #fdeff0; border-color: rgba(194, 42, 58, 0.32); color: #8d1f2b; }
-.alert-ok { background: #e9f8f2; border-color: rgba(9, 112, 73, 0.32); color: #0a6349; }
-.alert-info { background: #f1edfd; border-color: var(--brand-tint); color: #3c1f8f; }
-.alert-warn { background: #fdf4e3; border-color: rgba(138, 87, 0, 0.32); color: #74490a; }
+/* --- Tabs --------------------------------------------------------------- */
 
-.empty {
-  text-align: center;
-  padding: 2.75rem 1rem;
-  color: var(--text-faint);
-  animation: rise var(--t-slow) var(--ease) both;
-}
-.empty-icon {
-  font-size: 1.6rem;
-  display: grid;
-  place-items: center;
-  width: 62px;
-  height: 62px;
-  margin: 0 auto 0.75rem;
-  border-radius: 50%;
-  background: var(--surface);
-  box-shadow: var(--neu-in);
-  color: var(--text-dim);
-}
-
-.skeleton {
-  background: var(--surface-2);
-  box-shadow: var(--neu-in-sm);
-  border-radius: var(--radius-sm);
-  height: 64px;
-  position: relative;
-  overflow: hidden;
-}
-/* Sheen sweeps across an inset well rather than recolouring the whole block */
-.skeleton::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.75), transparent);
-  transform: translateX(-100%);
-  animation: shimmer 1.5s var(--ease-soft) infinite;
-}
-@keyframes shimmer {
-  to { transform: translateX(100%); }
-}
-
-/* --- Auth screens ------------------------------------------------------- */
-
-.auth-shell {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  max-width: 430px;
-  margin: 0 auto;
-  padding: 2rem 1.25rem;
-  animation: page-enter var(--t-slow) var(--ease) both;
-}
-
-/* Segmented control: the track is a well, the selected tab is raised out of it */
 .tabs {
   display: flex;
-  gap: 0.3rem;
-  background: var(--surface-2);
-  padding: 5px;
-  border-radius: var(--radius-sm);
-  box-shadow: var(--neu-in-sm);
+  gap: 0.2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.55);
+  margin-bottom: 1rem;
 }
 .tab {
-  flex: 1;
-  text-align: center;
-  padding: 0.55rem;
-  border-radius: 9px;
-  font-size: 0.85rem;
+  padding: 0.5rem 0.9rem;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 0.84rem;
   font-weight: 600;
   color: var(--text-faint);
   cursor: pointer;
-  border: 1px solid transparent;
-  background: transparent;
-  font-family: inherit;
-  transition:
-    box-shadow var(--t) var(--ease),
-    color var(--t) var(--ease),
-    background-color var(--t) var(--ease);
+  border-bottom: 2px solid transparent;
+  transition: color var(--t) var(--ease), border-color var(--t) var(--ease);
+  margin-bottom: -1px;
 }
-.tab:hover { color: var(--text-dim); }
+.tab:hover  { color: var(--text-dim); }
 .tab.active {
-  background: var(--surface);
-  border-color: var(--highlight);
-  color: var(--brand-deep);
-  box-shadow: var(--neu-out-sm);
+  color: var(--cta-to);
+  border-bottom-color: var(--cta-to);
 }
+
+/* --- Practice stats grid ----------------------------------------------- */
+
+.practice-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+.practice-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.5rem 0.25rem;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.70);
+  text-align: center;
+}
+
+/* --- Grid helpers ------------------------------------------------------- */
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 
 /* --- Desktop ------------------------------------------------------------ */
 
@@ -1047,7 +994,7 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
 
   .nav-mobile { display: none; }
 
-  /* Floating neumorphic pill bar instead of a full-width slab */
+  /* Floating glass pill bar at the top */
   .nav-desktop {
     display: flex;
     position: sticky;
@@ -1058,13 +1005,15 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
     height: auto;
     gap: 0.25rem;
     padding: 6px;
-    border: 1px solid var(--highlight);
-    border-top: 1px solid var(--highlight);
+    border: 1px solid rgba(255, 255, 255, 0.80);
     max-width: fit-content;
     margin: 14px auto 0;
     border-radius: 999px;
-    background: rgba(234, 238, 246, 0.82);
-    box-shadow: var(--neu-out);
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(24px) saturate(150%);
+    -webkit-backdrop-filter: blur(24px) saturate(150%);
+    box-shadow: var(--shadow);
+    border-top: 1px solid rgba(255, 255, 255, 0.80);
   }
   .nav-item {
     flex: none;
@@ -1073,26 +1022,24 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
     font-size: 0.85rem;
     padding: 0.5rem 1.1rem;
     border-radius: 999px;
-    transition: box-shadow var(--t) var(--ease), color var(--t) var(--ease);
+    transition: background var(--t) var(--ease), color var(--t) var(--ease);
   }
-  .nav-item:hover { box-shadow: var(--neu-out-sm); }
+  .nav-item:hover { background: rgba(255, 255, 255, 0.55); }
   .nav-item.active {
-    background: var(--surface-2);
-    box-shadow: var(--neu-in-sm);
+    background: linear-gradient(135deg, var(--cta-from) 0%, var(--cta-to) 100%);
+    color: #fff;
   }
   .nav-item.active .nav-icon {
     background: transparent;
     box-shadow: none;
     transform: none;
     animation: none;
+    color: #fff;
   }
   .nav-icon { width: auto; height: auto; }
-
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 }
 
-/* Motion is decoration here — every state is also carried by colour, shadow or
-   text, so switching it all off costs nothing. */
+/* Motion is decoration — every state is also carried by colour, shape or text */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after {
