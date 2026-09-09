@@ -478,8 +478,14 @@ function MentorClassCard({
   const canStart = cls.status === 'scheduled' || cls.status === 'live'
   /** The API refuses to edit an ended class, so don't offer it. */
   const canEdit = canStart
-  /** The mentor never pressed End and the clock closed the room instead. */
-  const autoEnded = cls.status === 'ended' && cls.storedStatus === 'live'
+  /**
+   * The clock closed the room, not the mentor. Two ways in: they started it and
+   * never pressed End, or they never started it at all — and the second one is
+   * the case worth naming, because "Finished" reads as a lie for a lecture that
+   * never happened.
+   */
+  const autoEnded = cls.status === 'ended' && cls.storedStatus !== 'ended'
+  const neverStarted = autoEnded && cls.storedStatus === 'scheduled'
 
   return (
     <Card>
@@ -505,7 +511,9 @@ function MentorClassCard({
 
       {autoEnded && (
         <div className="tiny faint" style={{ marginTop: '0.5rem' }}>
-          Closed automatically — the join window ran out while it was still marked live.
+          {neverStarted
+            ? 'Never started — the slot came and went without the room being opened.'
+            : 'Closed automatically — the join window ran out while it was still marked live.'}
         </div>
       )}
 

@@ -33,6 +33,36 @@ const MAX_X = 84
  *  crossing the whole screen takes longer than a short shuffle. */
 const MS_PER_PERCENT = 95
 
+interface Activity {
+  to: string
+  label: string
+  icon: string
+}
+
+/**
+ * The pet is the app's only floating affordance, and `AppShell`'s bottom bar is
+ * hard-capped at five entries — so this menu is where anything that cannot fit
+ * the nav becomes discoverable. `/practice` has no nav entry at all and is
+ * reachable primarily from here.
+ *
+ * Icons deliberately reuse AppShell's vocabulary, so a row here and the tab it
+ * leads to look like the same thing.
+ */
+const STUDENT_ACTIVITIES: Activity[] = [
+  { to: '/practice', label: 'Practise a word', icon: '♪' },
+  { to: '/', label: 'Record this week’s task', icon: '●' },
+  { to: '/feedback', label: 'Mentor feedback', icon: '✎' },
+  { to: '/plan', label: 'This week’s plan', icon: '✓' },
+  { to: '/live', label: 'Live lectures', icon: '◉' },
+  { to: '/mentor', label: 'Your mentor', icon: '☺' },
+]
+
+const MENTOR_ACTIVITIES: Activity[] = [
+  { to: '/', label: 'Review queue', icon: '▤' },
+  { to: '/live', label: 'Your lectures', icon: '◉' },
+  { to: '/profile', label: 'Profile', icon: '☺' },
+]
+
 function useReducedMotion() {
   const [reduced, setReduced] = useState(
     () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false,
@@ -117,8 +147,25 @@ export function PetCompanion() {
 
   const plan = data?.plan
   const todo = plan?.items.filter((i) => !i.done) ?? []
-  const doneCount = (plan?.items.length ?? 0) - todo.length
   const nextLive = live.data?.class ?? null
+  const isMentor = me?.role === 'mentor'
+
+  /**
+   * Plan state rides along on the "This week's plan" row instead of getting its
+   * own list, which is what makes room for the activity menu. One row, one
+   * subject — the count is the reason to tap it.
+   */
+  const planMeta = !isStudent
+    ? null
+    : isLoading
+      ? '…'
+      : isError || !plan
+        ? null
+        : todo.length === 0
+          ? 'all done ✓'
+          : `${todo.length} left`
+
+  const activities = isStudent ? STUDENT_ACTIVITIES : isMentor ? MENTOR_ACTIVITIES : []
 
   return (
     <div
@@ -133,13 +180,13 @@ export function PetCompanion() {
         <div
           className={`pet-bubble${pos.x > 55 ? ' pet-bubble-flip' : ''}`}
           role="dialog"
-          aria-label={isStudent ? "This week's plan" : 'Your study buddy'}
+          aria-label={activities.length ? 'What do you want to do?' : 'Your study buddy'}
         >
           <div className="tiny strong" style={{ color: 'var(--accent)' }}>
-            {isStudent ? "THIS WEEK'S PLAN" : 'YOUR STUDY BUDDY'}
+            {isStudent ? 'WHAT DO YOU WANT TO DO?' : isMentor ? 'YOUR CONSOLE' : 'YOUR STUDY BUDDY'}
           </div>
 
-          {/* Above the plan on purpose: a lecture is time-bound and a plan item
+          {/* Above the menu on purpose: a lecture is time-bound and an activity
               is not, so it is the only thing here that can be missed. */}
           {isStudent && nextLive && (
             <Link
@@ -160,46 +207,24 @@ export function PetCompanion() {
             </Link>
           )}
 
-          {!isStudent ? (
+          {activities.length > 0 ? (
+            <div className="pet-actions">
+              {activities.map((a) => (
+                <Link key={a.to + a.label} to={a.to} className="pet-action" onClick={() => setOpen(false)}>
+                  <span className="pet-action-icon" aria-hidden="true">{a.icon}</span>
+                  <span className="pet-action-label">{a.label}</span>
+                  {a.to === '/plan' && planMeta ? (
+                    <span className="pet-action-meta">{planMeta}</span>
+                  ) : null}
+                </Link>
+              ))}
+            </div>
+          ) : (
             <div className="tiny dim">
               {me
                 ? "I look after weekly plans. Students get one built from their mentor's own words."
                 : "Sign in and I'll keep this week's plan right here — built from what your mentor actually wrote."}
             </div>
-          ) : isLoading ? (
-            <div className="tiny dim">Fetching your plan…</div>
-          ) : isError ? (
-            <div className="tiny dim">Couldn't load your plan just now.</div>
-          ) : !plan ? (
-            <div className="tiny dim">
-              {data?.message ?? 'Your plan appears once a mentor reviews your work.'}
-            </div>
-          ) : todo.length === 0 ? (
-            <div className="tiny dim">All {plan.items.length} done. Nicely cleared. ✓</div>
-          ) : (
-            <>
-              {/* Three is what fits without the bubble becoming a page of its
-                  own — the rest are one tap away. */}
-              <ul className="pet-list">
-                {todo.slice(0, 3).map((item) => (
-                  <li key={item.title}>{item.title}</li>
-                ))}
-              </ul>
-              {todo.length > 3 && (
-                <div className="tiny faint">+{todo.length - 3} more</div>
-              )}
-              {doneCount > 0 && (
-                <div className="tiny faint">
-                  {doneCount}/{plan.items.length} already done
-                </div>
-              )}
-            </>
-          )}
-
-          {isStudent && (
-            <Link to="/plan" className="tiny strong" onClick={() => setOpen(false)}>
-              See full plan →
-            </Link>
           )}
         </div>
       )}
@@ -207,7 +232,11 @@ export function PetCompanion() {
       <button
         type="button"
         className={`pet${open ? ' pet-awake' : ''}`}
-        aria-label={isStudent ? "Your study buddy — show this week's plan" : 'Your study buddy'}
+        aria-label={
+          activities.length
+            ? 'Your study buddy — show what you can do'
+            : 'Your study buddy'
+        }
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
         style={{ transform: `scaleX(${pos.facing})` }}

@@ -6,6 +6,7 @@ import {
   SWITCH_REASON_CODES,
   CONSENT_SCOPES,
 } from '../enums.js'
+import { PRACTICE_WORD_IDS } from '../pronunciation.js'
 
 /** Shared primitives */
 export const cuid = z.string().min(1)
@@ -195,3 +196,28 @@ export const grantConsentSchema = z.object({
   guardianName: z.string().min(2).optional(),
   guardianEmail: emailSchema.optional(),
 })
+
+// ---------------------------------------------------------------------------
+// Pronunciation practice
+// ---------------------------------------------------------------------------
+
+/**
+ * One logged practice attempt. Note what is NOT here: any score, level or
+ * grade. `matched` is a binary "did the recogniser hear the word or not" — the
+ * table it lands in has no column for anything more, deliberately. See the
+ * header of ../pronunciation.ts and docs/data-model.md.
+ */
+export const recordAttemptSchema = z.object({
+  /** Null/absent for a word the student typed in themselves. */
+  wordId: z
+    .string()
+    .refine((id) => PRACTICE_WORD_IDS.includes(id), 'Unknown practice word')
+    .optional(),
+  word: z.string().min(1).max(60),
+  /** What the recogniser returned. Absent when it heard nothing at all. */
+  heard: z.string().max(200).optional(),
+  matched: z.boolean(),
+  /** 'browser' today; the seam for a cloud engine later. */
+  engine: z.enum(['browser']).default('browser'),
+})
+export type RecordAttemptInput = z.infer<typeof recordAttemptSchema>

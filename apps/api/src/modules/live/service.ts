@@ -130,9 +130,20 @@ export function serializeClass(
   const { status, canJoin, opensAt, closesAt, reason } = joinability(cls)
   const registered = Boolean(registration)
   const seatsTaken = cls._count?.registrations ?? 0
-  const recordingPlaybackUrl = cls.recordingPublishedAt
-    ? recordingUrl(cls.recordingMedia ?? null)
-    : null
+
+  /**
+   * "A recording exists" and "we can play it" are two different questions, and
+   * conflating them is what made an ended lecture claim nothing had been
+   * published while sitting in the library. This is the first question, and it
+   * is deliberately the same test the /recordings SQL filter and
+   * serializeForMentor() use — those three disagreeing is the bug.
+   */
+  const media = cls.recordingMedia ?? null
+  const hasRecording = Boolean(
+    cls.recordingPublishedAt && media && !media.deletedAt && media.status === 'ready',
+  )
+  /** And this is the second: null here means the player shows "unavailable". */
+  const recordingPlaybackUrl = hasRecording ? recordingUrl(media) : null
 
   return {
     id: cls.id,
@@ -160,7 +171,10 @@ export function serializeClass(
     joinUrl: canJoin && registered ? cls.joinUrl : null,
     isRegistered: registered,
     attendedAt: registration?.attendedAt ?? null,
-    hasRecording: Boolean(recordingPlaybackUrl),
+    /** Both null until the mentor actually runs it — see effectiveLiveClassStatus. */
+    startedAt: cls.startedAt,
+    endedAt: cls.endedAt,
+    hasRecording,
     recordingPublishedAt: cls.recordingPublishedAt,
     recordingPlaybackUrl,
     recordingDurationSeconds: cls.recordingMedia?.durationSeconds ?? null,
@@ -172,11 +186,12 @@ export function serializeClass(
 /** Mentor-facing shape: the roster and the room link, no join gating. */
 export function serializeForMentor(
   cls: ClassRow & {
-    recordingMedia?: { status: string; durationSeconds: number | null } | null
+    recordingMedia?: { status: string; deletedAt: Date | null; durationSeconds: number | null } | null
     _count?: { registrations: number }
   },
 ) {
   const seatsTaken = cls._count?.registrations ?? 0
+  const media = cls.recordingMedia ?? null
   return {
     id: cls.id,
     title: cls.title,
@@ -192,7 +207,10 @@ export function serializeForMentor(
     joinUrl: cls.joinUrl,
     startedAt: cls.startedAt,
     endedAt: cls.endedAt,
-    hasRecording: Boolean(cls.recordingPublishedAt && cls.recordingMedia?.status === 'ready'),
+    /** Same test as serializeClass() and the /recordings filter — keep them equal. */
+    hasRecording: Boolean(
+      cls.recordingPublishedAt && media && !media.deletedAt && media.status === 'ready',
+    ),
     recordingPublishedAt: cls.recordingPublishedAt,
   }
 }

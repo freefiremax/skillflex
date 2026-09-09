@@ -184,8 +184,12 @@ lecture that finished last Tuesday. `effectiveLiveClassStatus()` in
 says. The column is the mentor's *intent*; the derived value is what students
 see. The consequence is that "ended" cannot appear in a `WHERE` clause, so both
 list routes select `status in ('scheduled','live')` and drop ended rows in JS.
-Mentors additionally get `storedStatus` alongside `status`, which is what lets
-the console say "auto-ended — you never pressed End".
+Anything that also **limits** rows has to bound the query some other way, or the
+limit fills with rows the JS filter then throws away: `GET /live/next` takes 5
+and so adds `scheduledAt >= now - (240 + 20) min`, safe because the contract caps
+`durationMinutes` at 240. Mentors additionally get `storedStatus` alongside
+`status`, which is what lets the console distinguish "you never pressed End" from
+"you never started it".
 
 **`joinUrl` is not part of the class payload.** It is nulled in every serialized
 response unless the caller is registered *and* inside the join window, and the
@@ -204,6 +208,67 @@ only ever moves forward (`Math.max`) and `completedAt` latches once set, so
 scrubbing backwards cannot un-complete a lecture. Registrations survive a
 cancelled class; cancelling is a soft status change, because the attendance
 record is what the college's report is made of.
+
+**"A recording exists" and "we can play it" are separate questions.**
+`hasRecording` answers the first — `recordingPublishedAt` set, media row present,
+`status: 'ready'`, not soft-deleted — and it is the *same* test the `/recordings`
+list query and `serializeForMentor()` apply, on purpose. `recordingPlaybackUrl`
+answers the second and is null whenever the asset has neither a stored
+`playbackUrl` nor an `externalId` to derive one from (a seeded row, an expired
+signed URL). Deriving `hasRecording` from the URL instead is what let the library
+list a lecture whose detail page then announced that no recording had been
+published; the player's "Recording unavailable" state is the honest answer there.
+
+## Pronunciation practice
+
+```
+PronunciationAttempt (studentId, wordId?, word, heard?, matched, engine,
+                      createdAt)
+```
+
+**Note what is missing: there is no score column.** No `accuracy`, no `level`, no
+`grade`, no percentage. That absence is the whole design. A machine listening to
+a student is the one feature in this product that could quietly contradict "no AI
+scores anyone", so the constraint is expressed where it cannot be argued with
+later — the column does not exist, so no route can return one and no UI can
+render one. `matched: Boolean` records only whether an error was *detected* on
+that try.
+
+Four more walls, all structural rather than editorial:
+
+- It never writes a `Feedback` row, so no attempt ever carries a
+  `sourceFeedbackId`, so `buildWeeklyPlan()` in
+  `apps/api/src/modules/plans/service.ts` cannot reach it. A bad morning of
+  drilling cannot become a plan item.
+- It is absent from `GET /api/orgs/report`, consistent with the college never
+  seeing individual student performance.
+- Mentors have no route over it. There is no queue, no list, no aggregate.
+- `POST /api/practice/attempts` is `requireRole('student')` and derives
+  `studentId` from the token via `currentStudentId()`, so nobody can log or read
+  an attempt on someone else's behalf.
+
+`wordId` is null for a word the student typed in themselves, and otherwise one of
+the 82 ids in `packages/shared/src/pronunciation.ts` — validated by
+`recordAttemptSchema` against `PRACTICE_WORD_IDS` so the column cannot drift from
+the bank. `word` is stored regardless, denormalised on purpose: the bank is source
+code and words will be added, renamed and removed, and an attempt whose word no
+longer exists should still read as an attempt rather than a dangling id.
+
+`heard` is what the recogniser actually returned. It is the only field that makes
+a stored attempt debuggable — "matched: false" alone tells you nothing about
+whether the student mispronounced the word or a passing bus did.
+
+`engine` defaults to `'browser'` and exists as a seam. Today every row comes from
+the browser's own `SpeechRecognition`, which is free but word-level: it reports
+which *syllable* diverged, never which phoneme. Swapping in a paid phoneme-level
+engine later means a new value here and a new adapter behind
+`judgePronunciation()`, which is pure and takes a list of candidate
+transcriptions — no schema change and no UI change.
+
+The `@@index([studentId, createdAt])` is what `GET /api/practice/summary` runs on:
+it reads one student's last 60 days to count distinct cleared words, attempts this
+IST week, and the current day streak. All three are derived at read time — none of
+them is a stored counter, so none of them can be wrong.
 
 ## Scheduled sessions (P2, schema only)
 

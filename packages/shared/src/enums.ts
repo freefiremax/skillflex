@@ -214,3 +214,15 @@ export function startOfWeekIST(at: Date): Date {
   ist.setUTCHours(0, 0, 0, 0)
   return new Date(ist.getTime() - IST_OFFSET_MS)
 }
+
+/**
+ * The India-time calendar day an instant falls in, as `YYYY-MM-DD`.
+ *
+ * Same reasoning as `startOfWeekIST` above, and the same trap: a practice
+ * streak computed with `toDateString()` breaks at 00:00 UTC, which is 05:30 IST
+ * — so a student practising before breakfast would be credited to the previous
+ * day on Vercel and the current one on their own laptop.
+ */
+export function istDayKey(at: Date): string {
+  return new Date(at.getTime() + IST_OFFSET_MS).toISOString().slice(0, 10)
+}

@@ -9,6 +9,7 @@ import LessonPage from './features/learn/LessonPage'
 import RecordPage from './features/submit/RecordPage'
 import FeedbackListPage from './features/feedback/FeedbackListPage'
 import PlanPage from './features/plans/PlanPage'
+import PracticePage from './features/practice/PracticePage'
 import MentorPage from './features/mentorship/MentorPage'
 import BrowseMentorsPage from './features/mentorship/BrowseMentorsPage'
 import LivePage from './features/live/LivePage'
@@ -53,6 +54,9 @@ export default function App() {
             <Route path="/assignments/:id/record" element={<RecordPage />} />
             <Route path="/feedback" element={<FeedbackListPage />} />
             <Route path="/plan" element={<PlanPage />} />
+            {/* No bottom-nav tab: AppShell's bar is capped at five and full.
+                Reached from the pet menu and the card on LearnPage. */}
+            <Route path="/practice" element={<PracticePage />} />
             <Route path="/live" element={<LivePage />} />
             <Route path="/live/:id" element={<LiveClassPage />} />
             <Route path="/mentor" element={<MentorPage />} />

@@ -134,6 +134,7 @@ model StudentProfile {
   weeklyPlans            WeeklyPlan[]
   liveSessions           LiveSession[]
   liveClassRegistrations LiveClassRegistration[]
+  pronunciationAttempts  PronunciationAttempt[]
 
   @@index([cohortId])
   @@map("student_profiles")
@@ -529,4 +530,42 @@ model ConsentRecord {
 
   @@index([userId, scope])
   @@map("consent_records")
+}
+
+// ---------------------------------------------------------------------------
+// Pronunciation practice
+// ---------------------------------------------------------------------------
+
+/// A single word read aloud in the practice drill.
+///
+/// Note what this model does NOT have: a score, a level, a grade, or an
+/// accuracy percentage. That absence is the enforcement of the platform's
+/// central claim — no AI assesses a student. `matched` is the binary "did the
+/// recogniser hear the word", which is diagnostic feedback on one word, not a
+/// judgement of a person.
+///
+/// Consequences of the missing column, all structural rather than policy:
+///   - nothing here can become a WeeklyPlan item, because plan items require a
+///     `sourceFeedbackId` and this never writes to Feedback;
+///   - nothing here reaches GET /api/orgs/report, so the college cannot see it;
+///   - mentors have no route that reads it.
+///
+/// `engine` is the seam for a cloud phoneme scorer later ('azure'). Even then
+/// no score gets stored — the richer diagnosis is shown live and discarded.
+model PronunciationAttempt {
+  id        String   @id @default(cuid())
+  studentId String
+  /// Null when the student typed their own word instead of picking from the bank.
+  wordId    String?
+  word      String
+  /// What the recogniser returned. Null when it heard nothing at all.
+  heard     String?
+  matched   Boolean
+  engine    String   @default("browser")
+  createdAt DateTime @default(now())
+
+  student StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, createdAt])
+  @@map("pronunciation_attempts")
 }

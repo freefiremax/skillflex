@@ -8,7 +8,7 @@ that feedback into a weekly plan, and nothing else.
 
 ---
 
-## The five things it does
+## The six things it does
 
 | | |
 | --- | --- |
@@ -16,6 +16,7 @@ that feedback into a weekly plan, and nothing else.
 | **Practice on camera** | Weekly task-based assignments recorded in the browser, capped by the assignment's duration limit. |
 | **A human reviews it** | A real mentor watches the video and writes scores + specific feedback. No AI scores anyone. |
 | **Attend live, or watch it later** | Mentors schedule one-to-many live lectures; the recording lands in an on-demand library that resumes where you left off. |
+| **Drill a word in two minutes** | Say a word out loud and find out *which syllable* slipped, with a hand-written fix for the mistake people actually make. Runs on the browser's own speech engine — no key, no cost. Never scored. |
 | **Switch mentors freely** | Not the right fit? Switch, keep all your history, pay nothing extra. The reason is recorded. |
 
 The switch is the product. Every incumbent locks you to whoever you were
@@ -75,7 +76,7 @@ All seeded accounts use the password **`password123`**.
 | --- | --- | --- |
 | Student | `rahul@student.avcoe.in` | Has a reviewed submission, mentor feedback and a generated plan |
 | Student | `priya@student.avcoe.in` | Fresh — good for walking the record → submit loop |
-| Mentor | `anjali@mentor.skillflex.in` | Review queue with work waiting |
+| Mentor | `anjali@skillflex.in` | Review queue with work waiting |
 | College admin | `tpo@avcoe.in` | The accreditation dashboard |
 | Platform admin | `admin@skillflex.in` | API-only provisioning |
 
@@ -98,7 +99,7 @@ npm run db:reset     # wipe + reseed (destroys local data)
 api/
   [...path].mjs   Vercel entry — re-exports the bundled Fastify app
 apps/
-  api/    Fastify server — 11 route modules under src/modules/
+  api/    Fastify server — 12 route modules under src/modules/
   web/    React PWA — one folder per feature under src/features/
 packages/
   db/     Prisma schema, client singleton, Json read helpers, seed
@@ -117,6 +118,16 @@ student has no human feedback. Every plan item carries the `sourceFeedbackId` it
 came from. The composer is deterministic — `model: 'rule-based-v1'`, no LLM call
 in the P1 path. The promise is enforced by the data model, not by a policy
 document. See [data-model.md](docs/data-model.md).
+
+**The pronunciation drill has no score column.** A machine listening to a
+student is the one feature that could quietly break the promise above, so the
+wall is in the schema rather than in copy: `PronunciationAttempt` stores
+`matched: Boolean` and nothing resembling a score, level or accuracy percentage.
+It never writes a `Feedback` row, so it has no `sourceFeedbackId`, so
+`buildWeeklyPlan()` structurally cannot turn a bad morning of practice into a
+plan item. It is absent from `GET /api/orgs/report`, and mentors have no route
+over it at all. What a student sees is "no error detected", never "correct" —
+because that is the most the engine can honestly claim.
 
 **Mentor history is append-only.** Switching closes the old `MentorAssignment`
 and opens a new one inside a transaction; it never updates a row in place. Your
@@ -192,6 +203,21 @@ nothing in a serverless function lives long enough to hold a timer.
 - Notifications of any kind — email, push, WhatsApp
 - Automated tests
 - A curriculum-authoring console — tracks and assignments go in via API or seed
+- Pronunciation feedback is **syllable-level, not phoneme-level**. The browser's
+  speech engine returns words, not sounds, and it is biased toward real dictionary
+  words — so a word said *slightly* wrong often comes back transcribed correctly.
+  That is why the drill says "no error detected" rather than "correct". Phoneme
+  scoring needs a paid engine (Azure Pronunciation Assessment or similar);
+  `judgePronunciation()` in `packages/shared/src/pronunciation.ts` is pure and
+  takes a list of candidate transcriptions, so an adapter slots in behind it
+  without the UI changing.
+- The drill **does not work in Firefox**, which has never shipped
+  `SpeechRecognition` — Chrome, Edge, Safari and Samsung Internet only. Firefox
+  gets an explanatory panel rather than a dead button; the rest of the app is
+  unaffected.
+- Only the 82 curated words carry a hand-written diagnosis. A word typed into the
+  free-text box gets the syllable we think slipped and no note, which the page
+  says out loud rather than dressing up.
 - `BunnyMediaProvider` is still a stub that throws — Supabase Storage is the real
   provider. Bunny/Cloudflare matter later, when video egress cost does.
 - Signed playback URLs are minted once at upload and stored, so a forwarded link

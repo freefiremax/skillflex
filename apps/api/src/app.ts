@@ -17,6 +17,7 @@ import { submissionRoutes } from './modules/submissions/routes.js'
 import { feedbackRoutes } from './modules/feedback/routes.js'
 import { mediaRoutes } from './modules/media/routes.js'
 import { planRoutes } from './modules/plans/routes.js'
+import { practiceRoutes } from './modules/practice/routes.js'
 import { orgRoutes } from './modules/orgs/routes.js'
 import { consentRoutes } from './modules/consent/routes.js'
 import { liveRoutes } from './modules/live/routes.js'
@@ -174,6 +175,7 @@ export async function buildApp() {
   await app.register(mentorshipRoutes, { prefix: '/api/mentorship' })
   await app.register(mediaRoutes, { prefix: '/api/media' })
   await app.register(planRoutes, { prefix: '/api/plans' })
+  await app.register(practiceRoutes, { prefix: '/api/practice' })
   await app.register(orgRoutes, { prefix: '/api/orgs' })
   await app.register(consentRoutes, { prefix: '/api/consent' })
   await app.register(liveRoutes, { prefix: '/api/live' })

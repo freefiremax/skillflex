@@ -21,6 +21,7 @@ async function main() {
   await prisma.$transaction([
     prisma.liveClassRegistration.deleteMany(),
     prisma.liveClass.deleteMany(),
+    prisma.pronunciationAttempt.deleteMany(),
     prisma.weeklyPlan.deleteMany(),
     prisma.feedback.deleteMany(),
     prisma.submission.deleteMany(),
@@ -68,7 +69,7 @@ async function main() {
   const mentorData = [
     {
       name: 'Anjali Rao',
-      email: 'anjali@mentor.skillflex.in',
+      email: 'anjali@skillflex.in',
       headline: 'Interview coach, ex-TCS',
       bio: 'Ten years taking freshers from campus to first offer. I go slow on fundamentals.',
       languages: ['en', 'hi'],
@@ -76,7 +77,7 @@ async function main() {
     },
     {
       name: 'Sagar Patil',
-      email: 'sagar@mentor.skillflex.in',
+      email: 'sagar@skillflex.in',
       headline: 'GD & presentation specialist (Marathi/Hindi)',
       bio: 'Marathi-first mentor. I fix the fear of speaking before we touch technique.',
       languages: ['mr', 'hi', 'en'],
@@ -84,7 +85,7 @@ async function main() {
     },
     {
       name: 'Neha Verma',
-      email: 'neha@mentor.skillflex.in',
+      email: 'neha@skillflex.in',
       headline: 'Written & email communication',
       bio: 'Corporate comms trainer. Emails, conflict conversations, the awkward stuff.',
       languages: ['en', 'hi'],
@@ -270,6 +271,23 @@ async function main() {
     },
   })
 
+  // --- Pronunciation practice history (Rahul) ------------------------------
+  // Enough attempts, dated across the last few days, for the summary line on
+  // /practice to have a streak and a "words cleared" count on first load.
+  // Deliberately a mix: a drill nobody ever fails is not a drill.
+  const DAY = 24 * 60 * 60 * 1000
+  await prisma.pronunciationAttempt.createMany({
+    data: [
+      { studentId: rahul.profile.id, wordId: 'three', word: 'three', heard: 'tree', matched: false, createdAt: new Date(Date.now() - 2 * DAY) },
+      { studentId: rahul.profile.id, wordId: 'three', word: 'three', heard: 'three', matched: true, createdAt: new Date(Date.now() - 2 * DAY + 60_000) },
+      { studentId: rahul.profile.id, wordId: 'vegetable', word: 'vegetable', heard: 'veggie table', matched: false, createdAt: new Date(Date.now() - 1 * DAY) },
+      { studentId: rahul.profile.id, wordId: 'vegetable', word: 'vegetable', heard: 'vegetable', matched: true, createdAt: new Date(Date.now() - 1 * DAY + 90_000) },
+      { studentId: rahul.profile.id, wordId: 'film', word: 'film', heard: 'film', matched: true, createdAt: new Date(Date.now() - 1 * DAY + 150_000) },
+      { studentId: rahul.profile.id, wordId: 'strengths', word: 'strengths', heard: 'strength', matched: false, createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000) },
+      { studentId: rahul.profile.id, wordId: 'schedule', word: 'schedule', heard: 'schedule', matched: true, createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000) },
+    ],
+  })
+
   // --- Live lectures + one published recording ----------------------------
   // Four classes on purpose, because each one exercises a different branch of
   // the join/visibility logic: an ended class with a recording, a class that is
@@ -404,7 +422,7 @@ Seed complete.
 
   Platform admin  admin@skillflex.in
   College admin   tpo@avcoe.in
-  Mentors         anjali@mentor.skillflex.in / sagar@... / neha@...
+  Mentors         anjali@skillflex.in / sagar@... / neha@...
   Students        rahul@student.avcoe.in  (has feedback + a weekly plan)
                   priya@student.avcoe.in / aditya@student.avcoe.in
 

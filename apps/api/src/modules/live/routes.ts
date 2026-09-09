@@ -7,6 +7,7 @@ import {
   recordingProgressSchema,
   updateLiveClassSchema,
   effectiveLiveClassStatus,
+  LIVE_CLASS_JOIN_GRACE_MINUTES,
 } from '@skillflex/shared'
 import {
   badRequest,
@@ -35,6 +36,9 @@ const studentInclude = {
   recordingMedia: true,
   _count: { select: { registrations: true } },
 } as const
+
+/** The contract's ceiling on durationMinutes. Used to bound "could still be running". */
+const MAX_CLASS_MINUTES = 240
 
 /**
  * Live lectures + the on-demand library they leave behind.
@@ -92,14 +96,22 @@ export async function liveRoutes(app: FastifyInstance) {
   /**
    * The student's next registered class. Small and cheap on purpose — the pet
    * companion polls it, so it must not be the /classes payload.
+   *
+   * The `scheduledAt` floor is what makes the `take` safe. "Ended" is derived
+   * from the clock and cannot be a WHERE clause, so without it a student with a
+   * handful of old registrations whose mentors never pressed End fills the whole
+   * page with classes the JS filter then discards, and their real next lecture
+   * never surfaces. A class can outlive its start by at most
+   * durationMinutes + grace, and the contract caps duration at 240.
    */
   app.get('/next', { preHandler: requireRole('student') }, async (request) => {
     const studentId = currentStudentId(request)
+    const floor = new Date(Date.now() - (MAX_CLASS_MINUTES + LIVE_CLASS_JOIN_GRACE_MINUTES) * 60_000)
 
     const registrations = await prisma.liveClassRegistration.findMany({
       where: {
         studentId,
-        liveClass: { status: { in: ['scheduled', 'live'] } },
+        liveClass: { status: { in: ['scheduled', 'live'] }, scheduledAt: { gte: floor } },
       },
       include: { liveClass: { include: studentInclude } },
       orderBy: { liveClass: { scheduledAt: 'asc' } },
@@ -416,14 +428,25 @@ export async function liveRoutes(app: FastifyInstance) {
     return { ok: true }
   })
 
+  /**
+   * Close the room. Guarded the same way /start is: a cancelled lecture must not
+   * be resurrectable as an ended one, or it reappears in "Been and gone" as
+   * something that happened.
+   *
+   * `endedAt` is written once. Pressing End twice — which mentors do, because the
+   * first tap has no visible effect until the list refetches — must not move the
+   * timestamp the college's engagement data is built on.
+   */
   app.post('/classes/:id/end', { preHandler: requireRole('mentor') }, async (request) => {
     const mentorId = currentMentorId(request)
     const { id } = request.params as { id: string }
-    await ownedClass(id, mentorId)
+    const cls = await ownedClass(id, mentorId)
+
+    if (cls.status === 'cancelled') throw conflict('That class was cancelled', 'CLASS_CANCELLED')
 
     await prisma.liveClass.update({
       where: { id },
-      data: { status: 'ended', endedAt: new Date() },
+      data: { status: 'ended', endedAt: cls.endedAt ?? new Date() },
     })
     return { ok: true }
   })
@@ -440,7 +463,7 @@ export async function liveRoutes(app: FastifyInstance) {
     const user = currentUser(request)
     const { id } = request.params as { id: string }
     const body = publishRecordingSchema.parse(request.body)
-    await ownedClass(id, mentorId)
+    const cls = await ownedClass(id, mentorId)
 
     const media = await prisma.mediaAsset.findUnique({ where: { id: body.mediaId } })
     if (!media || media.deletedAt) throw notFound('Recording not found')
@@ -465,7 +488,10 @@ export async function liveRoutes(app: FastifyInstance) {
         recordingMediaId: media.id,
         recordingPublishedAt: new Date(),
         status: 'ended',
-        endedAt: new Date(),
+        // Publishing a recording is not when the lecture finished. Keep the real
+        // timestamp if there is one; only fall back to now for a class that was
+        // never explicitly ended.
+        endedAt: cls.endedAt ?? new Date(),
       },
     })
 

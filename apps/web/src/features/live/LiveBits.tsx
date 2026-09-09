@@ -34,6 +34,8 @@ export interface LiveClassView {
   joinUrl: string | null
   isRegistered: boolean
   attendedAt: string | null
+  startedAt: string | null
+  endedAt: string | null
   hasRecording: boolean
   recordingPublishedAt: string | null
   recordingPlaybackUrl: string | null
@@ -78,6 +80,9 @@ export function LiveClassCard({
       ? Math.min(100, Math.round((cls.watchedSeconds / cls.recordingDurationSeconds) * 100))
       : 0
 
+  /** Over and done with. "3 seats left" on a finished lecture is nonsense. */
+  const isPast = cls.status === 'ended' || cls.status === 'cancelled'
+
   return (
     <Link to={`/live/${cls.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
       <Card className="card-interactive" accent={cls.status === 'live'}>
@@ -109,6 +114,19 @@ export function LiveClassCard({
             <>
               <Pill>{formatDateTime(cls.recordingPublishedAt)}</Pill>
               <Pill>{cls.durationMinutes} min</Pill>
+            </>
+          ) : isPast ? (
+            <>
+              <Pill>{formatDateTime(cls.scheduledAt)}</Pill>
+              <Pill>{cls.durationMinutes} min</Pill>
+              {cls.status === 'cancelled' ? (
+                <Pill tone="warn">Did not run</Pill>
+              ) : cls.attendedAt ? (
+                <Pill tone="ok">You attended</Pill>
+              ) : (
+                <Pill tone="warn">You missed it</Pill>
+              )}
+              {cls.hasRecording && <Pill tone="brand">Recording</Pill>}
             </>
           ) : (
             <>

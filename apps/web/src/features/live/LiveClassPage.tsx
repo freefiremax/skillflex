@@ -160,6 +160,17 @@ export default function LiveClassPage() {
       : 0
   const showRecording = cls.hasRecording && cls.status !== 'live'
 
+  /**
+   * A finished lecture is not an upcoming one with the dates in the past. "Room
+   * opens" and a seats-left meter are the wrong facts about something that
+   * already happened, so it gets its own summary.
+   */
+  const isPast = cls.status === 'ended' || cls.status === 'cancelled'
+  const ranForMinutes =
+    cls.startedAt && cls.endedAt
+      ? Math.max(1, Math.round((new Date(cls.endedAt).getTime() - new Date(cls.startedAt).getTime()) / 60_000))
+      : null
+
   return (
     <div className="stack">
       <button
@@ -210,6 +221,42 @@ export default function LiveClassPage() {
             )}
           </Card>
         </>
+      ) : isPast ? (
+        <Card>
+          <div className="stack-sm">
+            <div className="row-between">
+              <span className="tiny faint">
+                {cls.status === 'cancelled' ? 'WAS SCHEDULED FOR' : 'HELD ON'}
+              </span>
+              <span className="small strong">{formatDateTime(cls.scheduledAt)}</span>
+            </div>
+            <div className="row-between">
+              <span className="tiny faint">
+                {cls.status === 'cancelled' ? 'WOULD HAVE RUN' : 'RAN FOR'}
+              </span>
+              <span className="small strong">
+                {ranForMinutes ? `${ranForMinutes} min` : `${cls.durationMinutes} min`}
+                {ranForMinutes ? '' : <span className="faint"> scheduled</span>}
+              </span>
+            </div>
+            <div className="row-between">
+              <span className="tiny faint">YOU</span>
+              <span className="small">
+                {cls.status === 'cancelled'
+                  ? 'Nothing to catch up on'
+                  : cls.attendedAt
+                    ? 'Were in the room'
+                    : cls.isRegistered
+                      ? 'Registered but did not join'
+                      : 'Were not registered'}
+              </span>
+            </div>
+            <div className="row-between">
+              <span className="tiny faint">WHO SIGNED UP</span>
+              <span className="small mono">{cls.seatsTaken}</span>
+            </div>
+          </div>
+        </Card>
       ) : (
         <Card accent={cls.status === 'live'}>
           <div className="stack-sm">

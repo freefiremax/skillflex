@@ -189,6 +189,22 @@ export default function LearnPage() {
         </div>
       )}
 
+      {/* Sits between the week's work and the lessons on purpose: it is neither
+          an obligation nor a video, it is the thing to do in two spare minutes.
+          Also the only non-pet way to find /practice — there is no nav tab. */}
+      <Card onClick={() => navigate('/practice')}>
+        <div className="row-between">
+          <div>
+            <div className="tiny faint">TWO-MINUTE DRILL</div>
+            <div className="strong">Practise a word out loud</div>
+            <div className="tiny dim">
+              Read a word, find out which syllable slipped. Not scored, not seen by anyone.
+            </div>
+          </div>
+          <Pill tone="brand">♪ Start</Pill>
+        </div>
+      </Card>
+
       <div className="section-title">Lessons</div>
       {tracks.isLoading ? (
         <Loading rows={2} />
