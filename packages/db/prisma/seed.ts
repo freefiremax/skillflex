@@ -21,6 +21,7 @@ async function main() {
   await prisma.$transaction([
     prisma.liveClassRegistration.deleteMany(),
     prisma.liveClass.deleteMany(),
+    prisma.battleAttempt.deleteMany(),
     prisma.pronunciationAttempt.deleteMany(),
     prisma.weeklyPlan.deleteMany(),
     prisma.feedback.deleteMany(),
@@ -287,6 +288,44 @@ async function main() {
       { studentId: rahul.profile.id, wordId: 'schedule', word: 'schedule', heard: 'schedule', matched: true, createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000) },
     ],
   })
+
+  // --- Battle attempt history (Rahul, Priya, Aditya) ------------------------
+  // Objective facts only: score/total against a fixed answer key. Adjacent to
+  // /practice history so the effort half of the level + the leaderboard have
+  // real variation on first load. Kept deliberately imperfect — a "won"
+  // battle means score === total, so Aditya (the quiet one) lands lower.
+  const BATTLE_STUDENTS = [
+    { student: rahul, data: [
+      { mode: 'spelling', score: 8, total: 8, durationSeconds: 64 },
+      { mode: 'sentence', score: 7, total: 10, durationSeconds: 91 },
+      { mode: 'quiz', score: 9, total: 10, durationSeconds: 57 },
+      { mode: 'spelling', score: 7, total: 8, durationSeconds: 71 },
+    ]},
+    { student: students[1]!, data: [
+      { mode: 'spelling', score: 9, total: 10, durationSeconds: 82 },
+      { mode: 'quiz', score: 10, total: 10, durationSeconds: 49 },
+      { mode: 'sentence', score: 9, total: 10, durationSeconds: 73 },
+      { mode: 'spelling', score: 8, total: 8, durationSeconds: 66 },
+      { mode: 'quiz', score: 8, total: 10, durationSeconds: 60 },
+    ]},
+    { student: students[2]!, data: [
+      { mode: 'spelling', score: 4, total: 8, durationSeconds: 88 },
+      { mode: 'sentence', score: 5, total: 10, durationSeconds: 104 },
+    ]},
+  ] as const
+  for (const { student, data } of BATTLE_STUDENTS) {
+    await prisma.battleAttempt.createMany({
+      data: data.map((d, i) => ({
+        studentId: student.profile.id,
+        mode: d.mode,
+        score: d.score,
+        total: d.total,
+        durationSeconds: d.durationSeconds,
+        // Backdate so the histories interleave with /practice, newest last.
+        createdAt: new Date(Date.now() - (data.length - i) * 5 * 60 * 60 * 1000),
+      })),
+    })
+  }
 
   // --- Live lectures + one published recording ----------------------------
   // Four classes on purpose, because each one exercises a different branch of

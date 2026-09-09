@@ -179,3 +179,33 @@ export function speakWord(word: string) {
   utterance.rate = 0.85
   window.speechSynthesis.speak(utterance)
 }
+
+/**
+ * Speak anything, in any language, using the device's free voices.
+ *
+ * This is the drill's `speakWord` generalised: the phrasebook wants a native-ish
+ * voice for a Spanish sentence, and the battle cheers want the device's own
+ * en-IN voice for "Yeahh! Gotcha!". Same engine, same costless offline promise,
+ * just a language code in place of the hardcoded English. Falls back to the
+ * best available voice if the requested one is missing, exactly like `speakWord`.
+ */
+export function speak(text: string, lang = 'en-IN', rate = 0.9) {
+  if (!text || typeof window === 'undefined' || !('speechSynthesis' in window)) return
+  window.speechSynthesis.cancel()
+
+  const utterance = new SpeechSynthesisUtterance(text)
+  utterance.lang = lang
+
+  const voices = window.speechSynthesis.getVoices()
+  const key = lang.replace('_', '-').toLowerCase()
+  const voice =
+    voices.find((v) => v.lang.replace('_', '-').toLowerCase() === key) ??
+    voices.find((v) => v.lang.replace('_', '-').toLowerCase().startsWith(key.split('-')[0] ?? key))
+  if (voice) {
+    utterance.voice = voice
+    utterance.lang = voice.lang
+  }
+
+  utterance.rate = rate
+  window.speechSynthesis.speak(utterance)
+}

@@ -175,6 +175,25 @@ a:hover { color: var(--brand-deep); text-decoration: underline; }
 .stack-sm { display: flex; flex-direction: column; gap: 0.5rem; }
 .row { display: flex; align-items: center; gap: 0.6rem; }
 .row-between { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
+
+/* The "you" row on the leaderboard gets a raised, branded treatment so a
+   student can find their own line at a glance. The page already tints the
+   background (var(--surface-2)) inline; this adds the ring and the small
+   accent bar so it reads as *selected*, not just shaded. */
+.you-row {
+  box-shadow: inset 0 0 0 1px var(--highlight);
+  position: relative;
+}
+.you-row::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.4rem;
+  bottom: 0.4rem;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--brand-deep);
+}
 .wrap { flex-wrap: wrap; }
 .grow { flex: 1; }
 .center { text-align: center; }
@@ -666,6 +685,10 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   flex-direction: column;
   gap: 0.15rem;
   margin-top: 0.1rem;
+  max-height: 14rem;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  padding-right: 0.15rem;
 }
 .pet-action {
   display: flex;

@@ -205,6 +205,64 @@ export default function LearnPage() {
         </div>
       </Card>
 
+      {/* The level is the one "grade" the product shows, and it lives here rather
+          than in the nav: the bottom bar is capped at five and full. It's derived
+          from mentor feedback + effort, recomputed on read, never stored. */}
+      <Card onClick={() => navigate('/progress')}>
+        <div className="row-between">
+          <div>
+            <div className="tiny faint">YOUR LEVEL</div>
+            <div className="strong">Beginner → God Mode</div>
+            <div className="tiny dim">
+              Built from your mentors’ feedback plus what you actually did. No AI computes it.
+            </div>
+          </div>
+          <Pill tone="brand">See it →</Pill>
+        </div>
+      </Card>
+
+      {/* Battles and the college effort board, grouped as the "play" block. The
+          leaderboard is a deliberate exception to the pet-widget rule, but it
+          still doesn't take a nav slot — this card reaches it. */}
+      <Card onClick={() => navigate('/battles')}>
+        <div className="row-between">
+          <div>
+            <div className="tiny faint">QUICK GAMES</div>
+            <div className="strong">Battle drills</div>
+            <div className="tiny dim">
+              Spelling, sentences, soft-skill quiz — judged against a fixed key, and they cheer.
+            </div>
+          </div>
+          <Pill tone="brand">⚔ Play</Pill>
+        </div>
+      </Card>
+
+      <Card onClick={() => navigate('/leaderboard')}>
+        <div className="row-between">
+          <div>
+            <div className="tiny faint">YOUR COLLEGE</div>
+            <div className="strong">Top movers</div>
+            <div className="tiny dim">
+              Effort across your college — words cleared, streaks, work done. It never ranks quality.
+            </div>
+          </div>
+          <Pill tone="brand">★ Board</Pill>
+        </div>
+      </Card>
+
+      <Card onClick={() => navigate('/languages')}>
+        <div className="row-between">
+          <div>
+            <div className="tiny faint">SAY SOMETHING NEW</div>
+            <div className="strong">Learn a language</div>
+            <div className="tiny dim">
+              Spanish, French, German, Japanese, Korean — real phrases you can hear and echo.
+            </div>
+          </div>
+          <Pill tone="brand">語 Start</Pill>
+        </div>
+      </Card>
+
       <div className="section-title">Lessons</div>
       {tracks.isLoading ? (
         <Loading rows={2} />

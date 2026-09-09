@@ -50,10 +50,14 @@ interface Activity {
  */
 const STUDENT_ACTIVITIES: Activity[] = [
   { to: '/practice', label: 'Practise a word', icon: '♪' },
+  { to: '/battles', label: 'Battle drills', icon: '⚔' },
   { to: '/', label: 'Record this week’s task', icon: '●' },
   { to: '/feedback', label: 'Mentor feedback', icon: '✎' },
   { to: '/plan', label: 'This week’s plan', icon: '✓' },
   { to: '/live', label: 'Live lectures', icon: '◉' },
+  { to: '/languages', label: 'Learn a language', icon: '語' },
+  { to: '/progress', label: 'Your level', icon: '◎' },
+  { to: '/leaderboard', label: 'College leaderboard', icon: '★' },
   { to: '/mentor', label: 'Your mentor', icon: '☺' },
 ]
 

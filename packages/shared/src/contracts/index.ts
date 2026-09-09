@@ -221,3 +221,21 @@ export const recordAttemptSchema = z.object({
   engine: z.enum(['browser']).default('browser'),
 })
 export type RecordAttemptInput = z.infer<typeof recordAttemptSchema>
+
+// ---------------------------------------------------------------------------
+// Gamified battle: spelling / sentence / quiz.
+//
+// `score` and `total` are objective counts against a fixed answer key, never a
+// percentage or a grade. A "win" is score === total — the student got every
+// item right, same spirit as the drill's `matched`. The API stores the fact;
+// it does not grade it.
+// ---------------------------------------------------------------------------
+
+export const recordBattleAttemptSchema = z.object({
+  mode: z.enum(['spelling', 'sentence', 'quiz']),
+  score: z.number().int().min(0).max(20),
+  total: z.number().int().min(1).max(20),
+  durationSeconds: z.number().int().min(0).max(6 * 60 * 60).default(0),
+})
+export type RecordBattleAttemptInput = z.infer<typeof recordBattleAttemptSchema>
+

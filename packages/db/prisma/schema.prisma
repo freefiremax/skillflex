@@ -135,6 +135,7 @@ model StudentProfile {
   liveSessions           LiveSession[]
   liveClassRegistrations LiveClassRegistration[]
   pronunciationAttempts  PronunciationAttempt[]
+  battleAttempts         BattleAttempt[]
 
   @@index([cohortId])
   @@map("student_profiles")
@@ -569,3 +570,39 @@ model PronunciationAttempt {
   @@index([studentId, createdAt])
   @@map("pronunciation_attempts")
 }
+
+// ---------------------------------------------------------------------------
+// Gamified battles — spelling, sentence, quiz.
+// ---------------------------------------------------------------------------
+
+/// How a student fared in one battle round.
+///
+/// Like PronunciationAttempt, this stores FACTS of effort, never a grade: `mode`
+/// is which game, `score` is how many of the round's items the student got
+/// right. It is a count of correct answers against a fixed answer key — the same
+/// objective "matched" the drill stores, not a machine judgement of quality.
+/// It is deliberately NOT a percentage or a "level", so nothing here can be
+/// re-read as an assessment.
+///
+/// `durationSeconds` is elapsed wall-clock; kept so the two-minute drill's
+/// "top gainers" view can reward fast rounds without ever calling it a "score
+/// per minute" (which would edge into ranking).
+model BattleAttempt {
+  id              String   @id @default(cuid())
+  studentId       String
+  /// spelling | sentence | quiz — see BATTLE_MODES in @skillflex/shared
+  mode            String
+  /// Correct answers in this round, against the fixed answer key.
+  score           Int
+  /// Items in the round (fixed per mode), so the client can show "5 / 5".
+  total           Int
+  durationSeconds Int      @default(0)
+  createdAt       DateTime @default(now())
+
+  student StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, createdAt])
+  @@index([mode, createdAt])
+  @@map("battle_attempts")
+}
+
