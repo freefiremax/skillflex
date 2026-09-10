@@ -169,8 +169,14 @@ a:hover { color: var(--brand-deep); text-decoration: underline; }
 .shell {
   max-width: var(--max-w);
   margin: 0 auto;
-  padding: 1rem 1rem calc(var(--nav-h) + 2rem);
+  /* The nav is nav-h PLUS the home-indicator inset, so the padding has to clear
+     both or the last card sits under the bar on a notched phone. */
+  padding: 1rem 1rem calc(var(--nav-h) + env(safe-area-inset-bottom) + 2rem);
+  /* dvh, not vh: mobile browsers count their collapsing address bar in `vh`, so
+     100vh is taller than what you can actually see and every page inherits a
+     phantom scroll. vh first for browsers that don't know dvh. */
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .stack    { display: flex; flex-direction: column; gap: 1rem; }
@@ -247,6 +253,18 @@ a:hover { color: var(--brand-deep); text-decoration: underline; }
 }
 
 .card-tight { padding: 0.75rem 0.9rem; border-radius: var(--radius-sm); }
+
+/* Backdrop blur is the most expensive thing the compositor does here, and
+   `.card` is the most repeated element — a busy screen stacks six or eight.
+   Blur cost scales with the radius, so phones get a cheaper one. The primary
+   user is on a mid-range Android; at this size the two radii are hard to tell
+   apart, but the difference in scroll smoothness is not. */
+@media (max-width: 859px) {
+  .card {
+    backdrop-filter: blur(12px) saturate(130%);
+    -webkit-backdrop-filter: blur(12px) saturate(130%);
+  }
+}
 
 .card-interactive {
   cursor: pointer;
@@ -359,24 +377,6 @@ a:hover { color: var(--brand-deep); text-decoration: underline; }
 .btn-record:active:not(:disabled) {
   box-shadow: inset 0 2px 8px rgba(120, 8, 30, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.12);
 }
-
-/* Big circular mic button used on PracticePage / BattlePage */
-.btn-mic {
-  border-radius: 999px;
-  width: 72px;
-  height: 72px;
-  min-height: 72px;
-  padding: 0;
-  background: linear-gradient(135deg, var(--cta-from) 0%, var(--cta-to) 100%);
-  color: #fff;
-  font-size: 1.6rem;
-  box-shadow: 0 6px 24px rgba(15, 122, 106, 0.30), 0 0 0 1px rgba(255, 255, 255, 0.20);
-}
-.btn-mic:hover:not(:disabled) {
-  filter: brightness(1.08);
-  box-shadow: 0 8px 28px rgba(15, 122, 106, 0.36), 0 0 0 1px rgba(255, 255, 255, 0.24);
-}
-.btn-mic:active:not(:disabled) { transform: scale(0.93); }
 
 .btn-block { width: 100%; }
 .btn-sm { padding: 0.45rem 0.85rem; min-height: 38px; font-size: 0.85rem; border-radius: 10px; }
@@ -749,7 +749,7 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: 0.5rem;
   padding: 0.6rem 0 0.8rem;
 }
 
@@ -759,6 +759,43 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   font-weight: 700;
   letter-spacing: -0.025em;
   color: var(--text);
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+/* Four controls on a 360px-wide phone is the tightest row in the app. The
+   account pill is the only one that can lose characters without losing meaning,
+   so it is the one that truncates. */
+.topbar .row { min-width: 0; }
+.topbar .pill {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  max-width: 6.5rem;
+}
+
+/* Language is the one *product* control in the header — not a buried setting —
+   so it gets a real thumb target instead of the 36px it used to inherit from an
+   inline style. Keeping the type at 0.82rem holds the control narrow enough to
+   sit beside three siblings on a 360px phone. */
+.lang-select {
+  width: auto;
+  min-height: 44px;
+  padding: 0.3rem 1.5rem 0.3rem 0.65rem;
+  font-size: 0.82rem;
+  background-position: calc(100% - 12px) 51%, calc(100% - 7px) 51%;
+}
+
+/* 44px is the smallest reliably hittable target on a phone. The header shipped
+   at 36-38px, which is fiddly exactly where this app is used most. Width is
+   untouched, so the row that was verified to fit at 320px still fits. */
+@media (max-width: 859px) {
+  .topbar .btn-sm { min-height: 44px; }
+  .topbar .pill { padding-top: 0.8rem; padding-bottom: 0.8rem; }
+}
+@media (min-width: 860px) {
+  .lang-select { min-height: 36px; }
 }
 
 /* The "Flex" half gets the CTA gold so the wordmark reads as two colours */
@@ -772,24 +809,21 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
 
 /* --- Video playback ----------------------------------------------------- */
 
-.video-wrap {
-  position: relative;
+/* Portrait by default: students record on a phone, held upright. `max-height`
+   keeps the frame from pushing the controls below the fold on a short screen. */
+.video-frame {
+  width: 100%;
+  aspect-ratio: 9 / 16;
+  max-height: 62vh;
+  background: #10131c;
   border-radius: var(--radius);
-  overflow: hidden;
-  background: rgba(26, 32, 48, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.55);
   box-shadow: var(--shadow);
+  overflow: hidden;
+  display: block;
+  object-fit: cover;
 }
-.video-wrap video { display: block; width: 100%; }
-
-.video-overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(26, 32, 48, 0.40);
-  backdrop-filter: blur(2px);
-}
+.video-frame-wide { aspect-ratio: 16 / 9; }
 
 /* --- Progress meter ----------------------------------------------------- */
 
@@ -816,57 +850,84 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   color: var(--accent);
 }
 
-.mentor-note {
-  padding: 0.55rem 0.75rem;
-  border-radius: var(--radius-sm);
-  background: rgba(109, 63, 224, 0.07);
+/* A mentor's own words. Purple edge = a human wrote this, which is the one
+   distinction the whole product rests on. */
+.human-note {
   border-left: 3px solid var(--brand);
+  background: var(--surface-2);
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
 }
 
 /* --- Word plate / pronunciation ----------------------------------------- */
 
+/* Holds one `.syl` span per syllable, so the plate has to be a flex row that
+   wraps — not a text block. clamp() keeps a long word inside a 360px screen. */
 .word-plate {
-  text-align: center;
-  padding: 1.5rem 1rem 1.2rem;
-}
-.word-big {
-  font-family: var(--font-display);
-  font-size: 2.4rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: baseline;
+  gap: 0.05rem;
+  padding: 1.1rem 0.75rem 0.9rem;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.55);
+  box-shadow: inset 0 2px 8px rgba(30, 40, 60, 0.08);
+  font-size: clamp(1.5rem, 8vw, 2.1rem);
   font-weight: 700;
-  letter-spacing: -0.03em;
+  letter-spacing: 0.01em;
   color: var(--text);
-  line-height: 1;
-  margin-bottom: 0.3rem;
-}
-.word-respelling {
-  font-size: 1rem;
-  color: var(--text-dim);
-  margin-bottom: 0.15rem;
-}
-.word-ipa {
-  font-size: 0.82rem;
-  color: var(--text-faint);
-  font-style: italic;
 }
 
-/* Syllable highlighting on the result panel */
-.syl     { display: inline; }
+.syl { position: relative; }
+
+/* A dotted seam between syllables: visible enough to show where the breaks are,
+   quiet enough not to look like hyphenation. */
+.syl + .syl::before {
+  content: '';
+  position: absolute;
+  left: -1px;
+  top: 0.22em;
+  bottom: 0.18em;
+  border-left: 1px dotted rgba(30, 40, 60, 0.28);
+}
 .syl-bad {
   color: var(--danger);
-  text-decoration: underline;
-  text-decoration-color: var(--danger);
-  text-underline-offset: 3px;
+  text-decoration: underline wavy var(--danger);
+  text-underline-offset: 0.18em;
 }
+
+.word-say {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.7rem;
+}
+
+/* The mic control is the primary action on the drill screens, so it takes the
+   full width rather than sitting as a small circle a thumb has to aim for. */
+.mic-btn {
+  width: 100%;
+  min-height: 3.4rem;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+}
+.mic-btn .rec-dot { flex: 0 0 auto; }
 
 /* --- Rec dot (live indicator) ------------------------------------------- */
 
 .rec-dot {
-  width: 7px;
-  height: 7px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   background: #e8394f;
-  box-shadow: 0 0 0 0 rgba(232, 57, 79, 0.5);
-  animation: rec-pulse 1.5s ease-in-out infinite;
+  box-shadow: 0 0 0 0 rgba(232, 57, 79, 0.55);
+  animation: rec-pulse 1.5s var(--ease-soft) infinite;
   display: inline-block;
 }
 @keyframes rec-pulse {
@@ -884,55 +945,70 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
-.alert-ok     { background: rgba(9,  112,  73, 0.10); border-color: rgba(9,  112,  73, 0.25); color: var(--ok); }
-.alert-warn   { background: rgba(138, 87,   0, 0.10); border-color: rgba(138, 87,   0, 0.25); color: var(--warn); }
-.alert-danger { background: rgba(194, 42,  58, 0.10); border-color: rgba(194, 42,  58, 0.25); color: var(--danger); }
-.alert-info   { background: rgba(10, 104, 128, 0.10); border-color: rgba(10, 104, 128, 0.25); color: var(--accent); }
+.alert-ok    { background: rgba(9,  112,  73, 0.10); border-color: rgba(9,  112,  73, 0.25); color: var(--ok); }
+.alert-warn  { background: rgba(138, 87,   0, 0.10); border-color: rgba(138, 87,   0, 0.25); color: var(--warn); }
+.alert-error { background: rgba(194, 42,  58, 0.10); border-color: rgba(194, 42,  58, 0.25); color: var(--danger); }
+.alert-info  { background: rgba(10, 104, 128, 0.10); border-color: rgba(10, 104, 128, 0.25); color: var(--accent); }
+
+/* --- Empty states ------------------------------------------------------- */
+
+.empty {
+  text-align: center;
+  padding: 2.75rem 1rem;
+  color: var(--text-faint);
+  animation: rise var(--t-slow) var(--ease) both;
+}
+.empty-icon {
+  font-size: 1.6rem;
+  display: grid;
+  place-items: center;
+  width: 62px;
+  height: 62px;
+  margin: 0 auto 0.75rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.60);
+  box-shadow: inset 0 2px 10px rgba(30, 40, 60, 0.10);
+  color: var(--text-dim);
+}
 
 /* --- Skeletons ---------------------------------------------------------- */
 
+/* `Loading` renders empty divs, so the height has to come from here — without
+   it every loading state collapses to nothing. */
 .skeleton {
+  background: rgba(255, 255, 255, 0.45);
+  box-shadow: inset 0 2px 8px rgba(30, 40, 60, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.55);
   border-radius: var(--radius-sm);
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.35) 25%,
-    rgba(255, 255, 255, 0.55) 50%,
-    rgba(255, 255, 255, 0.35) 75%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
+  height: 64px;
+  position: relative;
+  overflow: hidden;
+}
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.75), transparent);
+  transform: translateX(-100%);
+  animation: shimmer 1.5s var(--ease-soft) infinite;
 }
 @keyframes shimmer {
-  from { background-position: 200% 0; }
-  to   { background-position: -200% 0; }
+  to { transform: translateX(100%); }
 }
-
-.skeleton-line {
-  height: 0.9em;
-  border-radius: 4px;
-  margin-bottom: 0.5rem;
-}
-.skeleton-line:last-child { width: 65%; }
 
 /* --- Auth page ---------------------------------------------------------- */
 
-.auth-wrap {
+/* Not a floating card — the form inside is already a `.card`, and nesting glass
+   inside glass turns both to mush. This is just the centring column. */
+.auth-shell {
   min-height: 100dvh;
   display: flex;
-  align-items: center;
+  flex-direction: column;
   justify-content: center;
-  padding: 1.5rem;
-}
-.auth-card {
-  width: 100%;
-  max-width: 400px;
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(24px) saturate(150%);
-  -webkit-backdrop-filter: blur(24px) saturate(150%);
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  border-radius: var(--radius-lg);
-  padding: 2rem 1.75rem;
-  box-shadow: var(--shadow-lift);
+  max-width: 430px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem calc(2rem + env(safe-area-inset-bottom));
+  animation: page-enter var(--t-slow) var(--ease) both;
 }
 
 /* --- Tabs --------------------------------------------------------------- */
@@ -942,8 +1018,18 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   gap: 0.2rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.55);
   margin-bottom: 1rem;
+  /* Three tabs fit a 320px screen today, but a fourth or a longer label would
+     silently push the last one off-screen. Scrolling sideways degrades; being
+     unreachable does not. The scrollbar itself is hidden — on a phone the
+     affordance is the cut-off tab at the edge. */
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
+.tabs::-webkit-scrollbar { display: none; }
 .tab {
+  flex: 0 0 auto;
+  white-space: nowrap;
   padding: 0.5rem 0.9rem;
   border: none;
   background: none;
@@ -983,7 +1069,9 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
 
 /* --- Grid helpers ------------------------------------------------------- */
 
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+/* Single column on a phone — two 170px columns on a 375px screen is narrower
+   than the content ever wants. It only splits at the desktop breakpoint. */
+.grid-2 { display: grid; grid-template-columns: 1fr; gap: 1rem; }
 
 /* --- Desktop ------------------------------------------------------------ */
 
@@ -1037,6 +1125,8 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
     color: #fff;
   }
   .nav-icon { width: auto; height: auto; }
+
+  .grid-2 { grid-template-columns: 1fr 1fr; }
 }
 
 /* Motion is decoration — every state is also carried by colour, shape or text */

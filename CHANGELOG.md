@@ -29,6 +29,68 @@ collides with one of these, the feature bends.
 
 ---
 
+## 2026-09-10 — Glassmorphism redesign, then a mobile pass over it
+
+**Why.** You asked for the reference image's look: warm sage-cream gradient,
+frosted glass cards, a gold-to-teal CTA. The old system was neumorphic — surfaces
+the same colour as the page, depth carried entirely by paired emboss shadows.
+That is the opposite construction, so this was a token-level replacement rather
+than a re-skin.
+
+**The redesign** (`apps/web/src/styles/global.css`)
+- All five `--neu-*` shadow pairs deleted. Depth now comes from translucency plus
+  one soft shadow (`--shadow` / `--shadow-lift` / `--shadow-glow`).
+- Surfaces became `rgba(255,255,255,α)` over a fixed `145deg` sage→cream gradient
+  on `body`. Every surface keeps a 1px rgba border, for the same daylight and
+  low-vision reason the neumorphic rules had one.
+- New `--cta-from: #c19b1a` / `--cta-to: #0f7a6a` pair drives the primary button,
+  the active nav pill, the meter fill, the pet action icons and the `.you-row`
+  accent bar, so "the thing to press" is one colour story across the app.
+- `AppShell.tsx` gained `.brand-flex` so the wordmark's second half can carry the
+  gradient; `index.html` added Nunito to the font request.
+
+**The repair that came out of it.** The first pass renamed classes the JSX was
+already using — `.video-frame` → `.video-wrap`, `.human-note` → `.mentor-note`,
+`.auth-shell` → `.auth-card`, `.mic-btn` → `.btn-mic`, and `.alert-error` →
+`.alert-danger` (which `Alert` never emits — it builds `alert-${tone}` from
+`info|error|ok|warn`). It also dropped `.empty` / `.empty-icon` entirely and left
+`.skeleton` with no height, which collapses every loading state to nothing since
+`Loading` renders empty divs. All restored, then verified by diffing every class
+referenced in `apps/web/src/**/*.tsx` against every class defined in the
+stylesheet — the only remaining "miss" is the `alert-` template-literal stem.
+
+**The mobile pass.** Measured in a 320/360/375px viewport against the real
+stylesheet rather than guessed:
+- `.shell` used `min-height: 100vh`. Mobile browsers count their collapsing
+  address bar in `vh`, so every page carried a phantom scroll — now `100dvh`
+  with a `vh` fallback. `.auth-shell` already did this; `.shell` had been missed.
+- Header controls were 36px (language `<select>`), 38px (Exit) and ~28px (the
+  account pill) — all under the 44px thumb minimum, on the one row that is
+  touched most. All three now clear 44px on phones and keep their old desktop
+  sizes. The select's inline style moved into `.lang-select`.
+- `.tabs` had no overflow guard. Three tabs fit 320px today, but a fourth or a
+  longer label would have pushed the last one off-screen unreachably; it now
+  scrolls sideways with the scrollbar hidden.
+- `.card` blur dropped from 18px to 12px under 860px. `backdrop-filter` is the
+  most expensive thing the compositor does and `.card` is the most repeated
+  element; blur cost scales with radius, and the stated primary user is on a
+  mid-range Android.
+- `.grid-2` was two columns at every width — two 170px columns on a 375px screen
+  is narrower than the content ever wants. Single column until the breakpoint.
+- Topbar now truncates the account pill rather than overflowing, and `.word-plate`
+  uses `clamp(1.5rem, 8vw, 2.1rem)` so a long word stays on a 360px screen.
+
+**Verified.** `npm run typecheck` clean across `db`/`shared`/`api`/`web`;
+`npm run build -w @skillflex/web` succeeds. In-browser at 320 / 360 / 375px: no
+horizontal scroll at any width, header fits without overflow, touch targets
+measured at 44/44/46px, `.skeleton` renders at 64px. Re-checked at 985px that
+every mobile rule is correctly scoped — desktop still gets the 36px select, the
+18px blur and the two-column grid. Per the standing no-local-DB constraint there
+is no signed-in end-to-end check; the authenticated layouts were verified by
+mounting the real shell markup against the real stylesheet at each width.
+
+---
+
 ## 2026-09-09 — Feature batch assessment (6 requests)
 
 You sent six features and asked me to check what was already built before

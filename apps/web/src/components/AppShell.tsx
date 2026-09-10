@@ -79,9 +79,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             {me?.role === 'student' && (
               <select
                 aria-label="Lesson language"
+                className="lang-select"
                 value={language}
                 onChange={(e) => setLanguage(e.target.value as Language)}
-                style={{ width: 'auto', minHeight: 36, padding: '0.3rem 1.6rem 0.3rem 0.6rem', fontSize: '0.82rem' }}
               >
                 {SUPPORTED_LANGUAGES.map((l) => (
                   <option key={l} value={l}>
