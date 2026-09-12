@@ -270,6 +270,45 @@ it reads one student's last 60 days to count distinct cleared words, attempts th
 IST week, and the current day streak. All three are derived at read time — none of
 them is a stored counter, so none of them can be wrong.
 
+## Support conversations
+
+```
+SupportMessage (userId, sender, body, createdAt)
+```
+
+The transcript behind `/ai-support` — the in-app help chat, not mentorship. One
+row per turn, `sender` being `'user'` or `'bot'`, read back oldest-first by
+`GET /api/support/history` so a reload does not lose the thread.
+
+**Note what is missing here too: nothing about the student's work.** No
+submission reference, no rubric, no score, no `sourceFeedbackId`. This is the
+same wall as the pronunciation drill, in the one other place a machine produces
+text a student reads. The engine in `apps/api/src/modules/support/engine.ts` is
+handed exactly two things — the rows of this table for that user, and a static
+blurb describing how the app works. It is never handed a feedback row, a
+recording, a plan or a rubric, because the route never loads one. So the bot
+cannot assess a student's English for the same reason it cannot tell you your
+mentor's name: it has never been shown either.
+
+The system prompt says so as well, and the fallback engine declines in plain
+words — but the copy is the second line of defence, not the first. The first is
+that the data is not in the call.
+
+Attached to `User` rather than `StudentProfile`, because mentors file bug reports
+too. `ON DELETE CASCADE` is a DPDP matter rather than a convenience: a deleted
+account must not leave a transcript of what that person typed into a chat box
+sitting in the table.
+
+`@@index([userId, createdAt])` serves both reads — the history query and the
+per-hour rate-limit count on `POST /api/support/chat`, which both filter on
+`userId` and range on `createdAt`.
+
+Both writes are wrapped so that a missing table (Prisma `P2021`) degrades to
+"the chat answers, nothing is persisted" with a server warning, rather than
+500ing the page. Until `packages/db/prisma/add-support-messages.sql` is run the
+page therefore works with an empty history — the same tolerance the retention
+code applies to its optional tables.
+
 ## Scheduled sessions (P2, schema only)
 
 `MentorAvailability` and `LiveSession` are in the schema but have no routes yet.

@@ -49,6 +49,18 @@ const envSchema = z.object({
 
   /** Shared secret for the retention cron. Vercel Cron sends it as a Bearer token. */
   CRON_SECRET: z.string().min(16).optional(),
+
+  // --- AI Support chatbot -------------------------------------------------
+  // Any OpenAI-compatible chat-completions endpoint. Groq by default because it
+  // has a free tier; swapping to OpenRouter or Together is a URL change, not a
+  // code change. With no key set the support bot falls back to a deterministic
+  // responder, so /ai-support works out of the box.
+  SUPPORT_LLM_BASE_URL: z.string().url().default('https://api.groq.com/openai/v1'),
+  SUPPORT_LLM_API_KEY: z.string().min(1).optional(),
+  // Not an enum: hosted model IDs get retired on their own schedule, and a stale
+  // one should surface as the chat saying it is unavailable, never as a boot
+  // failure that takes the rest of the API with it.
+  SUPPORT_LLM_MODEL: z.string().default('llama-3.3-70b-versatile'),
 })
 
 /**
@@ -89,8 +101,21 @@ function normaliseNodeEnv(raw: string | undefined): 'development' | 'test' | 'pr
 function scrubPlaceholders(source: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   const out: NodeJS.ProcessEnv = { ...source }
   for (const key of Object.keys(envSchema.shape)) {
-    const value = out[key]?.trim()
-    if (!value) continue
+    const raw = out[key]
+    if (raw === undefined) continue
+    const value = raw.trim()
+
+    // Present-but-blank is the same mistake as a placeholder and harder to spot.
+    // `.optional()` does not apply to "" — the key exists, so zod validates it and
+    // rejects, which takes down every route over a variable the schema calls
+    // optional. `.env.example` ships SUPABASE_URL=, CRON_SECRET= and the support
+    // LLM keys blank on purpose, so this is the common case, not the edge case.
+    // No warning: three blank lines in a template are not a misconfiguration.
+    if (!value) {
+      delete out[key]
+      continue
+    }
+
     const isPlaceholder =
       value === key ||
       value === `<${key}>` ||

@@ -76,15 +76,29 @@
   --max-w:  780px;
   --nav-h:  68px;
 
-  /* Pet mascot — slightly lighter and warmer than the UI brand pair */
-  --pet-fur-top:    #8b6af5;
-  --pet-fur-bottom: #2a9ec4;
-  --pet-cream:      #fdfaf6;
-  --pet-pink:       #f4a7b4;
-  --pet-nose:       #ef94a4;
-  --pet-iris:       #1a6f8c;
-  --pet-pupil:      #0e2233;
-  --pet-mouth:      #a8495e;
+  /* Play accents — pulled from the owl's own palette, which already sits beside
+     --cta-from: #c19b1a. These exist so Fun Time and AI Support can be louder
+     than the rest of the app without a single one-off hex in a component. */
+  --fun-from: #d6830c;
+  --fun-to:   #fcc539;
+  --fun-tint: #fdebdb;
+  --support-from: #0a6880;
+  --support-to:   #2a9ec4;
+
+  /* Per-game accents, so four tiles are four things rather than one thing
+     repeated. Each is a from/to pair for the tile's gradient rail. */
+  --game-spell:    #7a3fd6;
+  --game-sentence: #0f7a6a;
+  --game-speak:    #c2410c;
+  --game-quiz:     #0a6880;
+
+  /* Mascot — the owl's ink line, used for its bubble and its frame */
+  --mascot-brown: #5c2c13;
+  --mascot-cream: #fdf4e6;
+
+  /* Chat bubbles */
+  --chat-mine: var(--brand-tint);
+  --chat-bot:  var(--surface-2);
 }
 
 * {
@@ -583,15 +597,22 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
 
 /* --- Study buddy -------------------------------------------------------- */
 
+/* The owl sits still in the bottom-right, clear of the nav bar. Its predecessor
+   roamed across the viewport on a walk loop, which meant it could wander out
+   from under its own speech bubble — and on a 320px screen, over the content. */
 .pet-wrap {
   position: fixed;
+  right: max(0.9rem, env(safe-area-inset-right));
   bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 4px);
   z-index: 45;
   pointer-events: none;
 }
 .pet-wrap > * { pointer-events: auto; }
 
-.pet {
+/* Signed out there is no nav bar to clear. */
+.pet-wrap-bare { bottom: calc(env(safe-area-inset-bottom) + 14px); }
+
+.mascot-btn {
   border: 0;
   background: none;
   padding: 0;
@@ -599,51 +620,47 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   line-height: 0;
   -webkit-tap-highlight-color: transparent;
   filter: drop-shadow(2px 4px 8px rgba(30, 40, 60, 0.22));
+  transition: transform var(--t) var(--ease);
 }
-.pet:focus-visible {
+.mascot-btn:hover,
+.mascot-btn-awake { transform: translateY(-3px) scale(1.04); }
+.mascot-btn:focus-visible {
   outline: 2px solid var(--cta-to);
   outline-offset: 6px;
   border-radius: 999px;
 }
 
-.pet-svg {
-  width: 46px;
-  height: 43px;
-  overflow: visible;
-  animation: pet-bob 2.6s var(--ease-soft) infinite;
+/* 72px — the middle of the 60–80px band. The id is the handle a Lottie
+   animation would mount into; see MascotGuide.tsx. */
+#mascot-container {
+  width: 72px;
+  height: 72px;
+  display: block;
+}
+#mascot-container > object,
+#mascot-container > svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  /* The button takes the tap; the drawing must not eat it. */
+  pointer-events: none;
 }
 
-.pet-tail   { fill: none; stroke-width: 8; stroke-linecap: round; }
-.pet-blush  { fill: var(--pet-pink); opacity: 0.55; }
-.pet-smile  { fill: none; stroke: var(--pet-mouth); stroke-width: 1.6; stroke-linecap: round; }
-.pet-shape  { transform-box: view-box; transform-origin: 50% 100%; }
-.pet-eye    { transform-box: view-box; animation: pet-blink 5.4s steps(1, end) infinite; }
-.pet-eye-l  { transform-origin: 28.5px 23px; }
-.pet-eye-r  { transform-origin: 43.5px 23px; }
-
-.pet:hover .pet-shape, .pet-awake .pet-shape { animation: pet-squish 460ms var(--ease); }
-
-@keyframes pet-bob {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-5px); }
+.mascot-bubble {
+  border-color: var(--mascot-brown);
+  background: var(--mascot-cream);
 }
-@keyframes pet-squish {
-  0%   { transform: scale(1, 1); }
-  35%  { transform: scale(1.12, 0.86); }
-  70%  { transform: scale(0.94, 1.06); }
-  100% { transform: scale(1, 1); }
+.mascot-bubble::after {
+  background: var(--mascot-cream);
+  border-color: var(--mascot-brown);
 }
-@keyframes pet-blink {
-  0%, 93%, 100% { transform: scaleY(1); }
-  96%           { transform: scaleY(0.1); }
-}
+.mascot-bubble-who { color: var(--mascot-brown); letter-spacing: 0.04em; }
 
-.pet-wrap-bare { bottom: calc(env(safe-area-inset-bottom) + 14px); }
-
+/* Anchored to the owl's left edge, since the owl itself is pinned right. */
 .pet-bubble {
   position: absolute;
   bottom: calc(100% + 11px);
-  left: -8px;
+  right: -4px;
   width: min(16rem, calc(100vw - 2.5rem));
   display: flex;
   flex-direction: column;
@@ -655,17 +672,15 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   border: 1px solid rgba(255, 255, 255, 0.85);
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow);
-  transform-origin: 14% 100%;
+  transform-origin: 86% 100%;
   animation: pet-pop var(--t) var(--ease) both;
 }
-
-.pet-bubble-flip { left: auto; right: -8px; transform-origin: 86% 100%; }
 
 .pet-bubble::after {
   content: '';
   position: absolute;
   bottom: -6px;
-  left: 20px;
+  right: 24px;
   width: 11px;
   height: 11px;
   background: rgba(255, 255, 255, 0.85);
@@ -673,74 +688,17 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   border-bottom: 1px solid rgba(255, 255, 255, 0.85);
   transform: rotate(45deg);
 }
-.pet-bubble-flip::after { left: auto; right: 20px; }
-
-.pet-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  margin-top: 0.1rem;
-  max-height: 14rem;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  padding-right: 0.15rem;
-}
-.pet-action {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.34rem 0.45rem;
-  border-radius: 8px;
-  text-decoration: none;
-  color: var(--text-dim);
-  font-size: 0.78rem;
-  line-height: 1.3;
-}
-.pet-action:hover, .pet-action:focus-visible {
-  color: var(--cta-to);
-  background: rgba(255, 255, 255, 0.70);
-  box-shadow: 0 1px 4px rgba(30, 40, 60, 0.08);
-  outline: none;
-}
-.pet-action-icon {
-  flex: 0 0 1rem;
-  text-align: center;
-  color: var(--cta-from);
-  font-size: 0.8rem;
-}
-.pet-action-label {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-weight: 600;
-}
-.pet-action-meta {
-  flex: 0 0 auto;
-  font-size: 0.68rem;
-  color: var(--text-faint);
-  font-weight: 400;
-}
-
-.pet-live {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  flex-wrap: wrap;
-  padding: 0.4rem 0.5rem;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.60);
-  box-shadow: inset 0 1px 4px rgba(30, 40, 60, 0.07);
-  text-decoration: none;
-  color: var(--text-dim);
-}
-.pet-live:hover { color: var(--cta-to); }
-.pet-live .rec-dot { flex: 0 0 auto; }
 
 @keyframes pet-pop {
   from { opacity: 0; transform: scale(0.82); }
   to   { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pet-bubble { animation: none; }
+  .mascot-btn { transition: none; }
+  .mascot-btn:hover,
+  .mascot-btn-awake { transform: none; }
 }
 
 /* --- Topbar ------------------------------------------------------------- */
@@ -1072,6 +1030,203 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
 /* Single column on a phone — two 170px columns on a 375px screen is narrower
    than the content ever wants. It only splits at the desktop breakpoint. */
 .grid-2 { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+
+/* --- Going back, and going sideways ------------------------------------ */
+
+/* A page that can only be left by the browser's back button is a dead end on a
+   phone, where that button is a gesture people miss. Every page one level down
+   carries one of these. */
+.back-link {
+  display: inline-block;
+  margin-bottom: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-faint);
+  text-decoration: none;
+}
+.back-link:hover, .back-link:focus-visible { color: var(--cta-to); text-decoration: none; }
+
+/* The cross-links between a video, its assignment and its feedback. Deliberately
+   quiet — they are the way out of a card, not the point of it. */
+.link-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+}
+.link-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.65rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--text-dim);
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+.link-chip:hover, .link-chip:focus-visible {
+  color: var(--cta-to);
+  background: rgba(255, 255, 255, 0.85);
+  outline: none;
+  text-decoration: none;
+}
+.link-chip-ok { color: var(--ok); border-color: rgba(9, 112, 73, 0.35); }
+
+/* Arriving from a lesson's "See feedback" link: the card that was asked for. */
+.card-focused {
+  box-shadow: var(--shadow-glow);
+  scroll-margin-top: 1rem;
+}
+
+/* A count on a Home door, when the count is the reason to tap it. */
+.door-badge {
+  margin-left: 0.4rem;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  background: var(--fun-tint);
+  color: var(--warn);
+  font-weight: 700;
+}
+
+/* --- The buddy's two doors ---------------------------------------------- */
+
+/* Large enough to be the only thing on the screen worth tapping. Everything
+   below them on /pet is deliberately a plain card. */
+.tile-xl {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 1.4rem 1.2rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow: var(--shadow);
+  color: #fff;
+  text-decoration: none;
+  min-height: 11rem;
+  transition: transform var(--t) var(--ease), box-shadow var(--t) var(--ease);
+}
+.tile-xl:hover, .tile-xl:focus-visible {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lift);
+  outline: none;
+  /* These are anchors, so the global `a:hover` (0,1,1) outranks `.tile-xl`
+     (0,1,0) and would repaint white-on-gradient text brand purple and underline
+     it. Same reason `.nav-item:hover` restates this. */
+  color: #fff;
+  text-decoration: none;
+}
+.tile-fun     { background: linear-gradient(140deg, var(--fun-from) 0%, var(--fun-to) 100%); }
+.tile-support { background: linear-gradient(140deg, var(--support-from) 0%, var(--support-to) 100%); }
+
+.tile-xl-icon  { font-size: 2rem; line-height: 1; margin-bottom: 0.3rem; }
+.tile-xl-title { font-family: var(--font-display); font-size: 1.35rem; font-weight: 700; }
+.tile-xl-blurb { font-size: 0.85rem; opacity: 0.92; }
+.tile-xl-cta   { margin-top: auto; font-size: 0.8rem; font-weight: 700; opacity: 0.95; }
+
+/* --- Fun Time game cards ------------------------------------------------ */
+
+/* Four tiles, four accents — one repeated colour would make them read as one
+   thing with four labels. The rail is the only colour; the surface stays glass
+   so a game card does not shout over the round it leads to. */
+.game-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 1rem 1rem 1rem 1.35rem;
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  border: 1px solid var(--line-strong);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  text-decoration: none;
+  transition: transform var(--t) var(--ease), box-shadow var(--t) var(--ease);
+}
+.game-tile::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 6px;
+  background: var(--rail, var(--cta-from));
+}
+.game-tile:hover, .game-tile:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lift);
+  outline: none;
+  color: var(--text);
+  text-decoration: none;
+}
+.game-tile-spell    { --rail: var(--game-spell); }
+.game-tile-sentence { --rail: var(--game-sentence); }
+.game-tile-speak    { --rail: var(--game-speak); }
+.game-tile-quiz     { --rail: var(--game-quiz); }
+
+.game-tile-icon  { font-size: 1.5rem; line-height: 1; color: var(--rail); }
+.game-tile-title { font-weight: 700; }
+.game-tile-blurb { font-size: 0.8rem; color: var(--text-faint); }
+
+/* --- AI Support chat ---------------------------------------------------- */
+
+.chat-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 55vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  padding-right: 0.2rem;
+  margin-bottom: 0.75rem;
+}
+
+.chat-msg {
+  max-width: 85%;
+  padding: 0.55rem 0.8rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.chat-msg-mine {
+  align-self: flex-end;
+  background: var(--chat-mine);
+  border-bottom-right-radius: 6px;
+}
+.chat-msg-bot {
+  align-self: flex-start;
+  background: var(--chat-bot);
+  border: 1px solid var(--line-strong);
+  border-bottom-left-radius: 6px;
+  color: var(--text-dim);
+}
+/* Sent, not yet acknowledged by the server. */
+.chat-msg-pending { opacity: 0.6; }
+.chat-msg-typing  { color: var(--text-faint); font-style: italic; }
+
+.chat-starters { gap: 0.4rem; margin-bottom: 0.6rem; }
+
+.chat-compose {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-end;
+}
+.chat-compose textarea {
+  flex: 1;
+  min-height: 2.7rem;
+  resize: vertical;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile-xl, .game-tile { transition: none; }
+  .tile-xl:hover, .tile-xl:focus-visible,
+  .game-tile:hover, .game-tile:focus-visible { transform: none; }
+}
 
 /* --- Desktop ------------------------------------------------------------ */
 

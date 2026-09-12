@@ -77,6 +77,31 @@ export async function curriculumRoutes(app: FastifyInstance) {
     })
     if (!lesson) throw notFound('Lesson not found')
 
+    /**
+     * The caller's own submission state per assignment, so the lesson page can
+     * link straight to the feedback it produced instead of being a dead end.
+     *
+     * A second query rather than a nested include: this route is `requireAuth`,
+     * not student-only, so `studentId` can be undefined — and
+     * `where: { studentId: undefined }` is not "no rows", it is "every row",
+     * which would hand one student another's submission ids. Making the query
+     * itself conditional removes that shape entirely.
+     */
+    const studentId = request.auth?.studentId
+    const mine =
+      studentId && lesson.assignments.length > 0
+        ? await prisma.submission.findMany({
+            where: { studentId, assignmentId: { in: lesson.assignments.map((a) => a.id) } },
+            select: {
+              id: true,
+              assignmentId: true,
+              status: true,
+              feedback: { select: { id: true } },
+            },
+          })
+        : []
+    const byAssignment = new Map(mine.map((s) => [s.assignmentId, s]))
+
     return {
       id: lesson.id,
       title: lesson.title,
@@ -86,13 +111,26 @@ export async function curriculumRoutes(app: FastifyInstance) {
       module: { id: lesson.module.id, title: lesson.module.title },
       availableLanguages: lesson.assets.map((a) => a.language as Language),
       playbackUrl: pickAsset(lesson.assets, language),
-      assignments: lesson.assignments.map((a) => ({
-        id: a.id,
-        title: a.title,
-        brief: a.brief,
-        maxDurationSeconds: a.maxDurationSeconds,
-        rubric: readObjectList<RubricCriterion>(a.rubric),
-      })),
+      assignments: lesson.assignments.map((a) => {
+        const sub = byAssignment.get(a.id)
+        return {
+          id: a.id,
+          title: a.title,
+          brief: a.brief,
+          maxDurationSeconds: a.maxDurationSeconds,
+          rubric: readObjectList<RubricCriterion>(a.rubric),
+          // Same shape as /my-week's per-assignment state, plus the feedback id
+          // so the link can land on the right card rather than the whole list.
+          mySubmission: sub
+            ? {
+                id: sub.id,
+                status: sub.status,
+                hasFeedback: Boolean(sub.feedback),
+                feedbackId: sub.feedback?.id ?? null,
+              }
+            : null,
+        }
+      }),
     }
   })
 

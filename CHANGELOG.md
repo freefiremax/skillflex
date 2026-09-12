@@ -23,9 +23,173 @@ collides with one of these, the feature bends.
 | C1 | **No AI scores anyone.** A machine never produces an assessment of a student. | Structurally: `Feedback.rubricScores` is written by a human mentor only; `PronunciationAttempt` has **no score column**. |
 | C2 | **AI output is derived, never originated.** | `WeeklyPlan.sourceFeedbackIds` must be non-empty; `buildWeeklyPlan()` returns `null` when no human feedback exists. |
 | C3 | **The college never sees student video**, and never sees drill data. | No mentor route and no org route exists over `pronunciation_attempts`. |
-| C4 | **Mobile bottom nav is capped at 5 entries.** | `apps/web/src/components/AppShell.tsx:15`. Anything past five lives in the pet widget instead. |
-| C5 | **Extra//gamified features live inside the pet widget**, not the core nav. | Your instruction, 2026-09-09. Leaderboard is the one agreed exception. |
+| C4 | **Mobile bottom nav is capped at 5 entries.** | `apps/web/src/components/AppShell.tsx:16`. Anything past five is reached from Home or the buddy screen instead. |
+| C5 | **Extra/gamified features stay out of the core nav.** | Your instruction, 2026-09-09. Reached *through* the buddy — `/pet` is the only entry to Fun Time. Leaderboard is the one agreed exception. Wording relaxed 2026-09-12: the games became routes rather than widget contents, but they stayed off the nav. |
 | C6 | Schema changes ship as `prisma db push` + a hand-run SQL file. No migration folder. | `packages/db/prisma/*.sql`, following `postgres-hardening.sql`. |
+
+---
+
+## 2026-09-12 — Pet screen becomes a hub; owl mascot; AI Support; no more dead ends
+
+**Why.** The pet was the app's only floating affordance and it did one thing: tap
+the cat, read this week's plan. Meanwhile Home had become the dumping ground —
+greeting, mentor card, next lecture, this week's assignments, six nav cards and
+the entire lessons tree in one scroll — and the four games were buried two taps
+inside one of those cards. You asked for a hub-and-spoke: Home is doors only, the
+pet screen is two doors, and a mascot explains every screen it lands on.
+
+**Mostly assembly, not new code.** All four games already existed inside
+`features/battles/BattlePage.tsx` (644 lines) with their word and question banks
+in `packages/shared`, and `recordBattleAttemptSchema` already accepted every mode
+they log. Fun Time is an extraction into routes; the leaderboard's `battlesWon`
+never noticed the move.
+
+**Fun Time** (`features/funtime/`, new). Four games, each its own route rather
+than a mode on one page — `/fun-time/{spell,sentence,speak,quiz}`. That is the
+whole point of the change: a round is linkable, holds its own score, and survives
+a reload. Shared parts (`react()`, `RoundHeader`, `VerdictChip`, `useLogBattle`,
+`BattleSummaryStats`, and a new `RoundDone` that de-duplicates four near-identical
+end-of-round cards) live in `GameBits.tsx`, following the `features/live/LiveBits.tsx`
+convention already in the repo. `/battles` is now `<Navigate to="/fun-time" replace />`
+because the old path is in the wild.
+
+`SpeakGamePage` keeps the engine seam intact: it reads only the state union
+(`idle | listening | done | denied | unsupported`) and the `alternatives` array
+from `useSpeechRecognition`, so swapping the browser's Web Speech API for a
+server-side recogniser is a change to that one hook and nothing in the UI. It is
+also the one game with no round timer — unlike the other three it logs a row per
+word to `/practice/attempts` as it goes, never a round with a duration.
+
+**AI Support** (`/ai-support`, `apps/api/src/modules/support/`). A real LLM chat
+scoped hard to the app itself: bugs, permissions, logins, missing feedback,
+finding a page. Groq by default via its OpenAI-compatible `/chat/completions`,
+called with plain `fetch` and an `AbortSignal.timeout(20_000)` — no SDK, because
+the Vercel bundle is a single function and every dependency is weight. Behind a
+`SupportEngine` interface with a deterministic keyword fallback, so the page works
+with no key set (and is testable here, where the database is unreachable).
+
+The scope wall is structural, not just prompt copy: **the route hands the engine
+that user's own `support_messages` rows and a static app blurb, and nothing else.**
+No feedback, no recording, no plan, no rubric. Asked "how good is my English?"
+the fallback declines and points at the mentor — verified by running the engine
+directly. That keeps C1 true in the second place a machine writes text a student
+reads, the drill being the first.
+
+New `SupportMessage` model + `packages/db/prisma/add-support-messages.sql`, per C6.
+Both writes are wrapped so a missing table (P2021) degrades to "chat answers,
+nothing persisted" with a server warning rather than 500ing the page.
+
+**The owl** (`components/MascotGuide.tsx`, replacing `PetCompanion.tsx`). One
+buddy, fixed bottom-right, 72px, with a per-page line from a 21-entry map matched
+longest-prefix so `/fun-time/spell` gets game copy and falls back to the Fun Time
+line. The cat's roaming loop is gone — a mascot that wanders across its own
+tooltip is not a guide — and the plan/next-lecture content it used to carry moved
+onto `/pet` so nothing was lost.
+
+Rendered through `<object>` rather than `<img>` for one reason: the file carries
+22 `repeatCount="indefinite"` SMIL animations, and `pauseAnimations()` on the
+embedded document is the only way to honour `prefers-reduced-motion` without
+inlining 288 KB into the bundle or shipping a second static asset. Wrapped in
+try/catch so a throw cannot take the shell down. `lottie-web` is declared and
+`initLottie()` is written but commented out, pointing at
+`/assets/lottie/angry-owl.json`; because that import is dynamic and unreachable,
+Rollup leaves the library out of the bundle entirely.
+
+**Home is doors only** (`LearnPage.tsx`). Eleven cards, nothing else but the
+greeting and two badges. The tree and "This week" moved verbatim into new
+`/lessons` and `/assignments` routes, keeping their existing query keys so the
+cache is shared rather than duplicated.
+
+**No page is a dead end any more.** Video ↔ Assignment ↔ Feedback each link to
+the other two. Two small API additions carried it — `mySubmission` on lesson
+assignments, `assignmentId` + `lesson` on `/feedback/mine`; the relations already
+existed. The lesson's "See feedback" passes `?item=<id>` so `FeedbackListPage`
+scrolls to and outlines that exact card, rather than dropping you on a list of
+every review you have ever had, which is the same dead end one page later.
+
+**On C5.** The games are routes now, not widget contents, which is a literal
+departure. The spirit holds: they are still reached *through* the buddy — `/pet`
+is the only entry — and the bottom nav is still five entries. The constraint was
+about keeping gamification out of the core nav, and it is out of the core nav.
+
+**One prerequisite bug, fixed.** `scrubPlaceholders()` in `apps/api/src/lib/env.ts`
+skipped empty values, so a variable that was *present but blank* bypassed
+`.optional()` and zod rejected it — which is why the API refused to boot with
+`SUPABASE_URL=` in `.env`. It now deletes blank keys instead of skipping them.
+This had to land first: the three new `SUPPORT_LLM_*` vars ship blank in
+`.env.example`, and would have made the boot failure worse.
+
+**Tokens** (`global.css`). The eight `--pet-*` cat-drawing tokens are retired
+along with every rule that only the cat SVG used. New accents drawn from the
+owl's own palette so they harmonise with the existing `--cta-from: #c19b1a`:
+`--fun-*`, `--support-*`, four `--game-*` tones, `--mascot-*`, `--chat-*`. No
+one-off hex values in components. `.game-tile` drives its rail from a `--rail`
+custom property so four tiles read as four things rather than one thing repeated.
+
+**Verified.** `npm run typecheck` clean across all four workspaces;
+`npm run build -w @skillflex/web` succeeds (133 modules, 22.97 kB CSS / 435.08 kB
+JS, gzipped to 5.65 / 126.68 kB) with the owl present in `dist/` and `lottie-web`
+correctly absent from the bundle — it is declared and commented out, so it costs
+nothing until the JSON exists. `npm run build:api` succeeds at 166.3 kb;
+`npx prisma validate` passes with the new model; `app.printRoutes()` on the built
+bundle confirms `/api/support/history (GET, HEAD)` and `/api/support/chat (POST)`
+registered. `lottie-web` was missing from the lockfile after the `package.json`
+edit; caught by grepping the lockfile, fixed with `npm install` (resolved 5.13.0).
+
+**Then a browser pass, against a stub API.** Vite already proxies `/api` to
+`:4000`, so a throwaway `node:http` server on that port — importing the *real*
+`supportEngine`, faking only the database — let the unmodified web client be
+driven end to end. Worth the setup: two bugs came out of it that no typecheck
+would have caught.
+
+All four games played to a scored round with a deliberate wrong answer in each:
+Spell Check 15/16, Sentence Quiz 9/10, Soft-skills Quiz 9/10, Pronunciation 3/5.
+Three `battles/attempts` rows and five `practice/attempts` rows arrived, the
+practice rows carrying `matched` and `heard` and no score field, which is C1
+visible in the wire format. Pronunciation was exercised by replacing
+`window.SpeechRecognition` with a fake constructor — legitimate because
+`useSpeechRecognition` resolves the constructor inside `start()`, so the hook's
+state machine, `judgePronunciation` and the logging call were all the real ones,
+with only the transcription source swapped. That covered four verdict kinds, and
+confirmed a `no_speech` turn logs nothing at all. Each game then survived a hard
+reload on its own URL, which is the claim the route-per-game split exists to make.
+AI Support answered through the real engine and rehydrated its thread from
+`/support/history` after a reload. The cross-link loop closed in both directions —
+`/lessons/ls-1` → `/feedback?item=fb-1` (gold `.card-focused` ring on the named
+card) → `/assignments/as-2/record` → back to the lesson — and the assignment with
+no review correctly showed no feedback link rather than a dangling one. At 320px,
+nine routes with zero horizontal overflow and the owl clear of the bottom nav.
+
+**Two bugs, both fixed.** The support engine's scope wall was unreachable for the
+question most likely to hit it. `RULES` is first-match-wins and the "how good is
+my English" rule sat eighth, below a rule keyed on `recording`/`upload`/`camera` —
+so *"how good is my English, based on my recordings"* got camera troubleshooting.
+The one question this bot must decline looked instead like a question it had
+missed. The rule moved to first position and gained `how am i doing`; scope now
+beats topic, and the ordering is commented so it stays that way. This is the rule
+both the README and `docs/data-model.md` point at, so it being reachable only by
+accident was worse than a wrong answer.
+
+Second, four newer link-styled classes were losing to the global `a:hover`. It is
+`color: var(--brand-deep); text-decoration: underline` at specificity (0,1,1),
+and `.tile-xl`, `.game-tile`, `.back-link` and `.link-chip` are all anchors
+matched by a single class (0,1,0) — so hovering the Fun Time tile repainted its
+white-on-gradient label brand purple and underlined it. `.nav-item:hover` has
+restated `text-decoration: none` for this exact reason since the redesign; the
+same restatement was added to the four that lacked it. Found in a 320px
+screenshot, then confirmed by cloning every `:hover` rule out of
+`document.styleSheets` with `:hover` rewritten to a class — there is no way to
+park a cursor from a script — and toggling it.
+
+**Needs you.** `npm run db:push`, then paste `add-support-messages.sql` into the
+Supabase SQL editor. The two still-unrun files from earlier —
+`add-pronunciation-attempts.sql` and `add-battle-attempts.sql` — are what
+currently make `/progress` and the games 500, worth running in the same pass. Set
+`SUPPORT_LLM_API_KEY` from console.groq.com to move the chat off the fallback.
+The browser pass above proved the client behaves correctly against the *shapes*
+these endpoints return, but the stub invented the rows. Support persistence, the
+two new response fields, and the cross-links are still unverified against a real
+database.
 
 ---
 
