@@ -6,7 +6,7 @@ import { Card, Empty, ErrorNote, Loading, Pill, StatusPill } from '../../compone
 /**
  * This week's tasks.
  *
- * Lifted out of LearnPage unchanged — same `['my-week']` query, same ordering
+ * Lifted out of HomePage unchanged — same `['my-week']` query, same ordering
  * (not started, then waiting on a mentor, then reviewed). Each card now also
  * carries its lesson link, so the assignment is never a dead end in either
  * direction: the video that set it, and the feedback it earned.

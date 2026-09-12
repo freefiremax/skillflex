@@ -13,12 +13,19 @@ interface NavEntry {
 // Five is the ceiling for the mobile bottom bar — past that the targets get too
 // narrow to hit. Live lectures and their recordings share one entry for exactly
 // that reason; the split lives in tabs inside the page.
+//
+// `/` is Home, not "Learn". It was labelled Learn while rendering a grid of
+// doors, so signing in looked like being dumped into a lesson index — and there
+// appeared to be two competing home screens. Lessons is now its own tab, which
+// is what "Learn" always meant. Mentor gave up its slot to keep the bar at five:
+// it is one tap from Home and named on every feedback card, whereas lectures are
+// the thing you come back for daily.
 const STUDENT_NAV: NavEntry[] = [
-  { to: '/', label: 'Learn', icon: '▶' },
+  { to: '/', label: 'Home', icon: '⌂' },
+  { to: '/lessons', label: 'Lessons', icon: '▶' },
   { to: '/live', label: 'Live', icon: '◉' },
   { to: '/feedback', label: 'Feedback', icon: '✎' },
   { to: '/plan', label: 'Plan', icon: '✓' },
-  { to: '/mentor', label: 'Mentor', icon: '☺' },
 ]
 
 const MENTOR_NAV: NavEntry[] = [

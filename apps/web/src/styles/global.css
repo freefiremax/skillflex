@@ -76,14 +76,18 @@
   --max-w:  780px;
   --nav-h:  68px;
 
-  /* Play accents — pulled from the owl's own palette, which already sits beside
-     --cta-from: #c19b1a. These exist so Fun Time and AI Support can be louder
-     than the rest of the app without a single one-off hex in a component. */
+  /* Play accents — every value below is lifted from a fill that actually appears
+     in angry-owl.svg, so the two /pet doors read as two regions of one bird
+     rather than two unrelated buttons. Fun Time is its beak; AI Support is its
+     plumage. Named for their role, not their hue, like --cta-*.
+
+     --support-* was #0a6880 -> #2a9ec4, derived from --accent. There is no teal
+     anywhere in the owl, so the pair never looked like a pair. */
   --fun-from: #d6830c;
   --fun-to:   #fcc539;
   --fun-tint: #fdebdb;
-  --support-from: #0a6880;
-  --support-to:   #2a9ec4;
+  --support-from: #442217;
+  --support-to:   #73350f;
 
   /* Per-game accents, so four tiles are four things rather than one thing
      repeated. Each is a from/to pair for the tile's gradient rail. */
@@ -95,6 +99,8 @@
   /* Mascot — the owl's ink line, used for its bubble and its frame */
   --mascot-brown: #5c2c13;
   --mascot-cream: #fdf4e6;
+  /* The darkest line in the drawing. Dark enough to be text on the beak gold. */
+  --mascot-ink:   #442217;
 
   /* Chat bubbles */
   --chat-mine: var(--brand-tint);
@@ -1077,26 +1083,68 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
 }
 .link-chip-ok { color: var(--ok); border-color: rgba(9, 112, 73, 0.35); }
 
+/* Chips as a page's only route to somewhere, rather than one option inside a
+   card. A 26px pill is fine beside three others in a card you already meant to
+   act on; it is not fine as the sole way to reach five pages on a phone. */
+.link-row-lg .link-chip {
+  min-height: 2.75rem;
+  padding: 0.3rem 0.9rem;
+  font-size: 0.78rem;
+}
+
 /* Arriving from a lesson's "See feedback" link: the card that was asked for. */
 .card-focused {
   box-shadow: var(--shadow-glow);
   scroll-margin-top: 1rem;
 }
 
-/* A count on a Home door, when the count is the reason to tap it. */
+/* A count on a Home step, when the count is the reason to tap it. */
 .door-badge {
+  display: inline-block;
   margin-left: 0.4rem;
   padding: 0.05rem 0.4rem;
   border-radius: 999px;
   background: var(--fun-tint);
   color: var(--warn);
   font-weight: 700;
+  /* Otherwise "1 ready" breaks across the title's line wrap and the pill's own
+     background splits in two. */
+  white-space: nowrap;
+}
+
+/* --- Home's four steps -------------------------------------------------- */
+
+/* Numbers, because watch -> record -> read -> plan is genuinely an ordered loop
+   and nothing on Home used to say so. The circle is the owl's cream and ink, so
+   the guide is visibly the buddy's voice. */
+.howto-step {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.7rem;
+  align-items: start;
+}
+.howto-num {
+  display: grid;
+  place-items: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 999px;
+  background: var(--fun-tint);
+  color: var(--mascot-ink);
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 /* --- The buddy's two doors ---------------------------------------------- */
 
 /* Large enough to be the only thing on the screen worth tapping. Everything
-   below them on /pet is deliberately a plain card. */
+   below them on /pet is deliberately a plain card.
+
+   Ink is a custom property rather than a fixed white: these tiles carry the
+   owl's own colours now, and white on its beak gold is 2.9:1 — below the 4.5:1
+   floor. Each tile sets --tile-ink to a hex that is also in the drawing. */
 .tile-xl {
   display: flex;
   flex-direction: column;
@@ -1105,9 +1153,12 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   border-radius: var(--radius-lg);
   border: 1px solid rgba(255, 255, 255, 0.55);
   box-shadow: var(--shadow);
-  color: #fff;
+  color: var(--tile-ink, #fff);
   text-decoration: none;
   min-height: 11rem;
+  /* For the owl watermark below, which is clipped to the rounded corners. */
+  position: relative;
+  overflow: hidden;
   transition: transform var(--t) var(--ease), box-shadow var(--t) var(--ease);
 }
 .tile-xl:hover, .tile-xl:focus-visible {
@@ -1115,18 +1166,68 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   box-shadow: var(--shadow-lift);
   outline: none;
   /* These are anchors, so the global `a:hover` (0,1,1) outranks `.tile-xl`
-     (0,1,0) and would repaint white-on-gradient text brand purple and underline
-     it. Same reason `.nav-item:hover` restates this. */
-  color: #fff;
+     (0,1,0) and would repaint the text brand purple and underline it. Same
+     reason `.nav-item:hover` restates this. Must stay in step with the base
+     rule's colour — a literal here and a property there is how the ink silently
+     reverts to white on one state only. */
+  color: var(--tile-ink, #fff);
   text-decoration: none;
 }
-.tile-fun     { background: linear-gradient(140deg, var(--fun-from) 0%, var(--fun-to) 100%); }
-.tile-support { background: linear-gradient(140deg, var(--support-from) 0%, var(--support-to) 100%); }
+
+/* The bird itself, on both tiles — the thing that makes them *its* doors rather
+   than merely tiles in its colours.
+
+   Referenced through background-image on purpose: an SVG loaded that way renders
+   in secure static mode, where SMIL does not run. This file carries 22
+   `repeatCount="indefinite"` animations, so as an <object> it would be 22 live
+   timelines per tile; here it costs nothing, honours prefers-reduced-motion for
+   free, and reuses the fetch MascotGuide already made. */
+.tile-xl::after {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  background: url('/assets/mascot/angry-owl.svg') no-repeat right bottom / contain;
+  pointer-events: none;
+}
+/* A positioned pseudo-element with z-index 0 paints *above* non-positioned
+   in-flow content, so without this the owl covers the copy. */
+.tile-xl > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Two crops of one drawing, so the pair is not a copy-paste. Fun Time gets the
+   bird large and hanging off the corner; AI Support gets it smaller and inset,
+   because mid-tans on deep brown read quieter than a dark line on gold. */
+.tile-fun {
+  --tile-ink: var(--mascot-ink);
+  background: linear-gradient(140deg, var(--fun-from) 0%, var(--fun-to) 100%);
+}
+.tile-fun::after {
+  right: -3rem;
+  bottom: -3.4rem;
+  width: 12rem;
+  height: 12rem;
+  opacity: 0.16;
+}
+.tile-support {
+  --tile-ink: var(--mascot-cream);
+  background: linear-gradient(140deg, var(--support-from) 0%, var(--support-to) 100%);
+}
+.tile-support::after {
+  right: 0.4rem;
+  bottom: 0.3rem;
+  width: 6.4rem;
+  height: 6.4rem;
+  opacity: 0.3;
+}
 
 .tile-xl-icon  { font-size: 2rem; line-height: 1; margin-bottom: 0.3rem; }
 .tile-xl-title { font-family: var(--font-display); font-size: 1.35rem; font-weight: 700; }
-.tile-xl-blurb { font-size: 0.85rem; opacity: 0.92; }
-.tile-xl-cta   { margin-top: auto; font-size: 0.8rem; font-weight: 700; opacity: 0.95; }
+/* No opacity on either of these. Fading the brown ink on the gold gradient drops
+   it from 4.8:1 to about 4.4:1; size and weight already carry the hierarchy. */
+.tile-xl-blurb { font-size: 0.85rem; }
+.tile-xl-cta   { margin-top: auto; font-size: 0.8rem; font-weight: 700; }
 
 /* --- Fun Time game cards ------------------------------------------------ */
 

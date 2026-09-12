@@ -25,7 +25,7 @@ interface Line {
  * screen — if a line would make sense on any page, it is not doing its job.
  */
 const LINES: Line[] = [
-  { path: '/', text: "Home is just doors. Pick one and I'll follow." },
+  { path: '/', text: "Four steps, in order. Start at one — I'll be here." },
   { path: '/pet', text: 'Two things live here — play with me, or tell me what broke.' },
   { path: '/fun-time', text: "You're in Fun Time — pick a game!" },
   { path: '/fun-time/spell', text: 'Read the clue, then spell it. I check against one fixed spelling.' },
@@ -33,7 +33,7 @@ const LINES: Line[] = [
   { path: '/fun-time/speak', text: "Say it out loud. I'm listening, not judging." },
   { path: '/fun-time/quiz', text: 'Every option sounds sensible. That is the whole test.' },
   { path: '/ai-support', text: 'Something broken? Tell me what happened and what you tapped.' },
-  { path: '/lessons', text: 'Watch it through once, then record your answer.' },
+  { path: '/lessons', text: 'Lectures, module by module. Watch one all the way through.' },
   { path: '/assignments', text: 'This week in one list. Start with the one closest to due.' },
   { path: '/feedback', text: 'A person wrote this, not me. Read the next step twice.' },
   { path: '/plan', text: 'Five small things, built from what your mentor actually wrote.' },

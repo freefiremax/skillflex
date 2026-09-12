@@ -29,6 +29,172 @@ collides with one of these, the feature bends.
 
 ---
 
+## 2026-09-13 — The buddy's two doors are the owl's; Home tells you how
+
+**Why.** Two problems on the first two screens a new student sees.
+
+`/pet` had the right structure — exactly two doors — but only one of them was the
+owl's colour. `--fun-*` (`#d6830c → #fcc539`) came off the bird's beak.
+`--support-*` (`#0a6880 → #2a9ec4`) was derived from `--accent`, and **there is no
+teal anywhere in `angry-owl.svg`**: counting every fill in the file gives browns,
+tans, cream, gold and one bright yellow. So the pair read as two unrelated
+buttons that happened to share a page with a bird.
+
+Home, meanwhile, sold instead of instructing. Eleven flat doors whose copy
+answered *why* to tap them — "It never ranks quality", "No AI computes it",
+"Switching costs you none of your history" — all true, and none of it any use to
+someone who has just signed in. Nothing was ordered, so the one sequence that
+matters (watch → record → read → plan) looked like four unrelated places among
+eleven.
+
+**The tiles.** Every value is now a hex that actually appears in the drawing. Fun
+Time keeps the beak gold and switches its ink to `#442217`, the owl's own darkest
+outline; AI Support becomes `#442217 → #73350f` — outline into deep plumage —
+with `--mascot-cream` ink. `#73350f → #b68556` was the prettier plumage ramp and
+was rejected: cream on `#b68556` is ≈2.6:1.
+
+That fixed a live accessibility defect as a side effect. `.tile-xl` hardcoded
+`color: #fff`, and white on `#d6830c` is ≈2.9:1 — under the 4.5:1 floor, and it
+had been shipping. Brown on the gold is ≈4.8:1 rising to ≈8.9:1 across the
+gradient; cream on the plumage runs ≈13:1 down to ≈8.6:1. The `opacity: 0.92` and
+`0.95` on `.tile-xl-blurb` / `.tile-xl-cta` are gone with it — fading the brown
+ink pulled 4.8:1 back down to about 4.4:1, and size and weight were already
+carrying that hierarchy on their own.
+
+`color: #fff` became `var(--tile-ink, #fff)` in **both** the base rule and the
+`:hover, :focus-visible` block. The second one is not cosmetic: these are
+anchors, so the global `a:hover` (0,1,1) outranks `.tile-xl` (0,1,0), and
+changing one without the other would leave the ink reverting on one state only.
+
+**The owl is now on both tiles**, as a `::after` watermark — two crops of one
+drawing, Fun Time's hanging off the corner at 0.16, AI Support's seated and inset
+at 0.3. It is referenced through `background-image` deliberately: an SVG loaded
+that way renders in secure static mode, where SMIL does not run. This file
+carries 22 `repeatCount="indefinite"` animations, so as an `<object>` it would be
+22 live timelines per tile; here it costs nothing and needs no
+`prefers-reduced-motion` handling. `.tile-xl > *` takes `z-index: 1`, because a
+positioned pseudo-element with `z-index: 0` paints *above* non-positioned in-flow
+content and the bird would otherwise cover the copy.
+
+`PetPage.tsx` is untouched. The whole pet change is CSS.
+
+**Home is a four-step guide.** The four loop doors became four numbered steps;
+the other seven dropped to two compact cards (Live, Your buddy) and a five-chip
+row. Numbering is earned here — watch → record → read → plan genuinely is a
+sequence, which is the one case where numbered markers carry information instead
+of decorating. The number is not `aria-hidden`: it *is* the information, so a
+screen reader should hear "1 Watch a lesson".
+
+Every line is now mechanical, and two accuracy constraints shaped the copy.
+Steps 1, 3 and 4 name real bottom-nav tabs; **step 2 deliberately does not**,
+because `/assignments` has no tab and sending a new user hunting for one would be
+worse than no instruction at all — it says "tap this step". And "Record my
+answer" is quoted exactly as `AssignmentsPage` renders it; an instruction that
+paraphrases a button stops being an instruction.
+
+Nothing is lost by dropping the trust copy. `/progress` says "No AI computes it"
+in its own header and `/mentor` says switching is free on its own screen. A claim
+belongs where it is acted on. The eleven tracked-out eyebrows (`THIS WEEK`,
+`WATCH`, `FROM A PERSON` …) went with them.
+
+The guide shows for everyone, always. A Home that changes shape once you stop
+being new is a Home you have to learn twice.
+
+**Two smaller things.** `.door-badge` got `display: inline-block` +
+`white-space: nowrap` — "1 ready" was breaking across the step title's line wrap
+and splitting its own pill background in half. And Home's chip row uses a new
+`.link-row-lg`, which raises `.link-chip` to a 44px minimum inside it: 26px is
+fine for a chip sitting beside three others in a card you already meant to act
+on, but not as the only route to five pages. The three existing `.link-chip`
+users are untouched.
+
+**Verified.** `npm run typecheck` clean across all four workspaces; `npm run build
+-w @skillflex/web` clean (133 modules, 435.02 kB JS / 23.90 kB CSS). Then in a
+browser, against a stub API on `:4000` behind the Vite proxy driving the real
+unmodified client:
+
+On `/pet` — computed `color` on the title, blurb and CTA of each tile is
+`rgb(68, 34, 23)` and `rgb(253, 244, 230)` respectively, which is the check that
+catches a `--tile-ink` silently falling through to the `#fff` fallback (a
+screenshot would not show that on the dark tile); computed `opacity` on both
+blurbs and CTAs is `1`; both `::after` rules resolve to `angry-owl.svg`; the
+`.tile-xl:hover, .tile-xl:focus-visible` rule reads back from the CSSOM as
+`var(--tile-ink, #fff)` with `text-decoration: none`, and focusing each tile
+leaves the ink unchanged rather than repainting it brand purple. The owl is one
+full transfer plus two ~300-byte revalidations in dev, shared with the
+`<object>` MascotGuide already mounts.
+
+On `/` — the four steps render 1–4 in order and all six cards navigate to the
+route they name (`/lessons`, `/assignments`, `/feedback`, `/plan`, `/live`,
+`/pet`); all five chips point at real routes; step 2 carries the accent ring and
+"2 waiting" while tasks are pending, step 3 carries "1 ready". A regex sweep of
+`main.innerText` for the old why-copy (`never ranks`, `No AI computes`, `costs
+you none`) and for references to tabs that do not exist returned empty. At 320px
+both pages have zero horizontal overflow and every chip measures exactly 44px;
+the two tiles hold at 288×214, and side by side at desktop (412×193 each) they
+read as one bird's two doors. The owl's own line on `/` now says "Four steps, in
+order. Start at one — I'll be here."
+
+**Not verified.** The stub invented every row. The task counts that drive the two
+badges, the plan progress and the next-lecture line on `/pet` come from
+`/curriculum/my-week`, `/plans/current` and `/live/next`, and those still need a
+real database — `DATABASE_URL` is the `<project-ref>` placeholder. What the
+browser pass proves is that the client renders and behaves correctly against the
+shapes those endpoints return.
+
+---
+
+## 2026-09-13 — `/` is Home, not "Learn"; Lessons gets the tab
+
+**Why.** Signing in landed you on `/`, and the bottom bar called that tab
+**Learn** while the page rendered eleven nav cards. So the app claimed you were in
+a lesson index that was full of unrelated doors, and `/lessons` — a real lesson
+index with a "← Home" link at the top — read as a second, competing home screen.
+You reported it as "after login it's redirecting to learn page"; the redirect was
+never the problem, the label was.
+
+**Home.** `features/learn/LearnPage.tsx` → `features/home/HomePage.tsx`. The
+component rendered Home and was named for a different page, which is how the bar
+came to be labelled Learn in the first place. Content unchanged — same eleven
+doors, same single `['my-week']` query for the "2 waiting" badge. Nav entry is now
+`⌂ Home`.
+
+**Lessons is the Learn tab.** Promoted into the bottom bar as `▶ Lessons`, which
+is what "Learn" was always pointing at. The bar stays at five (C4): **Mentor gave
+up the slot.** It is one tap from Home, named on every feedback card, and visited
+roughly once — when you switch mentors — whereas lectures are the thing you come
+back for. Its `/mentor` and `/mentor/browse` routes are untouched.
+
+**Lectures only, as asked.** `LessonsPage` no longer mentions assignments
+anywhere: the per-lesson `· 2 task` badge is gone, and the intro no longer says
+"then record your answer". It also dropped its own "← Home" back link, which was
+there because it used to be reachable only from Home and is now redundant chrome
+on a top-level tab.
+
+That removed the last consumer of `assignmentCount`, so `GET /curriculum/tracks`
+stopped computing it — **which let the `assignments` include come off the query
+entirely**, dropping a join across every lesson in the curriculum tree. The
+endpoint no longer ships homework data to a screen that must not display it.
+
+The task attached to a lesson still appears when you open that lesson, and the
+week's worth still lives on `/assignments`. Only the watch *list* is quiet — the
+Video ↔ Assignment ↔ Feedback cross-links on `/lessons/:id` are exactly as they
+were, since removing those would undo the "no page is a dead end" requirement.
+The owl's `/lessons` line changed to match ("Lectures, module by module. Watch one
+all the way through" — it was "then record your answer"); one entry covers both
+the list and the detail page, so it had to be true of both.
+
+**Verified.** `npm run typecheck` clean across all four workspaces. Browser pass
+against the same throwaway `:4000` stub as yesterday: login lands on `/` with
+**Home** as the active tab, five tabs total, and Lessons one tap away. `/lessons`
+shows seven lecture cards carrying only title, duration and language — a regex
+sweep of the rendered page text for `task|assignment|record` returns nothing — with
+no back link and the new owl line. At 320px both pages have zero horizontal
+overflow and all five tabs render at 64×67px with "Feedback" unclipped, above the
+44px floor the mobile pass set.
+
+---
+
 ## 2026-09-12 — Pet screen becomes a hub; owl mascot; AI Support; no more dead ends
 
 **Why.** The pet was the app's only floating affordance and it did one thing: tap
