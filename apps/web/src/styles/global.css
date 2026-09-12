@@ -751,6 +751,18 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   letter-spacing: 0.06em;
 }
 
+.pet-menu-icon svg {
+  width: 1.4rem;
+  height: 1.4rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+.pet-menu-icon svg path:first-child { fill: color-mix(in srgb, currentColor 12%, transparent); }
+
 .pet-menu-option-help .pet-menu-icon {
   color: var(--cta-to);
   background: color-mix(in srgb, var(--surface) 70%, var(--cta-from));

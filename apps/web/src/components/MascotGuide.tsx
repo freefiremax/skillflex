@@ -167,7 +167,9 @@ export function MascotGuide() {
           <p className="pet-menu-copy">{text}</p>
           <div className="pet-menu-actions">
             <NavLink to="/fun-time" className="pet-menu-option pet-menu-option-play" onClick={() => setOpen(false)}>
-              <span className="pet-menu-icon" aria-hidden="true">PLAY</span>
+              <span className="pet-menu-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" role="presentation"><path d="M8.2 9.2 6.7 7.7a2.7 2.7 0 0 0-4.5 2.1l.5 5.6a2.7 2.7 0 0 0 4.7 1.4l1.4-1.6h3.4l1.4 1.6a2.7 2.7 0 0 0 4.7-1.4l.5-5.6a2.7 2.7 0 0 0-4.5-2.1l-1.5 1.5H8.2Z" /><path d="M7 11.5v3M5.5 13h3M17.5 11.8h.01M15.8 14h.01" /></svg>
+              </span>
               <span className="pet-menu-label">
                 <strong>Fun Time</strong>
                 <small>Take a quick break</small>
@@ -175,7 +177,9 @@ export function MascotGuide() {
               <span className="pet-menu-arrow" aria-hidden="true">→</span>
             </NavLink>
             <NavLink to="/ai-support" className="pet-menu-option pet-menu-option-help" onClick={() => setOpen(false)}>
-              <span className="pet-menu-icon" aria-hidden="true">HELP</span>
+              <span className="pet-menu-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" role="presentation"><path d="M4.5 5.8A2.8 2.8 0 0 1 7.3 3h9.4a2.8 2.8 0 0 1 2.8 2.8v6.7a2.8 2.8 0 0 1-2.8 2.8H11l-4.1 3v-3.1a2.8 2.8 0 0 1-2.4-2.7V5.8Z" /><path d="M8 9.2h8M8 12h5" /></svg>
+              </span>
               <span className="pet-menu-label">
                 <strong>AI Support</strong>
                 <small>Get unstuck faster</small>
