@@ -159,17 +159,28 @@ export function MascotGuide() {
   return (
     <div ref={wrapRef} className={`pet-wrap${me ? '' : ' pet-wrap-bare'}`}>
       {open && (
-        <div className="pet-bubble mascot-bubble pet-menu" role="dialog" aria-label="Pet menu">
-          <div className="tiny strong mascot-bubble-who">YOUR BUDDY</div>
-          <div className="small">{text}</div>
+        <div className="pet-bubble mascot-bubble pet-menu" role="dialog" aria-label="Study buddy menu">
+          <div className="pet-menu-heading">
+            <span className="pet-menu-eyebrow">YOUR BUDDY</span>
+            <span className="pet-menu-status"><span aria-hidden="true" /> READY</span>
+          </div>
+          <p className="pet-menu-copy">{text}</p>
           <div className="pet-menu-actions">
-            <NavLink to="/fun-time" className="pet-menu-option" onClick={() => setOpen(false)}>
-              <span aria-hidden="true">⚔</span>
-              <span>Fun Time</span>
+            <NavLink to="/fun-time" className="pet-menu-option pet-menu-option-play" onClick={() => setOpen(false)}>
+              <span className="pet-menu-icon" aria-hidden="true">PLAY</span>
+              <span className="pet-menu-label">
+                <strong>Fun Time</strong>
+                <small>Take a quick break</small>
+              </span>
+              <span className="pet-menu-arrow" aria-hidden="true">→</span>
             </NavLink>
-            <NavLink to="/ai-support" className="pet-menu-option" onClick={() => setOpen(false)}>
-              <span aria-hidden="true">☂</span>
-              <span>AI Support</span>
+            <NavLink to="/ai-support" className="pet-menu-option pet-menu-option-help" onClick={() => setOpen(false)}>
+              <span className="pet-menu-icon" aria-hidden="true">HELP</span>
+              <span className="pet-menu-label">
+                <strong>AI Support</strong>
+                <small>Get unstuck faster</small>
+              </span>
+              <span className="pet-menu-arrow" aria-hidden="true">→</span>
             </NavLink>
           </div>
         </div>
