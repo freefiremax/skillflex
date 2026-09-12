@@ -5,12 +5,17 @@ import { useAuth } from '../../lib/auth'
 import { Empty, ErrorNote, Loading, Pill } from '../../components/ui'
 
 /**
- * The whole curriculum, track by track.
+ * The whole curriculum, track by track. Lectures and nothing else.
  *
- * Lifted out of LearnPage unchanged — same `['tracks', language]` query, same
- * markup. It was the bottom two-thirds of a page that also carried the
- * greeting, the mentor card, the next lecture, this week's tasks and six nav
- * cards; on a phone the lessons were four screens of scrolling away.
+ * Lifted out of HomePage, which used to carry the greeting, the mentor card,
+ * the next lecture, this week's tasks and six nav cards above it; on a phone the
+ * lessons were four screens of scrolling away. It is now a bottom-nav tab.
+ *
+ * Deliberately says nothing about assignments — not the per-lesson task count,
+ * not "then record your answer". This is the watch list. The task attached to a
+ * lesson appears when you open that lesson, and the whole week's worth lives on
+ * /assignments; announcing homework next to every title turned a video library
+ * into a chore list.
  */
 
 interface TrackTree {
@@ -28,7 +33,6 @@ interface TrackTree {
       summary: string | null
       durationSeconds: number | null
       availableLanguages: string[]
-      assignmentCount: number
       playbackUrl: string | null
     }>
   }>
@@ -45,12 +49,9 @@ export default function LessonsPage() {
   return (
     <div className="stack">
       <div>
-        <Link to="/" className="back-link">
-          ← Home
-        </Link>
         <h1>Lessons</h1>
         <p className="small">
-          Watch a video, then record your answer to its task. Lessons play in{' '}
+          Every lecture, module by module. They play in{' '}
           {language === 'hi' ? 'Hindi where it exists, English otherwise' : 'English'} — change that
           on <Link to="/languages">Languages</Link>.
         </p>
@@ -85,7 +86,6 @@ export default function LessonsPage() {
                               <div className="strong small">{l.title}</div>
                               <div className="tiny faint">
                                 {l.durationSeconds ? `${Math.round(l.durationSeconds / 60)} min` : 'Video'}
-                                {l.assignmentCount > 0 && ` · ${l.assignmentCount} task`}
                               </div>
                             </div>
                             {l.availableLanguages.includes(language) ? (

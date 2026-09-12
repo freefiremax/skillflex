@@ -4,7 +4,7 @@ import { Loading } from './components/ui'
 import { AppShell } from './components/AppShell'
 import { MascotGuide } from './components/MascotGuide'
 import AuthPage from './features/auth/AuthPage'
-import LearnPage from './features/learn/LearnPage'
+import HomePage from './features/home/HomePage'
 import LessonsPage from './features/learn/LessonsPage'
 import AssignmentsPage from './features/learn/AssignmentsPage'
 import LessonPage from './features/learn/LessonPage'
@@ -61,9 +61,10 @@ export default function App() {
       <Routes>
         {me.role === 'student' && (
           <>
-            <Route path="/" element={<LearnPage />} />
-            {/* Home is nothing but doors now; these two are the lists it used
-                to inline. */}
+            <Route path="/" element={<HomePage />} />
+            {/* Home is nothing but doors; these two are the lists it used to
+                inline. Lessons has a bottom-nav tab of its own — it is the
+                "Learn" the bar used to point at `/` for. */}
             <Route path="/lessons" element={<LessonsPage />} />
             <Route path="/assignments" element={<AssignmentsPage />} />
             <Route path="/lessons/:id" element={<LessonPage />} />

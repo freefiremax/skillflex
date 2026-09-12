@@ -30,7 +30,10 @@ export async function curriculumRoutes(app: FastifyInstance) {
           include: {
             lessons: {
               orderBy: { order: 'asc' },
-              include: { assets: { include: { media: true } }, assignments: true },
+              // No `assignments` join. The only field it fed was a per-lesson
+              // task count, and the lesson list is deliberately lectures-only
+              // now — so this dropped a join across every lesson in the tree.
+              include: { assets: { include: { media: true } } },
             },
           },
         },
@@ -54,7 +57,6 @@ export async function curriculumRoutes(app: FastifyInstance) {
             durationSeconds: l.durationSeconds,
             /** Which languages this lesson actually exists in. */
             availableLanguages: l.assets.map((a) => a.language as Language),
-            assignmentCount: l.assignments.length,
             playbackUrl: pickAsset(l.assets, language),
           })),
         })),
