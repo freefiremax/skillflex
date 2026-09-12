@@ -77,9 +77,12 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <div className="shell">
         <header className="topbar">
-          <div className="brand">
-            Skill<span className="brand-flex">Flex</span>
-          </div>
+          <NavLink to="/" className="brand" aria-label="SkillFlex home">
+            <span className="brand-mark" aria-hidden="true">
+              <img src="/assets/mascot/angry-owl.svg" alt="" />
+            </span>
+            <span className="brand-wordmark">Skill<span className="brand-flex">Flex</span></span>
+          </NavLink>
           <div className="row" style={{ gap: '0.5rem' }}>
             {/* Language is a product-level switch for students, not a setting
                 buried in a menu — it's the thing that makes lessons usable. */}
