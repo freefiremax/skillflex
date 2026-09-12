@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 
 /**
@@ -159,9 +159,19 @@ export function MascotGuide() {
   return (
     <div ref={wrapRef} className={`pet-wrap${me ? '' : ' pet-wrap-bare'}`}>
       {open && (
-        <div className="pet-bubble mascot-bubble" role="status">
+        <div className="pet-bubble mascot-bubble pet-menu" role="dialog" aria-label="Pet menu">
           <div className="tiny strong mascot-bubble-who">YOUR BUDDY</div>
           <div className="small">{text}</div>
+          <div className="pet-menu-actions">
+            <NavLink to="/fun-time" className="pet-menu-option" onClick={() => setOpen(false)}>
+              <span aria-hidden="true">⚔</span>
+              <span>Fun Time</span>
+            </NavLink>
+            <NavLink to="/ai-support" className="pet-menu-option" onClick={() => setOpen(false)}>
+              <span aria-hidden="true">☂</span>
+              <span>AI Support</span>
+            </NavLink>
+          </div>
         </div>
       )}
 

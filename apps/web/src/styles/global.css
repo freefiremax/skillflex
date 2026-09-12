@@ -662,6 +662,35 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
 }
 .mascot-bubble-who { color: var(--mascot-brown); letter-spacing: 0.04em; }
 
+.pet-menu-actions {
+  display: flex;
+  gap: 0.45rem;
+  margin-top: 0.35rem;
+}
+
+.pet-menu-option {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 1;
+  min-width: 0;
+  padding: 0.5rem 0.55rem;
+  color: var(--foreground);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform var(--t) var(--ease), border-color var(--t) var(--ease);
+}
+
+.pet-menu-option:hover,
+.pet-menu-option:focus-visible {
+  border-color: var(--cta-to);
+  transform: translateY(-1px);
+}
+
 /* Anchored to the owl's left edge, since the owl itself is pinned right. */
 .pet-bubble {
   position: absolute;
