@@ -1,54 +1,117 @@
 import { useQuery } from '@tanstack/react-query'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { api } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
-import {
-  Card,
-  Empty,
-  ErrorNote,
-  Loading,
-  Pill,
-  StatusPill,
-  formatDateTime,
-  formatRelative,
-} from '../../components/ui'
-import type { LiveClassView } from '../live/LiveBits'
+import { Card, Pill } from '../../components/ui'
+
+/**
+ * Home — doors, and nothing else.
+ *
+ * This page used to carry the greeting, the mentor card, the next lecture, all
+ * of this week's assignments, six nav cards *and* the entire lesson tree in one
+ * scroll. Every one of those things has a page of its own, so the ones that were
+ * inlined here (`This week` → /assignments, `Lessons` → /lessons) moved out and
+ * Home became what its name implies: a place you pass through.
+ *
+ * The one query left is the task count, because "3 waiting" is the only thing
+ * that changes which door you should pick first.
+ */
 
 interface WeekAssignment {
-  id: string
-  title: string
-  brief: string
-  maxDurationSeconds: number
-  lesson: { id: string; title: string }
-  track: string
   status: string
-  submissionId: string | null
   hasFeedback: boolean
 }
 
-interface TrackTree {
-  id: string
-  slug: string
+interface Door {
+  to: string
+  eyebrow: string
   title: string
-  description: string | null
-  modules: Array<{
-    id: string
-    title: string
-    summary: string | null
-    lessons: Array<{
-      id: string
-      title: string
-      summary: string | null
-      durationSeconds: number | null
-      availableLanguages: string[]
-      assignmentCount: number
-      playbackUrl: string | null
-    }>
-  }>
+  blurb: string
+  cta: string
 }
 
+const DOORS: Door[] = [
+  {
+    to: '/assignments',
+    eyebrow: 'THIS WEEK',
+    title: 'Your tasks',
+    blurb: 'What your mentor set, and where to record it.',
+    cta: '● Open',
+  },
+  {
+    to: '/lessons',
+    eyebrow: 'WATCH',
+    title: 'Lessons',
+    blurb: 'The full track — videos, module by module.',
+    cta: '▶ Browse',
+  },
+  {
+    to: '/live',
+    eyebrow: 'HAPPENS AT A TIME',
+    title: 'Live lectures',
+    blurb: 'Sessions with a real mentor. The one thing here you can miss.',
+    cta: '◉ See',
+  },
+  {
+    to: '/feedback',
+    eyebrow: 'FROM A PERSON',
+    title: 'Mentor feedback',
+    blurb: 'What a human wrote about your work, with the next step.',
+    cta: '✎ Read',
+  },
+  {
+    to: '/plan',
+    eyebrow: 'THIS WEEK',
+    title: 'Your plan',
+    blurb: "Five small things, built from your mentor's own words.",
+    cta: '✓ Open',
+  },
+  {
+    to: '/pet',
+    eyebrow: 'PLAY OR ASK',
+    title: 'Your buddy',
+    blurb: 'Fun Time games, and support when something in the app breaks.',
+    cta: '☺ Say hi',
+  },
+  {
+    to: '/practice',
+    eyebrow: 'TWO-MINUTE DRILL',
+    title: 'Practise a word',
+    blurb: 'Say it out loud, see which syllable slipped. Not scored, not seen.',
+    cta: '♪ Start',
+  },
+  {
+    to: '/progress',
+    eyebrow: 'YOUR LEVEL',
+    title: 'Beginner → God Mode',
+    blurb: 'Built from mentor feedback plus what you did. No AI computes it.',
+    cta: '◎ See it',
+  },
+  {
+    to: '/leaderboard',
+    eyebrow: 'YOUR COLLEGE',
+    title: 'Top movers',
+    blurb: 'Effort across your college. It never ranks quality.',
+    cta: '★ Board',
+  },
+  {
+    to: '/languages',
+    eyebrow: 'SAY SOMETHING NEW',
+    title: 'Learn a language',
+    blurb: 'Spanish, French, German, Japanese, Korean — phrases you can echo.',
+    cta: '語 Start',
+  },
+  {
+    to: '/mentor',
+    eyebrow: 'YOUR MENTOR',
+    title: 'Who you work with',
+    blurb: 'See them, or switch. Switching costs you none of your history.',
+    cta: '☺ Open',
+  },
+]
+
 export default function LearnPage() {
-  const { me, language } = useAuth()
+  const { me } = useAuth()
   const navigate = useNavigate()
 
   const week = useQuery({
@@ -56,261 +119,45 @@ export default function LearnPage() {
     queryFn: () => api.get<{ assignments: WeekAssignment[] }>('/curriculum/my-week'),
   })
 
-  const tracks = useQuery({
-    queryKey: ['tracks', language],
-    queryFn: () => api.get<{ tracks: TrackTree[] }>(`/curriculum/tracks?language=${language}`),
-  })
+  const all = week.data?.assignments ?? []
+  const pending = all.filter((a) => a.status === 'not_started').length
+  const awaiting = all.filter((a) => ['submitted', 'in_review'].includes(a.status)).length
+  const unread = all.filter((a) => a.hasFeedback).length
 
-  const mentor = useQuery({
-    queryKey: ['my-mentor'],
-    queryFn: () =>
-      api.get<{ mentor: { id: string; name: string; headline: string | null } | null }>(
-        '/mentorship/me',
-      ),
-  })
-
-  /**
-   * The next lecture the student is actually signed up for. Shared cache key with
-   * the pet companion, which asks the same question.
-   */
-  const nextLive = useQuery({
-    queryKey: ['live-next'],
-    queryFn: () => api.get<{ class: LiveClassView | null }>('/live/next'),
-  })
-
-  const pending = week.data?.assignments.filter((a) => a.status === 'not_started') ?? []
-  const awaiting = week.data?.assignments.filter((a) => ['submitted', 'in_review'].includes(a.status)) ?? []
-  const done = week.data?.assignments.filter((a) => a.status === 'reviewed') ?? []
+  /** Only counts that change what you'd tap next earn a badge. */
+  const badge: Record<string, string | undefined> = {
+    '/assignments': pending > 0 ? `${pending} waiting` : awaiting > 0 ? 'in review' : undefined,
+    '/feedback': unread > 0 ? `${unread} ready` : undefined,
+  }
 
   return (
     <div className="stack">
       <div>
         <h1>Namaste, {me?.name?.split(' ')[0]}</h1>
         <p className="small">
-          {pending.length > 0
-            ? `${pending.length} task${pending.length > 1 ? 's' : ''} waiting for you this week.`
-            : awaiting.length > 0
+          {pending > 0
+            ? `${pending} task${pending > 1 ? 's' : ''} waiting for you this week.`
+            : awaiting > 0
               ? 'Your mentor is reviewing your work.'
               : 'All caught up. Watch a lesson and get ahead.'}
         </p>
       </div>
 
-      {mentor.data?.mentor && (
-        <Card onClick={() => navigate('/mentor')}>
-          <div className="row-between">
-            <div>
-              <div className="tiny faint">YOUR MENTOR</div>
-              <div className="strong">{mentor.data.mentor.name}</div>
-              {mentor.data.mentor.headline && (
-                <div className="tiny dim">{mentor.data.mentor.headline}</div>
-              )}
-            </div>
-            <Pill tone="brand">Switch →</Pill>
-          </div>
-        </Card>
-      )}
-
-      {/* A lecture in progress outranks everything else on this page — it is the
-          one thing that stops being available if the student scrolls past it. */}
-      {nextLive.data?.class && (
-        <Card
-          accent={nextLive.data.class.status === 'live'}
-          onClick={() => navigate(`/live/${nextLive.data!.class!.id}`)}
-        >
+      {DOORS.map((d) => (
+        <Card key={d.to} accent={d.to === '/assignments' && pending > 0} onClick={() => navigate(d.to)}>
           <div className="row-between">
             <div>
               <div className="tiny faint">
-                {nextLive.data.class.status === 'live' ? 'LIVE RIGHT NOW' : 'YOUR NEXT LIVE LECTURE'}
+                {d.eyebrow}
+                {badge[d.to] && <span className="door-badge">{badge[d.to]}</span>}
               </div>
-              <div className="strong">{nextLive.data.class.title}</div>
-              <div className="tiny dim">
-                {nextLive.data.class.mentor.name} ·{' '}
-                {nextLive.data.class.status === 'live'
-                  ? 'under way'
-                  : `${formatDateTime(nextLive.data.class.scheduledAt)} (${formatRelative(nextLive.data.class.scheduledAt)})`}
-              </div>
+              <div className="strong">{d.title}</div>
+              <div className="tiny dim">{d.blurb}</div>
             </div>
-            {nextLive.data.class.status === 'live' ? (
-              <span className="pill pill-danger">
-                <span className="rec-dot" />
-                Join
-              </span>
-            ) : (
-              <Pill tone="brand">Details →</Pill>
-            )}
+            <Pill tone="brand">{d.cta}</Pill>
           </div>
         </Card>
-      )}
-
-      {mentor.data && !mentor.data.mentor && (
-        <Card accent onClick={() => navigate('/mentor/browse')}>
-          <div className="strong">You don't have a mentor yet</div>
-          <div className="small">Pick one from the pool — it takes a minute.</div>
-        </Card>
-      )}
-
-      {/* All three queries, not just the week: a failed tracks or mentor call used
-          to render as a bare heading over an empty div with nothing explaining why. */}
-      <ErrorNote error={week.error ?? mentor.error} />
-
-      <div className="section-title">This week</div>
-      {week.isLoading ? (
-        <Loading rows={2} />
-      ) : week.data?.assignments.length === 0 ? (
-        <Empty icon="◎" title="No tasks yet" body="Your college is still setting up the track." />
-      ) : (
-        <div className="stack">
-          {[...pending, ...awaiting, ...done].map((a) => (
-            <Card
-              key={a.id}
-              accent={a.status === 'not_started'}
-              onClick={() =>
-                a.hasFeedback
-                  ? navigate('/feedback')
-                  : a.status === 'not_started'
-                    ? navigate(`/assignments/${a.id}/record`)
-                    : navigate(`/lessons/${a.lesson.id}`)
-              }
-            >
-              <div className="row-between" style={{ marginBottom: '0.4rem' }}>
-                <span className="tiny faint">{a.track}</span>
-                <StatusPill status={a.status} />
-              </div>
-              <div className="strong">{a.title}</div>
-              <div className="small" style={{ marginTop: '0.25rem' }}>
-                {a.brief}
-              </div>
-              <div className="row" style={{ marginTop: '0.6rem' }}>
-                <Pill>{Math.round(a.maxDurationSeconds / 60)} min max</Pill>
-                {a.hasFeedback && <Pill tone="ok">Feedback ready</Pill>}
-              </div>
-            </Card>
-          ))}
-        </div>
-      )}
-
-      {/* Sits between the week's work and the lessons on purpose: it is neither
-          an obligation nor a video, it is the thing to do in two spare minutes.
-          Also the only non-pet way to find /practice — there is no nav tab. */}
-      <Card onClick={() => navigate('/practice')}>
-        <div className="row-between">
-          <div>
-            <div className="tiny faint">TWO-MINUTE DRILL</div>
-            <div className="strong">Practise a word out loud</div>
-            <div className="tiny dim">
-              Read a word, find out which syllable slipped. Not scored, not seen by anyone.
-            </div>
-          </div>
-          <Pill tone="brand">♪ Start</Pill>
-        </div>
-      </Card>
-
-      {/* The level is the one "grade" the product shows, and it lives here rather
-          than in the nav: the bottom bar is capped at five and full. It's derived
-          from mentor feedback + effort, recomputed on read, never stored. */}
-      <Card onClick={() => navigate('/progress')}>
-        <div className="row-between">
-          <div>
-            <div className="tiny faint">YOUR LEVEL</div>
-            <div className="strong">Beginner → God Mode</div>
-            <div className="tiny dim">
-              Built from your mentors’ feedback plus what you actually did. No AI computes it.
-            </div>
-          </div>
-          <Pill tone="brand">See it →</Pill>
-        </div>
-      </Card>
-
-      {/* Battles and the college effort board, grouped as the "play" block. The
-          leaderboard is a deliberate exception to the pet-widget rule, but it
-          still doesn't take a nav slot — this card reaches it. */}
-      <Card onClick={() => navigate('/battles')}>
-        <div className="row-between">
-          <div>
-            <div className="tiny faint">QUICK GAMES</div>
-            <div className="strong">Battle drills</div>
-            <div className="tiny dim">
-              Spelling, sentences, soft-skill quiz — judged against a fixed key, and they cheer.
-            </div>
-          </div>
-          <Pill tone="brand">⚔ Play</Pill>
-        </div>
-      </Card>
-
-      <Card onClick={() => navigate('/leaderboard')}>
-        <div className="row-between">
-          <div>
-            <div className="tiny faint">YOUR COLLEGE</div>
-            <div className="strong">Top movers</div>
-            <div className="tiny dim">
-              Effort across your college — words cleared, streaks, work done. It never ranks quality.
-            </div>
-          </div>
-          <Pill tone="brand">★ Board</Pill>
-        </div>
-      </Card>
-
-      <Card onClick={() => navigate('/languages')}>
-        <div className="row-between">
-          <div>
-            <div className="tiny faint">SAY SOMETHING NEW</div>
-            <div className="strong">Learn a language</div>
-            <div className="tiny dim">
-              Spanish, French, German, Japanese, Korean — real phrases you can hear and echo.
-            </div>
-          </div>
-          <Pill tone="brand">語 Start</Pill>
-        </div>
-      </Card>
-
-      <div className="section-title">Lessons</div>
-      {tracks.isLoading ? (
-        <Loading rows={2} />
-      ) : tracks.error ? (
-        <ErrorNote error={tracks.error} />
-      ) : tracks.data?.tracks.length === 0 ? (
-        <Empty icon="▤" title="No lessons yet" body="Your college is still setting up the curriculum." />
-      ) : (
-        <div className="stack">
-          {tracks.data?.tracks.map((t) => (
-            <div key={t.id} className="stack-sm">
-              {t.modules.map((m) => (
-                <div key={m.id}>
-                  <div className="tiny faint" style={{ margin: '0.5rem 0 0.35rem' }}>
-                    {m.title.toUpperCase()}
-                  </div>
-                  <div className="stack-sm">
-                    {m.lessons.map((l) => (
-                      <Link
-                        key={l.id}
-                        to={`/lessons/${l.id}`}
-                        style={{ textDecoration: 'none', color: 'inherit' }}
-                      >
-                        <div className="card card-tight card-interactive">
-                          <div className="row-between">
-                            <div>
-                              <div className="strong small">{l.title}</div>
-                              <div className="tiny faint">
-                                {l.durationSeconds ? `${Math.round(l.durationSeconds / 60)} min` : 'Video'}
-                                {l.assignmentCount > 0 && ` · ${l.assignmentCount} task`}
-                              </div>
-                            </div>
-                            {l.availableLanguages.includes(language) ? (
-                              <Pill tone="brand">{language.toUpperCase()}</Pill>
-                            ) : (
-                              <Pill>EN</Pill>
-                            )}
-                          </div>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-      )}
+      ))}
     </div>
   )
 }

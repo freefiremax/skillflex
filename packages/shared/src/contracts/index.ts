@@ -239,3 +239,22 @@ export const recordBattleAttemptSchema = z.object({
 })
 export type RecordBattleAttemptInput = z.infer<typeof recordBattleAttemptSchema>
 
+// ---------------------------------------------------------------------------
+// AI Support chat.
+//
+// The one place in the product where a machine writes prose to a student — and
+// it is scoped to the app, not to their English. It answers "my mic won't
+// record", "where is my feedback", "I can't sign in". It never sees a
+// submission, a rubric score or a Feedback row, so it structurally cannot
+// assess anyone (see SupportMessage in schema.prisma).
+//
+// 1000 chars is generous for a bug report and short enough that a pasted stack
+// trace does not become the whole prompt budget.
+// ---------------------------------------------------------------------------
+
+export const sendSupportMessageSchema = z.object({
+  message: z.string().trim().min(1, 'Type what went wrong').max(1000),
+})
+export type SendSupportMessageInput = z.infer<typeof sendSupportMessageSchema>
+
+

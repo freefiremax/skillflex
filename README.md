@@ -97,9 +97,9 @@ npm run db:reset     # wipe + reseed (destroys local data)
 
 ```
 api/
-  [...path].mjs   Vercel entry — re-exports the bundled Fastify app
+  server.mjs      Vercel entry — re-exports the bundled Fastify app
 apps/
-  api/    Fastify server — 12 route modules under src/modules/
+  api/    Fastify server — 15 route modules under src/modules/
   web/    React PWA — one folder per feature under src/features/
 packages/
   db/     Prisma schema, client singleton, Json read helpers, seed
@@ -128,6 +128,16 @@ It never writes a `Feedback` row, so it has no `sourceFeedbackId`, so
 plan item. It is absent from `GET /api/orgs/report`, and mentors have no route
 over it at all. What a student sees is "no error detected", never "correct" —
 because that is the most the engine can honestly claim.
+
+**The support bot is never shown your work.** `/ai-support` is a real LLM call
+(Groq by default, any OpenAI-compatible endpoint via `SUPPORT_LLM_BASE_URL`), and
+it is the second place a machine writes text a student reads — so it gets the
+same treatment as the drill. The route hands the engine exactly two things: that
+user's own `support_messages` rows, and a static blurb about how the app works.
+No feedback row, no recording, no plan, no rubric ever enters the call, because
+the route never loads one. It cannot comment on your English because it has never
+seen any of it. The system prompt says so too, but that is the second line of
+defence; the first is that the data is not in the request.
 
 **Mentor history is append-only.** Switching closes the old `MentorAssignment`
 and opens a new one inside a transaction; it never updates a row in place. Your
@@ -218,6 +228,19 @@ nothing in a serverless function lives long enough to hold a timer.
 - Only the 82 curated words carry a hand-written diagnosis. A word typed into the
   free-text box gets the syllable we think slipped and no note, which the page
   says out loud rather than dressing up.
+- The **AI Support bot has no ticketing behind it.** It answers, and the thread is
+  stored in `support_messages` — but nothing routes an unresolved problem to a
+  human, and nobody is notified. It tells the student a human reads these, which
+  is only true if someone actually reads the table. A real queue is the next step.
+  With no `SUPPORT_LLM_API_KEY` set it falls back to a deterministic keyword
+  responder, which covers the common cases (mic, camera, upload, login, missing
+  feedback) and declines everything else honestly rather than guessing.
+- The **mascot is not yet animated by Lottie.** `angry-owl.svg` carries its own
+  SMIL animation and renders through an `<object>`; `lottie-web` is declared and a
+  commented-out `initLottie()` points at `/assets/lottie/angry-owl.json`, which
+  does not exist yet. Because that import is dynamic and unreachable, Rollup
+  leaves the library out of the bundle entirely — it costs nothing until a real
+  export lands. See `apps/web/public/assets/lottie/README.md`.
 - `BunnyMediaProvider` is still a stub that throws — Supabase Storage is the real
   provider. Bunny/Cloudflare matter later, when video egress cost does.
 - Signed playback URLs are minted once at upload and stored, so a forwarded link

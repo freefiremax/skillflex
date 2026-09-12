@@ -2,7 +2,7 @@ import { useEffect, type ReactNode } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { LANGUAGE_LABELS, SUPPORTED_LANGUAGES, type Language } from '@skillflex/shared'
 import { useAuth } from '../lib/auth'
-import { PetCompanion } from './PetCompanion'
+import { MascotGuide } from './MascotGuide'
 
 interface NavEntry {
   to: string
@@ -112,7 +112,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {/* Every signed-in page. The sign-in screen renders outside this shell, so
           it mounts its own copy — see App.tsx. */}
-      <PetCompanion />
+      <MascotGuide />
     </>
   )
 }

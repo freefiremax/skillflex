@@ -86,7 +86,10 @@ export async function feedbackRoutes(app: FastifyInstance) {
       where: { submission: { studentId } },
       include: {
         mentor: { include: { user: true } },
-        submission: { include: { assignment: true, media: true } },
+        // `lesson` is new here: the feedback card links back to the video it was
+        // written about, so the three screens form a loop instead of three
+        // separate lists.
+        submission: { include: { assignment: { include: { lesson: true } }, media: true } },
       },
       orderBy: { createdAt: 'desc' },
     })
@@ -97,6 +100,11 @@ export async function feedbackRoutes(app: FastifyInstance) {
         at: f.createdAt,
         mentor: f.mentor.user.name,
         assignment: f.submission.assignment.title,
+        assignmentId: f.submission.assignmentId,
+        lesson: {
+          id: f.submission.assignment.lesson.id,
+          title: f.submission.assignment.lesson.title,
+        },
         submissionId: f.submissionId,
         playbackUrl: f.submission.media?.playbackUrl ?? null,
         rubric: readObjectList<RubricCriterion>(f.submission.assignment.rubric),

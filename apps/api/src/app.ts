@@ -20,6 +20,7 @@ import { planRoutes } from './modules/plans/routes.js'
 import { practiceRoutes } from './modules/practice/routes.js'
 import { progressRoutes } from './modules/progress/routes.js'
 import { battleRoutes } from './modules/battles/routes.js'
+import { supportRoutes } from './modules/support/routes.js'
 import { orgRoutes } from './modules/orgs/routes.js'
 import { consentRoutes } from './modules/consent/routes.js'
 import { liveRoutes } from './modules/live/routes.js'
@@ -180,6 +181,7 @@ export async function buildApp() {
   await app.register(practiceRoutes, { prefix: '/api/practice' })
   await app.register(progressRoutes, { prefix: '/api/progress' })
   await app.register(battleRoutes, { prefix: '/api/battles' })
+  await app.register(supportRoutes, { prefix: '/api/support' })
   await app.register(orgRoutes, { prefix: '/api/orgs' })
   await app.register(consentRoutes, { prefix: '/api/consent' })
   await app.register(liveRoutes, { prefix: '/api/live' })

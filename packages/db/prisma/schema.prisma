@@ -110,6 +110,7 @@ model User {
   memberships    OrgMembership[]
   consents       ConsentRecord[]
   mediaAssets    MediaAsset[]
+  supportMessages SupportMessage[]
 
   @@map("users")
 }
@@ -604,5 +605,34 @@ model BattleAttempt {
   @@index([studentId, createdAt])
   @@index([mode, createdAt])
   @@map("battle_attempts")
+}
+
+/// One turn of the AI Support conversation (/ai-support).
+///
+/// Scoped to the APP, not to English: this bot answers "my mic won't record",
+/// "where is my feedback", "I can't sign in". It is attached to User rather than
+/// StudentProfile because mentors get stuck too, and it is the only AI surface in
+/// the product that talks to a person directly.
+///
+/// The wall from PronunciationAttempt/BattleAttempt holds here as well, by
+/// construction rather than by policy: the support engine is handed this
+/// conversation and a static description of the app, and never a submission, a
+/// rubric score or a Feedback row. There is nothing about the student in its
+/// context, so it cannot assess one.
+///
+/// Stored so a human can pick up a thread the bot could not close — support logs
+/// are the product's bug report inbox.
+model SupportMessage {
+  id        String   @id @default(cuid())
+  userId    String
+  /// user | bot
+  sender    String
+  body      String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("support_messages")
 }
 

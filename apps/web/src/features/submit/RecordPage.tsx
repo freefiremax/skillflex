@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { api } from '../../lib/api'
 import { useRecorder } from '../../lib/useRecorder'
 import { Alert, Card, ErrorNote, Loading, Pill, formatDuration } from '../../components/ui'
@@ -107,6 +107,20 @@ export default function RecordPage() {
         <div className="tiny faint">{data.lesson.title}</div>
         <h1>{data.title}</h1>
         <p className="small">{data.brief}</p>
+
+        {/* Both ends of the chain from the assignment itself: the video that set
+            the task, and the feedback it earned. `← Back` only knows where you
+            came from; these know where the work belongs. */}
+        <div className="link-row">
+          <Link to={`/lessons/${data.lesson.id}`} className="link-chip">
+            ▶ Watch the lesson
+          </Link>
+          {alreadyReviewed && (
+            <Link to="/feedback" className="link-chip link-chip-ok">
+              ✎ See feedback
+            </Link>
+          )}
+        </div>
       </div>
 
       {alreadyReviewed && (

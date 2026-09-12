@@ -2,9 +2,11 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { useAuth } from './lib/auth'
 import { Loading } from './components/ui'
 import { AppShell } from './components/AppShell'
-import { PetCompanion } from './components/PetCompanion'
+import { MascotGuide } from './components/MascotGuide'
 import AuthPage from './features/auth/AuthPage'
 import LearnPage from './features/learn/LearnPage'
+import LessonsPage from './features/learn/LessonsPage'
+import AssignmentsPage from './features/learn/AssignmentsPage'
 import LessonPage from './features/learn/LessonPage'
 import RecordPage from './features/submit/RecordPage'
 import FeedbackListPage from './features/feedback/FeedbackListPage'
@@ -12,7 +14,13 @@ import PlanPage from './features/plans/PlanPage'
 import PracticePage from './features/practice/PracticePage'
 import ProgressPage from './features/progress/ProgressPage'
 import LeaderboardPage from './features/progress/LeaderboardPage'
-import BattlePage from './features/battles/BattlePage'
+import PetPage from './features/pet/PetPage'
+import FunTimePage from './features/funtime/FunTimePage'
+import SpellGamePage from './features/funtime/SpellGamePage'
+import SentenceGamePage from './features/funtime/SentenceGamePage'
+import SpeakGamePage from './features/funtime/SpeakGamePage'
+import QuizGamePage from './features/funtime/QuizGamePage'
+import AiSupportPage from './features/support/AiSupportPage'
 import LanguagePage from './features/languages/LanguagePage'
 import MentorPage from './features/mentorship/MentorPage'
 import BrowseMentorsPage from './features/mentorship/BrowseMentorsPage'
@@ -43,7 +51,7 @@ export default function App() {
           <Route path="/*" element={<AuthPage />} />
         </Routes>
         {/* The buddy greets you before you have an account to attach it to. */}
-        <PetCompanion />
+        <MascotGuide />
       </>
     )
   }
@@ -54,18 +62,35 @@ export default function App() {
         {me.role === 'student' && (
           <>
             <Route path="/" element={<LearnPage />} />
+            {/* Home is nothing but doors now; these two are the lists it used
+                to inline. */}
+            <Route path="/lessons" element={<LessonsPage />} />
+            <Route path="/assignments" element={<AssignmentsPage />} />
             <Route path="/lessons/:id" element={<LessonPage />} />
             <Route path="/assignments/:id/record" element={<RecordPage />} />
             <Route path="/feedback" element={<FeedbackListPage />} />
             <Route path="/plan" element={<PlanPage />} />
             {/* No bottom-nav tab: AppShell's bar is capped at five and full.
-                Reached from the pet menu and the card on LearnPage. */}
+                Reached from Home and from the buddy screen. */}
             <Route path="/practice" element={<PracticePage />} />
             <Route path="/progress" element={<ProgressPage />} />
             <Route path="/leaderboard" element={<LeaderboardPage />} />
-            {/* The one "extra feature" that is deliberately a main thing: the
-                college effort board. Also in the pet, plus a card on Learn. */}
-            <Route path="/battles" element={<BattlePage />} />
+
+            {/* The buddy, and the two things behind it. Each game is its own
+                route rather than a mode on one page, so a round can be linked
+                to and survives a reload. */}
+            <Route path="/pet" element={<PetPage />} />
+            <Route path="/fun-time" element={<FunTimePage />} />
+            <Route path="/fun-time/spell" element={<SpellGamePage />} />
+            <Route path="/fun-time/sentence" element={<SentenceGamePage />} />
+            <Route path="/fun-time/speak" element={<SpeakGamePage />} />
+            <Route path="/fun-time/quiz" element={<QuizGamePage />} />
+            <Route path="/ai-support" element={<AiSupportPage />} />
+
+            {/* Fun Time absorbed Battles. Kept as a redirect because the old
+                path is in the wild — bookmarks, and anything already shared. */}
+            <Route path="/battles" element={<Navigate to="/fun-time" replace />} />
+
             <Route path="/languages" element={<LanguagePage />} />
             <Route path="/live" element={<LivePage />} />
             <Route path="/live/:id" element={<LiveClassPage />} />

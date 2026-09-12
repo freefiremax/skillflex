@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { LANGUAGE_LABELS, type Language } from '@skillflex/shared'
 import { api } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
@@ -20,6 +20,13 @@ interface LessonDetail {
     brief: string
     maxDurationSeconds: number
     rubric: Array<{ key: string; label: string; max: number }>
+    /** Null until this student records something. See curriculum/routes.ts. */
+    mySubmission: {
+      id: string
+      status: string
+      hasFeedback: boolean
+      feedbackId: string | null
+    } | null
   }>
 }
 
@@ -105,8 +112,25 @@ export default function LessonPage() {
                 className="btn btn-primary btn-block"
                 onClick={() => navigate(`/assignments/${a.id}/record`)}
               >
-                Record my answer
+                {a.mySubmission ? 'Record it again' : 'Record my answer'}
               </button>
+
+              {/* The other end of the loop. Without this the video is where the
+                  journey starts and stops — the feedback it earned lives two
+                  taps away on a list with no idea which lesson you came from. */}
+              {a.mySubmission?.hasFeedback && (
+                <Link
+                  to={
+                    a.mySubmission.feedbackId
+                      ? `/feedback?item=${a.mySubmission.feedbackId}`
+                      : '/feedback'
+                  }
+                  className="btn btn-ghost btn-block"
+                  style={{ marginTop: '0.5rem' }}
+                >
+                  ✎ See feedback →
+                </Link>
+              )}
             </Card>
           ))}
         </>
