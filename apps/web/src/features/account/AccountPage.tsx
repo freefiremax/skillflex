@@ -12,6 +12,7 @@ import {
 } from '@skillflex/shared'
 import { api } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
+import { useTranslation } from '../../lib/i18n'
 import { Alert, Card, ErrorNote, Loading, Pill, formatDate } from '../../components/ui'
 
 interface ConsentState {
@@ -31,7 +32,8 @@ interface ConsentState {
 const DESTRUCTIVE_SCOPE: ConsentScope = 'video_recording'
 
 export default function AccountPage() {
-  const { me, language, setLanguage, signOut } = useAuth()
+  const { me, signOut } = useAuth()
+  const { language, setLanguage, t } = useTranslation()
   const queryClient = useQueryClient()
 
   const [confirming, setConfirming] = useState<ConsentScope | null>(null)
@@ -88,10 +90,10 @@ export default function AccountPage() {
           style={{ alignSelf: 'flex-start' }}
           onClick={() => setConfirming(null)}
         >
-          ← Back
+          ← {t('common.back')}
         </button>
 
-        <h1>Withdraw consent?</h1>
+        <h1>{t('account.withdraw_title')}</h1>
         <p className="small">{CONSENT_SCOPE_LABELS[scope]}</p>
 
         {isDestructive ? (
@@ -113,10 +115,10 @@ export default function AccountPage() {
           disabled={decide.isPending}
           onClick={() => decide.mutate({ scope, granted: false })}
         >
-          {decide.isPending ? 'Recording…' : 'Yes, withdraw it'}
+          {decide.isPending ? t('common.saving') : t('account.confirm_withdraw')}
         </button>
         <button className="btn btn-ghost btn-block" onClick={() => setConfirming(null)}>
-          Keep it as is
+          {t('account.keep_as_is')}
         </button>
       </div>
     )
@@ -125,8 +127,8 @@ export default function AccountPage() {
   return (
     <div className="stack">
       <div>
-        <h1>Your account</h1>
-        <p className="small">What we hold, why we hold it, and how to take it back.</p>
+        <h1>{t('account.title')}</h1>
+        <p className="small">{t('account.subtitle')}</p>
       </div>
 
       {notice && <Alert tone="ok">{notice}</Alert>}
@@ -147,10 +149,10 @@ export default function AccountPage() {
         )}
       </Card>
 
-      <div className="section-title">Preferred Language</div>
+      <div className="section-title">{t('account.pref_lang')}</div>
       <Card>
         <p className="small" style={{ marginBottom: '0.75rem' }}>
-          Select the active language for lectures, lesson materials, and interface.
+          {t('account.pref_lang_desc')}
         </p>
         <div className="row wrap" style={{ gap: '0.4rem' }}>
           {SUPPORTED_LANGUAGES.map((l) => {
@@ -169,11 +171,11 @@ export default function AccountPage() {
         </div>
       </Card>
 
-      <div className="section-title">Consent</div>
+      <div className="section-title">{t('account.consent')}</div>
 
       {stale && (
         <Alert tone="warn">
-          Our policy has been updated to {CURRENT_POLICY_VERSION}. Re-confirm the items marked below.
+          {t('account.consent_updated')}
         </Alert>
       )}
 
@@ -193,11 +195,11 @@ export default function AccountPage() {
                 <div className="row-between" style={{ marginBottom: '0.4rem' }}>
                   <span className="small strong">{CONSENT_SCOPE_LABELS[scope]}</span>
                   {needsRefresh ? (
-                    <Pill tone="warn">Re-confirm</Pill>
+                    <Pill tone="warn">{t('account.reconfirm')}</Pill>
                   ) : granted ? (
-                    <Pill tone="ok">Granted</Pill>
+                    <Pill tone="ok">{t('account.granted')}</Pill>
                   ) : (
-                    <Pill>Not granted</Pill>
+                    <Pill>{t('account.not_granted')}</Pill>
                   )}
                 </div>
                 <div className="tiny faint" style={{ marginBottom: '0.5rem' }}>
@@ -210,7 +212,7 @@ export default function AccountPage() {
                     className="btn btn-ghost btn-sm btn-block"
                     onClick={() => setConfirming(scope)}
                   >
-                    Withdraw
+                    {t('account.withdraw')}
                   </button>
                 ) : (
                   <button
@@ -218,7 +220,7 @@ export default function AccountPage() {
                     disabled={decide.isPending}
                     onClick={() => decide.mutate({ scope, granted: true })}
                   >
-                    {needsRefresh ? 'Re-confirm' : 'Grant'}
+                    {needsRefresh ? t('account.reconfirm') : t('account.grant')}
                   </button>
                 )}
               </Card>
@@ -227,11 +229,10 @@ export default function AccountPage() {
         </div>
       )}
 
-      <div className="section-title">Your data</div>
+      <div className="section-title">{t('account.your_data')}</div>
       <Card>
         <p className="small" style={{ marginBottom: '0.75rem' }}>
-          Download everything we hold about you — profile, submissions, your mentors' written
-          feedback, your plans, and the full consent log — as one JSON file.
+          {t('account.your_data_desc')}
         </p>
         <ErrorNote error={exportData.error} />
         <button
@@ -239,12 +240,12 @@ export default function AccountPage() {
           disabled={exportData.isPending}
           onClick={() => exportData.mutate()}
         >
-          {exportData.isPending ? 'Preparing…' : 'Download my data'}
+          {exportData.isPending ? t('account.preparing') : t('account.download_data')}
         </button>
       </Card>
 
       <button className="btn btn-ghost btn-block" onClick={signOut}>
-        Sign out
+        {t('common.sign_out')}
       </button>
 
       <div className="tiny faint center">

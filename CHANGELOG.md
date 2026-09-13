@@ -29,6 +29,24 @@ collides with one of these, the feature bends.
 
 ---
 
+## 2026-09-14 — Real-time multilingual web page localization (English, Hindi, Marathi)
+
+**Why.**
+- The user requested that selecting a language should dynamically translate the web page itself into that chosen language.
+- Previously, changing `language` only passed `?language=hi` to lesson video and mentor query endpoints, while all platform UI labels, tabs, headers, forms, buttons, cards, and modal texts were hardcoded in English.
+
+**What changed.**
+- `apps/web/src/lib/i18n.ts`: Created an internationalization translation dictionary with native Hindi (`hi`) and Marathi (`mr`) translations alongside English (`en`), with a reactive `useTranslation` hook and `t(key)` helper.
+- `apps/web/src/components/AppShell.tsx`: Navigation tabs (Home, Lessons, Live, Feedback, Plan, Queue, Profile), Account pill, and Exit buttons now dynamically translate in real time when toggling between English, Hindi, and Marathi.
+- `apps/web/src/features/account/AccountPage.tsx`: Completely localized the Account view, titles, subtitles, language preference descriptions, consent cards, data export buttons, and consent withdraw modals.
+- `apps/web/src/features/mentor-console/MentorProfilePage.tsx`: Localized profile headers, form field labels, bio placeholders, language hints, and CTA save buttons.
+- `apps/web/src/features/learn/LessonsPage.tsx`: Localized lecture headers, active language notices, and empty state cards.
+- `apps/web/src/features/live/LivePage.tsx`: Localized Live page tabs (Upcoming, Mine, Recordings), skill filters, and lecture state messages.
+- `apps/web/src/features/home/HomePage.tsx`: Localized the hero greeting (`Namaste`), guide step titles and descriptions, inspirational quote, and quick links.
+- `apps/web/src/components/MascotGuide.tsx`: Localized Owl Buddy status badges, dismissal labels, page-specific dialogue tips, and quick-action menu tiles (Fun Time / AI Support).
+
+---
+
 ## 2026-09-14 — Language toggle fixes across all roles, profile, and account settings
 
 **Why.**

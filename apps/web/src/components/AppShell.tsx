@@ -2,6 +2,7 @@ import { useEffect, type ReactNode } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { LANGUAGE_LABELS, SUPPORTED_LANGUAGES, type Language } from '@skillflex/shared'
 import { useAuth } from '../lib/auth'
+import { useTranslation } from '../lib/i18n'
 import { MascotGuide } from './MascotGuide'
 import { IosTabBar, type IosTabItem } from './IosTabBar'
 
@@ -70,24 +71,6 @@ function ProfileIcon({ active }: { active: boolean }) {
   )
 }
 
-const STUDENT_NAV: IosTabItem[] = [
-  { to: '/', label: 'Home', icon: (active) => <HomeIcon active={active} /> },
-  { to: '/lessons', label: 'Lessons', icon: (active) => <LessonsIcon active={active} /> },
-  { to: '/live', label: 'Live', icon: (active) => <LiveIcon active={active} /> },
-  { to: '/feedback', label: 'Feedback', icon: (active) => <FeedbackIcon active={active} /> },
-  { to: '/plan', label: 'Plan', icon: (active) => <PlanIcon active={active} /> },
-]
-
-const MENTOR_NAV: IosTabItem[] = [
-  { to: '/', label: 'Queue', icon: (active) => <QueueIcon active={active} /> },
-  { to: '/live', label: 'Live', icon: (active) => <LiveIcon active={active} /> },
-  { to: '/profile', label: 'Profile', icon: (active) => <ProfileIcon active={active} /> },
-]
-
-const ADMIN_NAV: IosTabItem[] = [
-  { to: '/', label: 'Dashboard', icon: (active) => <QueueIcon active={active} /> },
-]
-
 function IconPerson() {
   return (
     <svg className="tb-icon" viewBox="0 0 24 24" aria-hidden focusable="false">
@@ -108,13 +91,30 @@ function IconExit() {
 }
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const { me, language, setLanguage, signOut } = useAuth()
+  const { me, signOut } = useAuth()
+  const { language, setLanguage, t } = useTranslation()
   const { pathname } = useLocation()
 
-  const nav =
-    me?.role === 'student' ? STUDENT_NAV : me?.role === 'mentor' ? MENTOR_NAV : ADMIN_NAV
+  const studentNav: IosTabItem[] = [
+    { to: '/', label: t('nav.home'), icon: (active) => <HomeIcon active={active} /> },
+    { to: '/lessons', label: t('nav.lessons'), icon: (active) => <LessonsIcon active={active} /> },
+    { to: '/live', label: t('nav.live'), icon: (active) => <LiveIcon active={active} /> },
+    { to: '/feedback', label: t('nav.feedback'), icon: (active) => <FeedbackIcon active={active} /> },
+    { to: '/plan', label: t('nav.plan'), icon: (active) => <PlanIcon active={active} /> },
+  ]
 
-  const mint = me?.role === 'student' && pathname === '/'
+  const mentorNav: IosTabItem[] = [
+    { to: '/', label: t('nav.queue'), icon: (active) => <QueueIcon active={active} /> },
+    { to: '/live', label: t('nav.live'), icon: (active) => <LiveIcon active={active} /> },
+    { to: '/profile', label: t('nav.profile'), icon: (active) => <ProfileIcon active={active} /> },
+  ]
+
+  const adminNav: IosTabItem[] = [
+    { to: '/', label: 'Dashboard', icon: (active) => <QueueIcon active={active} /> },
+  ]
+
+  const nav =
+    me?.role === 'student' ? studentNav : me?.role === 'mentor' ? mentorNav : adminNav
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })
@@ -142,13 +142,13 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </option>
               ))}
             </select>
-            <NavLink to="/account" className="pill">
+            <NavLink to="/account" className="pill" title={t('nav.account')}>
               <IconPerson />
-              <span className="pill-name">{me?.name?.split(' ')[0] ?? 'Account'}</span>
+              <span className="pill-name">{me?.name?.split(' ')[0] ?? t('nav.account')}</span>
             </NavLink>
-            <button className="btn btn-ghost btn-sm" onClick={signOut} aria-label="Exit">
+            <button className="btn btn-ghost btn-sm" onClick={signOut} aria-label={t('nav.exit')} title={t('nav.exit')}>
               <IconExit />
-              <span className="btn-label">Exit</span>
+              <span className="btn-label">{t('nav.exit')}</span>
             </button>
           </div>
         </header>
