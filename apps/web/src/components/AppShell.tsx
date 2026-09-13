@@ -130,20 +130,18 @@ export function AppShell({ children }: { children: ReactNode }) {
             Skill<span className="brand-flex">Flex</span>
           </div>
           <div className="row" style={{ gap: '0.5rem' }}>
-            {me?.role === 'student' && (
-              <select
-                aria-label="Lesson language"
-                className="lang-select"
-                value={language}
-                onChange={(e) => setLanguage(e.target.value as Language)}
-              >
-                {SUPPORTED_LANGUAGES.map((l) => (
-                  <option key={l} value={l}>
-                    {LANGUAGE_LABELS[l]}
-                  </option>
-                ))}
-              </select>
-            )}
+            <select
+              aria-label="Language selection"
+              className="lang-select"
+              value={language}
+              onChange={(e) => setLanguage(e.target.value as Language)}
+            >
+              {SUPPORTED_LANGUAGES.map((l) => (
+                <option key={l} value={l}>
+                  {LANGUAGE_LABELS[l]}
+                </option>
+              ))}
+            </select>
             <NavLink to="/account" className="pill">
               <IconPerson />
               <span className="pill-name">{me?.name?.split(' ')[0] ?? 'Account'}</span>

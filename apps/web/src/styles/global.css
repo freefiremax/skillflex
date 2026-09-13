@@ -1035,21 +1035,33 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
      ate the account pill's entire name. */
   width: auto;
   flex: 1 1 auto;
-  min-width: 4.5rem;
-  max-width: 9.5rem;
+  min-width: 4.8rem;
+  max-width: 9.8rem;
   min-height: 44px;
-  padding: 0.3rem 1.5rem 0.3rem 1.85rem;
+  padding: 0.35rem 1.6rem 0.35rem 1.95rem;
   font-size: 0.82rem;
+  font-weight: 600;
   text-overflow: ellipsis;
+  cursor: pointer;
+  border-radius: 999px;
+  background-color: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  box-shadow: 0 1px 4px rgba(16, 185, 129, 0.08);
   /* Third layer is a globe on the left, so the control announces itself as
      *language* rather than as an unlabelled dropdown. An icon inside a <select>
      has to be a background — there is no element to put one in. */
   background-image:
     linear-gradient(45deg, transparent 50%, var(--text-dim) 50%),
     linear-gradient(135deg, var(--text-dim) 50%, transparent 50%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23404858' stroke-width='1.9' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M3 12h18'/%3E%3Cpath d='M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18'/%3E%3C/svg%3E");
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23059669' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M3 12h18'/%3E%3Cpath d='M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18'/%3E%3C/svg%3E");
+  background-repeat: no-repeat, no-repeat, no-repeat;
   background-position: calc(100% - 12px) 51%, calc(100% - 7px) 51%, 8px 50%;
   background-size: 5px 5px, 5px 5px, 15px 15px;
+  transition: border-color var(--t) var(--ease), box-shadow var(--t) var(--ease);
+}
+.lang-select:hover {
+  border-color: rgba(16, 185, 129, 0.45);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.16);
 }
 
 /* 44px is the smallest reliably hittable target on a phone. The header shipped

@@ -30,10 +30,10 @@ export default function MentorProfilePage() {
     // default still gets PATCHed, so an unloaded bio saves as '' and an unloaded
     // checkbox saves as "accepting" — both destructive, neither visible.
     setBio(me.mentor.bio ?? '')
-    setLanguages(me.mentor.languages)
-    setSkills(me.mentor.skills as Skill[])
-    setMaxActiveStudents(me.mentor.maxActiveStudents)
-    setIsAccepting(me.mentor.isAcceptingStudents)
+    setLanguages(Array.isArray(me.mentor.languages) ? me.mentor.languages : ['en'])
+    setSkills(Array.isArray(me.mentor.skills) ? (me.mentor.skills as Skill[]) : [])
+    setMaxActiveStudents(me.mentor.maxActiveStudents ?? 25)
+    setIsAccepting(me.mentor.isAcceptingStudents ?? true)
   }, [me])
 
   const save = useMutation({
@@ -89,19 +89,29 @@ export default function MentorProfilePage() {
         <div className="field">
           <label>I can mentor in</label>
           <div className="row wrap" style={{ gap: '0.35rem' }}>
-            {SUPPORTED_LANGUAGES.map((l) => (
-              <button
-                key={l}
-                type="button"
-                className={`btn btn-sm ${languages.includes(l) ? 'btn-primary' : 'btn-ghost'}`}
-                onClick={() =>
-                  setLanguages((prev) => (prev.includes(l) ? prev.filter((x) => x !== l) : [...prev, l]))
-                }
-              >
-                {LANGUAGE_LABELS[l]}
-              </button>
-            ))}
+            {SUPPORTED_LANGUAGES.map((l) => {
+              const active = languages.includes(l)
+              return (
+                <button
+                  key={l}
+                  type="button"
+                  className={`btn btn-sm ${active ? 'btn-primary' : 'btn-ghost'}`}
+                  onClick={() =>
+                    setLanguages((prev = []) => {
+                      if (prev.includes(l)) {
+                        if (prev.length <= 1) return prev // Keep at least one language for mentor matching
+                        return prev.filter((x) => x !== l)
+                      }
+                      return [...prev, l]
+                    })
+                  }
+                >
+                  {active ? `✓ ${LANGUAGE_LABELS[l]}` : LANGUAGE_LABELS[l]}
+                </button>
+              )
+            })}
           </div>
+          <div className="hint">Select languages you can mentor students in. Changes apply when saved below.</div>
         </div>
 
         <div className="field">
