@@ -89,6 +89,56 @@ export function Empty({ icon = '·', title, body }: { icon?: string; title: stri
 }
 
 /**
+ * A decorative illustration that degrades to a glyph instead of a broken image.
+ *
+ * Home's artwork lives in `public/assets/art/` and is dropped in separately from
+ * the code, so the page has to be complete before any file exists. A bare `<img>`
+ * whose src 404s renders the browser's broken-image icon — and on this deploy it
+ * is worse than a 404: the SPA fallback rewrite answers with index.html, so the
+ * element is handed HTML and shows the same torn-page glyph. Same failure mode
+ * `PlaybackVideo` above exists for.
+ *
+ * `alt` defaults to empty because every use here sits beside a heading that
+ * already says the same thing; announcing "microphone" after "Record your
+ * answer" is noise. Pass one only if the picture carries information the text
+ * does not.
+ */
+export function Art({
+  src,
+  alt = '',
+  fallback,
+  className = '',
+}: {
+  src: string
+  /** Leave empty for decoration. */
+  alt?: string
+  /** Shown instead when the file is missing. */
+  fallback: string
+  className?: string
+}) {
+  const [failed, setFailed] = useState(false)
+
+  if (failed) {
+    return (
+      <span className={`art art-fallback ${className}`.trim()} aria-hidden>
+        {fallback}
+      </span>
+    )
+  }
+
+  return (
+    <img
+      className={`art ${className}`.trim()}
+      src={src}
+      alt={alt}
+      loading="lazy"
+      decoding="async"
+      onError={() => setFailed(true)}
+    />
+  )
+}
+
+/**
  * A <video> that admits when its source is dead.
  *
  * A bare <video src> whose URL 404s renders as a permanently blank player with no

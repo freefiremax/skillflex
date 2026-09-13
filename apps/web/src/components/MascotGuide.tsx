@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 
 /**
@@ -11,7 +11,17 @@ import { useAuth } from '../lib/auth'
  * 1. **It stands still.** A buddy that walks out from under its own speech
  *    bubble is worse than no animation. Fixed bottom-right, above the nav bar.
  * 2. **It says where you are**, instead of listing where you could go. The menu
- *    moved to Home (which is now nothing but doors) and to /pet.
+ *    moved to Home (which is now a how-to guide) and to /pet.
+ *
+ * Point 2 now has one exception. Fun Time and AI Support sit in the bubble,
+ * because reaching a game used to cost six taps — notice the owl, tap it, read
+ * the tip, leave for Home, find the buddy card, tap that, then pick. The owl is
+ * on every screen; its two doors should be too. /pet is untouched and still the
+ * page both games and the support chat link back to.
+ *
+ * Nothing else was let back in. The bubble holds exactly the two things that are
+ * *not* on the way to anywhere — a break, and a way to report that the app
+ * itself broke — and the line about where you currently are.
  */
 
 interface Line {
@@ -74,6 +84,24 @@ function useReducedMotion() {
   return reduced
 }
 
+/** The two doors the bubble carries. Kept in step with /pet's tiles by hand. */
+const MENU = [
+  {
+    to: '/fun-time',
+    className: 'buddy-item-fun',
+    icon: '⚔',
+    title: 'Fun Time',
+    blurb: 'Take a quick break',
+  },
+  {
+    to: '/ai-support',
+    className: 'buddy-item-support',
+    icon: '☂',
+    title: 'AI Support',
+    blurb: 'Get unstuck faster',
+  },
+]
+
 export function MascotGuide() {
   const { me } = useAuth()
   const { pathname } = useLocation()
@@ -84,6 +112,10 @@ export function MascotGuide() {
   const objectRef = useRef<HTMLObjectElement>(null)
 
   const text = lineFor(pathname, Boolean(me))
+
+  /* Only a student's bubble carries the two doors, so only a student's button is
+     a menu. Mentors, admins and the sign-in screen get one line of text. */
+  const hasMenu = me?.role === 'student'
 
   /**
    * The owl is an `<object>` rather than an `<img>` for one reason: the file
@@ -159,16 +191,57 @@ export function MascotGuide() {
   return (
     <div ref={wrapRef} className={`pet-wrap${me ? '' : ' pet-wrap-bare'}`}>
       {open && (
-        <div className="pet-bubble mascot-bubble" role="status">
-          <div className="tiny strong mascot-bubble-who">YOUR BUDDY</div>
+        /* `dialog`, not `status`. It was a live region when it held one line of
+           text about the current screen; a container with two links in it is
+           not, and announcing the whole menu on every navigation would be
+           hostile. The heading below is what names it. */
+        <div className="pet-bubble mascot-bubble" role="dialog" aria-label="Your buddy">
+          <div className="row-between">
+            <div className="tiny strong mascot-bubble-who">YOUR BUDDY</div>
+            {/* Only when signed in — which is exactly when the menu below it
+                works. A chip that is always lit is decoration, not a status. */}
+            {me && (
+              <span className="buddy-ready">
+                <i aria-hidden /> READY
+              </span>
+            )}
+          </div>
+
           <div className="small">{text}</div>
+
+          {hasMenu && (
+            <div className="buddy-menu">
+              {MENU.map((m) => (
+                <Link key={m.to} to={m.to} className="buddy-item">
+                  <span className={`buddy-item-icon ${m.className}`} aria-hidden>
+                    {m.icon}
+                  </span>
+                  <span>
+                    <span className="buddy-item-title">{m.title}</span>
+                    <span className="buddy-item-blurb" style={{ display: 'block' }}>
+                      {m.blurb}
+                    </span>
+                  </span>
+                  <span className="buddy-item-go" aria-hidden>
+                    →
+                  </span>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
       <button
         type="button"
         className={`mascot-btn${open ? ' mascot-btn-awake' : ''}`}
-        aria-label={open ? 'Hide the buddy’s tip' : 'Your study buddy — what is this page?'}
+        aria-label={
+          open
+            ? 'Close the buddy'
+            : hasMenu
+              ? 'Your study buddy — open the menu'
+              : 'Your study buddy — what is this page?'
+        }
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
       >
