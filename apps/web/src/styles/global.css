@@ -709,6 +709,8 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
 /* Signed out there is no nav bar to clear. */
 .pet-wrap-bare { bottom: calc(env(safe-area-inset-bottom) + 14px); }
 
+/* --- Owl Buddy ---------------------------------------------------------- */
+
 .mascot-btn {
   border: 0;
   background: none;
@@ -716,22 +718,48 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   cursor: pointer;
   line-height: 0;
   -webkit-tap-highlight-color: transparent;
-  filter: drop-shadow(2px 4px 8px rgba(30, 40, 60, 0.22));
-  transition: transform var(--t) var(--ease);
-}
-.mascot-btn:hover,
-.mascot-btn-awake { transform: translateY(-3px) scale(1.04); }
-.mascot-btn:focus-visible {
-  outline: 2px solid var(--cta-to);
-  outline-offset: 6px;
-  border-radius: 999px;
+  position: relative;
+  display: block;
+  outline: none;
 }
 
-/* 72px — the middle of the 60–80px band. The id is the handle a Lottie
-   animation would mount into; see MascotGuide.tsx. */
+.mascot-pedestal {
+  width: 68px;
+  height: 68px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.96), rgba(224, 246, 235, 0.90));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 2px solid rgba(52, 211, 153, 0.45);
+  box-shadow:
+    0 8px 24px rgba(16, 110, 65, 0.22),
+    0 0 16px rgba(52, 211, 153, 0.25),
+    inset 0 2px 3px rgba(255, 255, 255, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+}
+
+.mascot-btn:hover .mascot-pedestal,
+.mascot-btn-awake .mascot-pedestal {
+  transform: translateY(-4px) scale(1.06);
+  box-shadow:
+    0 14px 32px rgba(16, 110, 65, 0.30),
+    0 0 22px rgba(52, 211, 153, 0.45),
+    inset 0 2px 3px rgba(255, 255, 255, 1);
+  border-color: rgba(52, 211, 153, 0.65);
+}
+
+.mascot-btn:active .mascot-pedestal {
+  transform: scale(0.94);
+}
+
+/* 52px owl drawing centered inside pedestal */
 #mascot-container {
-  width: 72px;
-  height: 72px;
+  width: 52px;
+  height: 52px;
   display: block;
 }
 #mascot-container > object,
@@ -739,71 +767,150 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   width: 100%;
   height: 100%;
   display: block;
-  /* The button takes the tap; the drawing must not eat it. */
   pointer-events: none;
 }
 
-.mascot-bubble {
-  border-color: var(--mascot-brown);
-  background: var(--mascot-cream);
-}
-.mascot-bubble::after {
-  background: var(--mascot-cream);
-  border-color: var(--mascot-brown);
-}
-.mascot-bubble-who { color: var(--mascot-brown); letter-spacing: 0.04em; }
-
-/* Renders only when signed in — i.e. exactly when the menu below it works. A
-   status chip that is always on is decoration wearing an indicator's clothes. */
-.buddy-ready {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.28rem;
-  font-size: 0.66rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  color: var(--ok);
-  white-space: nowrap;
-}
-.buddy-ready i {
-  width: 7px;
-  height: 7px;
+/* Green pulsing presence dot in corner */
+.mascot-presence-dot {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 13px;
+  height: 13px;
   border-radius: 999px;
-  background: var(--ok);
+  background: #10b981;
+  border: 2.5px solid #ffffff;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.8);
 }
 
-/* The two doors, in the bubble. They used to live only on /pet, which meant
-   getting to a game was: notice the owl, tap it, read the tip, leave for Home,
-   find the buddy card, tap that, then pick. The owl is on every screen, so the
-   menu should be too — /pet stays as the page both games link back to. */
-.buddy-menu {
+/* --- Mascot Assistant Speech Bubble ------------------------------------- */
+
+.mascot-bubble {
+  position: absolute;
+  bottom: calc(100% + 14px);
+  right: -4px;
+  width: min(20rem, calc(100vw - 2.5rem));
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
-  margin-top: 0.55rem;
+  padding: 0.85rem 1rem;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  border-radius: 20px;
+  box-shadow:
+    0 20px 40px -4px rgba(10, 48, 30, 0.18),
+    0 0 20px rgba(52, 211, 153, 0.14),
+    inset 0 1px 2px rgba(255, 255, 255, 0.95);
+  transform-origin: 86% 100%;
+  animation: pet-pop 0.28s var(--ease) both;
+  z-index: 60;
+}
+
+.mascot-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -7px;
+  right: 26px;
+  width: 12px;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.95);
+  border-right: 1px solid rgba(52, 211, 153, 0.35);
+  border-bottom: 1px solid rgba(52, 211, 153, 0.35);
+  transform: rotate(45deg);
+}
+
+.mascot-bubble-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.35rem;
+}
+
+.mascot-badge {
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #065f46;
+  background: rgba(52, 211, 153, 0.18);
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(52, 211, 153, 0.3);
+}
+
+.buddy-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #059669;
+}
+
+.status-live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #10b981;
+  box-shadow: 0 0 6px #10b981;
+}
+
+.mascot-bubble-close {
+  border: none;
+  background: rgba(0, 0, 0, 0.05);
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  cursor: pointer;
+  color: #64748b;
+  display: grid;
+  place-items: center;
+  font-size: 0.72rem;
+  line-height: 1;
+  transition: background 0.15s, color 0.15s;
+}
+.mascot-bubble-close:hover {
+  background: rgba(0, 0, 0, 0.12);
+  color: #1e293b;
+}
+
+.mascot-speech-text {
+  font-size: 0.86rem;
+  line-height: 1.4;
+  color: #1e293b;
+  font-weight: 500;
+  margin-bottom: 0.35rem;
+}
+
+/* Quick action items in bubble */
+.buddy-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-top: 0.35rem;
 }
 
 .buddy-item {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 0.6rem;
+  display: flex;
   align-items: center;
-  min-height: 2.75rem;
-  padding: 0.4rem 0.55rem;
-  border-radius: 13px;
-  border: 1px solid rgba(92, 44, 19, 0.16);
-  background: rgba(255, 255, 255, 0.6);
-  color: var(--mascot-ink);
+  gap: 0.65rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 14px;
+  background: rgba(240, 253, 246, 0.85);
+  border: 1px solid rgba(52, 211, 153, 0.22);
+  color: #064e3b;
   text-decoration: none;
+  transition: transform 0.22s var(--ease), background 0.2s, border-color 0.2s, box-shadow 0.2s;
 }
-/* The global `a:hover` is (0,1,1) and outranks this (0,1,0) — without the
-   restatement the rows repaint brand purple and underline. Same trap as
-   `.nav-item:hover` and `.tile-xl:hover`. */
+
 .buddy-item:hover,
 .buddy-item:focus-visible {
-  background: #fff;
-  border-color: var(--mascot-brown);
-  color: var(--mascot-ink);
+  background: #ffffff;
+  border-color: #34d399;
+  transform: translateX(3px);
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.16);
+  color: #064e3b;
   text-decoration: none;
   outline: none;
 }
@@ -811,58 +918,45 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
 .buddy-item-icon {
   display: grid;
   place-items: center;
-  width: 1.9rem;
-  height: 1.9rem;
-  border-radius: 9px;
-  background: var(--buddy-tint);
-  color: var(--buddy-ink);
-  font-size: 0.95rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 10px;
+  background: rgba(52, 211, 153, 0.18);
+  color: #059669;
+  font-size: 1rem;
   line-height: 1;
-}
-/* Beak gold and deep plumage — the same two regions of the owl the /pet tiles
-   take, so the bubble and that page are visibly the same bird. */
-/* Ink is the owl's darkest outline in both rows, not each door's own hue: gold
-   `--fun-from` on the gold tint measured 2.54:1, the same mistake `.tile-xl` was
-   carrying. `/pet` already resolves Fun Time's ink to `--mascot-ink`; these
-   match it. The tint is what tells the two rows apart. */
-.buddy-item-fun     { --buddy-tint: var(--fun-tint);     --buddy-ink: var(--mascot-ink); }
-.buddy-item-support { --buddy-tint: rgba(115, 53, 15, 0.12); --buddy-ink: var(--support-to); }
-
-.buddy-item-title { display: block; font-size: 0.83rem; font-weight: 700; line-height: 1.2; }
-.buddy-item-blurb { font-size: 0.72rem; color: var(--mascot-brown); line-height: 1.25; }
-.buddy-item-go    { font-size: 0.9rem; color: var(--mascot-brown); }
-
-/* Anchored to the owl's left edge, since the owl itself is pinned right. */
-.pet-bubble {
-  position: absolute;
-  bottom: calc(100% + 11px);
-  right: -4px;
-  width: min(18.5rem, calc(100vw - 2.5rem));
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  padding: 0.7rem 0.85rem;
-  background: rgba(255, 255, 255, 0.80);
-  backdrop-filter: blur(20px) saturate(140%);
-  -webkit-backdrop-filter: blur(20px) saturate(140%);
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow);
-  transform-origin: 86% 100%;
-  animation: pet-pop var(--t) var(--ease) both;
+  flex-shrink: 0;
 }
 
-.pet-bubble::after {
-  content: '';
-  position: absolute;
-  bottom: -6px;
-  right: 24px;
-  width: 11px;
-  height: 11px;
-  background: rgba(255, 255, 255, 0.85);
-  border-right: 1px solid rgba(255, 255, 255, 0.85);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.85);
-  transform: rotate(45deg);
+.buddy-item-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.buddy-item-title {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #064e3b;
+  line-height: 1.2;
+}
+
+.buddy-item-blurb {
+  display: block;
+  font-size: 0.71rem;
+  color: #047857;
+  line-height: 1.25;
+}
+
+.buddy-item-go {
+  font-size: 0.9rem;
+  color: #10b981;
+  transition: transform 0.2s ease;
+  margin-left: auto;
+}
+
+.buddy-item:hover .buddy-item-go {
+  transform: translateX(3px);
 }
 
 @keyframes pet-pop {
