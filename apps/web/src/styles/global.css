@@ -19,23 +19,27 @@
 :root {
   /* Surfaces — frosted glass layers over the gradient page */
   --bg: transparent;
-  --surface:   rgba(255, 255, 255, 0.58);
-  --surface-2: rgba(255, 255, 255, 0.75);
-  --surface-3: rgba(255, 255, 255, 0.88);
-  --line:       rgba(255, 255, 255, 0.28);
-  --line-strong: rgba(255, 255, 255, 0.55);
-  --highlight:  rgba(255, 255, 255, 0.92);
+  --surface:   rgba(255, 255, 255, 0.94);
+  --surface-2: rgba(255, 255, 255, 0.97);
+  --surface-3: #ffffff;
+  --line:       rgba(18, 88, 56, 0.12);
+  --line-strong: rgba(18, 88, 56, 0.28);
+  --highlight:  rgba(255, 255, 255, 0.95);
 
   /* Brand — retained for semantic uses (links, focus rings, AI-derived labels) */
-  --brand:      #6d3fe0;
-  --brand-deep: #4c22b0;
-  --brand-soft: rgba(109, 63, 224, 0.11);
-  --brand-tint: rgba(109, 63, 224, 0.18);
-  --accent:     #0a6880;
+  --brand:      #11804a;
+  --brand-deep: #0b5c34;
+  --brand-soft: rgba(17, 128, 74, 0.11);
+  --brand-tint: rgba(17, 128, 74, 0.18);
+  --accent:     #0f7a6a;
 
-  /* CTA gradient — warm gold → deep teal, matching the reference palette */
-  --cta-from: #c19b1a;
-  --cta-to:   #0f7a6a;
+  /* CTA gradient — vibrant emerald → deep forest green matching homepage */
+  --cta-from: #34b06e;
+  --cta-to:   #11804a;
+
+  --mint-deep: #0f6b3f;
+  --mint-line: #bcdfc9;
+  --mint-ring: #eaf6ee;
 
   /* Semantic */
   --ok:     #097049;
@@ -119,13 +123,8 @@ html,
 body {
   margin: 0;
   padding: 0;
-  /* body itself is always the gradient; #root floats above it */
-  background: linear-gradient(
-    145deg,
-    hsl(168 22% 70%) 0%,
-    hsl(150 12% 80%) 35%,
-    hsl(36  28% 88%) 100%
-  );
+  /* body itself is always the clean mint gradient matching homepage */
+  background: linear-gradient(178deg, #ddefe5 0%, #eaf6ee 46%, #f3faf6 100%);
   background-attachment: fixed;
   color: var(--text);
   font-family: var(--font);
@@ -141,12 +140,7 @@ body::before {
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  background: linear-gradient(
-    145deg,
-    hsl(168 22% 70%) 0%,
-    hsl(150 12% 80%) 35%,
-    hsl(36  28% 88%) 100%
-  );
+  background: linear-gradient(178deg, #ddefe5 0%, #eaf6ee 46%, #f3faf6 100%);
 }
 
 #root {
@@ -553,15 +547,15 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   height: 66px;
   padding: 4px;
   border-radius: 999px;
-  background: linear-gradient(180deg, rgba(8, 32, 54, 0.88) 0%, rgba(3, 19, 34, 0.95) 100%);
+  background: linear-gradient(180deg, rgba(6, 32, 22, 0.90) 0%, rgba(3, 20, 14, 0.96) 100%);
   backdrop-filter: blur(28px) saturate(190%);
   -webkit-backdrop-filter: blur(28px) saturate(190%);
-  border: 1px solid rgba(78, 211, 234, 0.28);
+  border: 1px solid rgba(52, 211, 153, 0.32);
   box-shadow:
-    0 16px 36px rgba(0, 10, 24, 0.55),
-    0 0 24px rgba(78, 211, 234, 0.16),
-    inset 0 1px 1.5px rgba(211, 249, 255, 0.38),
-    inset 0 -1px 1px rgba(0, 10, 24, 0.5);
+    0 16px 36px rgba(0, 16, 10, 0.55),
+    0 0 24px rgba(52, 211, 153, 0.18),
+    inset 0 1px 1.5px rgba(210, 250, 230, 0.4),
+    inset 0 -1px 1px rgba(0, 16, 10, 0.5);
 }
 
 .ios-tab-bar.nav-desktop {
@@ -573,7 +567,7 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   position: absolute;
   inset: -2px;
   border-radius: 999px;
-  background: radial-gradient(circle at 50% 50%, rgba(78, 211, 234, 0.2), transparent 70%);
+  background: radial-gradient(circle at 50% 50%, rgba(52, 211, 153, 0.22), transparent 70%);
   pointer-events: none;
   z-index: 0;
   filter: blur(10px);
@@ -609,12 +603,12 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   width: 100%;
   height: 100%;
   border-radius: 999px;
-  background: radial-gradient(circle at 50% 0%, #1ab5e8 0%, #0d6394 58%, #083c5e 100%);
+  background: radial-gradient(circle at 50% 0%, #34d399 0%, #10b981 55%, #065f46 100%);
   box-shadow:
-    0 4px 18px rgba(78, 211, 234, 0.48),
-    inset 0 1.5px 2px rgba(211, 249, 255, 0.75),
-    inset 0 -1px 2px rgba(0, 20, 40, 0.6);
-  border: 1px solid rgba(211, 249, 255, 0.42);
+    0 4px 18px rgba(52, 211, 153, 0.52),
+    inset 0 1.5px 2px rgba(225, 255, 240, 0.8),
+    inset 0 -1px 2px rgba(2, 28, 16, 0.6);
+  border: 1px solid rgba(210, 250, 230, 0.45);
   position: relative;
   overflow: hidden;
 }
@@ -627,7 +621,7 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   right: 18%;
   height: 38%;
   border-radius: 999px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 100%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 100%);
   pointer-events: none;
 }
 
@@ -635,7 +629,7 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   position: absolute;
   inset: 0;
   border-radius: 999px;
-  background: radial-gradient(circle at 50% 50%, rgba(78, 211, 234, 0.4) 0%, transparent 70%);
+  background: radial-gradient(circle at 50% 50%, rgba(52, 211, 153, 0.4) 0%, transparent 70%);
   filter: blur(6px);
   pointer-events: none;
 }
@@ -658,7 +652,7 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   align-items: center;
   justify-content: center;
   gap: 3px;
-  color: rgba(142, 192, 222, 0.72);
+  color: rgba(162, 218, 188, 0.72);
   text-decoration: none;
   font-size: 0.65rem;
   font-weight: 600;
@@ -670,7 +664,7 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
 
 .ios-tab-item:hover {
   text-decoration: none;
-  color: #bce9f7;
+  color: #d1fae5;
 }
 
 .ios-tab-item:active {
@@ -678,8 +672,8 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
 }
 
 .ios-tab-item.active {
-  color: #d3f9ff;
-  text-shadow: 0 0 10px rgba(78, 211, 234, 0.65), 0 0 2px rgba(255, 255, 255, 0.8);
+  color: #e6fcf1;
+  text-shadow: 0 0 10px rgba(52, 211, 153, 0.65), 0 0 2px rgba(255, 255, 255, 0.85);
 }
 
 .ios-tab-icon-wrap {
@@ -1882,14 +1876,14 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
     margin: 14px auto 0;
     padding: 4px;
     border-radius: 999px;
-    background: linear-gradient(180deg, rgba(8, 32, 54, 0.88) 0%, rgba(3, 19, 34, 0.95) 100%);
+    background: linear-gradient(180deg, rgba(6, 32, 22, 0.90) 0%, rgba(3, 20, 14, 0.96) 100%);
     backdrop-filter: blur(28px) saturate(190%);
     -webkit-backdrop-filter: blur(28px) saturate(190%);
-    border: 1px solid rgba(78, 211, 234, 0.28);
+    border: 1px solid rgba(52, 211, 153, 0.32);
     box-shadow:
-      0 16px 36px rgba(0, 10, 24, 0.45),
-      0 0 24px rgba(78, 211, 234, 0.16),
-      inset 0 1px 1.5px rgba(211, 249, 255, 0.38);
+      0 16px 36px rgba(0, 16, 10, 0.45),
+      0 0 24px rgba(52, 211, 153, 0.18),
+      inset 0 1px 1.5px rgba(210, 250, 230, 0.4);
   }
 
   .ios-tab-bar.nav-desktop .ios-tab-item {
