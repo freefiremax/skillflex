@@ -191,23 +191,27 @@ export function MascotGuide() {
   return (
     <div ref={wrapRef} className={`pet-wrap${me ? '' : ' pet-wrap-bare'}`}>
       {open && (
-        /* `dialog`, not `status`. It was a live region when it held one line of
-           text about the current screen; a container with two links in it is
-           not, and announcing the whole menu on every navigation would be
-           hostile. The heading below is what names it. */
-        <div className="pet-bubble mascot-bubble" role="dialog" aria-label="Your buddy">
-          <div className="row-between">
-            <div className="tiny strong mascot-bubble-who">YOUR BUDDY</div>
-            {/* Only when signed in — which is exactly when the menu below it
-                works. A chip that is always lit is decoration, not a status. */}
-            {me && (
-              <span className="buddy-ready">
-                <i aria-hidden /> READY
-              </span>
-            )}
+        <div className="pet-bubble mascot-bubble" role="dialog" aria-label="Your study buddy">
+          <div className="mascot-bubble-top">
+            <div className="row" style={{ gap: '0.45rem' }}>
+              <span className="mascot-badge">STUDY BUDDY</span>
+              {me && (
+                <span className="buddy-status-pill">
+                  <span className="status-live-dot" /> Online
+                </span>
+              )}
+            </div>
+            <button
+              type="button"
+              className="mascot-bubble-close"
+              onClick={() => setOpen(false)}
+              aria-label="Dismiss assistant"
+            >
+              ✕
+            </button>
           </div>
 
-          <div className="small">{text}</div>
+          <div className="mascot-speech-text">{text}</div>
 
           {hasMenu && (
             <div className="buddy-menu">
@@ -216,11 +220,9 @@ export function MascotGuide() {
                   <span className={`buddy-item-icon ${m.className}`} aria-hidden>
                     {m.icon}
                   </span>
-                  <span>
+                  <span className="buddy-item-body">
                     <span className="buddy-item-title">{m.title}</span>
-                    <span className="buddy-item-blurb" style={{ display: 'block' }}>
-                      {m.blurb}
-                    </span>
+                    <span className="buddy-item-blurb">{m.blurb}</span>
                   </span>
                   <span className="buddy-item-go" aria-hidden>
                     →
@@ -245,14 +247,18 @@ export function MascotGuide() {
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
       >
-        <div id="mascot-container" data-mascot="guide">
-          <object
-            ref={objectRef}
-            type="image/svg+xml"
-            data="/assets/mascot/angry-owl.svg"
-            aria-hidden="true"
-            tabIndex={-1}
-          />
+        <div className="mascot-pedestal">
+          <div className="mascot-glow-ambient" />
+          <div id="mascot-container" data-mascot="guide">
+            <object
+              ref={objectRef}
+              type="image/svg+xml"
+              data="/assets/mascot/angry-owl.svg"
+              aria-hidden="true"
+              tabIndex={-1}
+            />
+          </div>
+          <span className="mascot-presence-dot" title="Online" />
         </div>
       </button>
     </div>
