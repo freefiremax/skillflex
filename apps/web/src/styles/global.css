@@ -662,12 +662,91 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
 }
 .mascot-bubble-who { color: var(--mascot-brown); letter-spacing: 0.04em; }
 
+/* Renders only when signed in — i.e. exactly when the menu below it works. A
+   status chip that is always on is decoration wearing an indicator's clothes. */
+.buddy-ready {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--ok);
+  white-space: nowrap;
+}
+.buddy-ready i {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--ok);
+}
+
+/* The two doors, in the bubble. They used to live only on /pet, which meant
+   getting to a game was: notice the owl, tap it, read the tip, leave for Home,
+   find the buddy card, tap that, then pick. The owl is on every screen, so the
+   menu should be too — /pet stays as the page both games link back to. */
+.buddy-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.55rem;
+}
+
+.buddy-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.6rem;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0.4rem 0.55rem;
+  border-radius: 13px;
+  border: 1px solid rgba(92, 44, 19, 0.16);
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--mascot-ink);
+  text-decoration: none;
+}
+/* The global `a:hover` is (0,1,1) and outranks this (0,1,0) — without the
+   restatement the rows repaint brand purple and underline. Same trap as
+   `.nav-item:hover` and `.tile-xl:hover`. */
+.buddy-item:hover,
+.buddy-item:focus-visible {
+  background: #fff;
+  border-color: var(--mascot-brown);
+  color: var(--mascot-ink);
+  text-decoration: none;
+  outline: none;
+}
+
+.buddy-item-icon {
+  display: grid;
+  place-items: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 9px;
+  background: var(--buddy-tint);
+  color: var(--buddy-ink);
+  font-size: 0.95rem;
+  line-height: 1;
+}
+/* Beak gold and deep plumage — the same two regions of the owl the /pet tiles
+   take, so the bubble and that page are visibly the same bird. */
+/* Ink is the owl's darkest outline in both rows, not each door's own hue: gold
+   `--fun-from` on the gold tint measured 2.54:1, the same mistake `.tile-xl` was
+   carrying. `/pet` already resolves Fun Time's ink to `--mascot-ink`; these
+   match it. The tint is what tells the two rows apart. */
+.buddy-item-fun     { --buddy-tint: var(--fun-tint);     --buddy-ink: var(--mascot-ink); }
+.buddy-item-support { --buddy-tint: rgba(115, 53, 15, 0.12); --buddy-ink: var(--support-to); }
+
+.buddy-item-title { display: block; font-size: 0.83rem; font-weight: 700; line-height: 1.2; }
+.buddy-item-blurb { font-size: 0.72rem; color: var(--mascot-brown); line-height: 1.25; }
+.buddy-item-go    { font-size: 0.9rem; color: var(--mascot-brown); }
+
 /* Anchored to the owl's left edge, since the owl itself is pinned right. */
 .pet-bubble {
   position: absolute;
   bottom: calc(100% + 11px);
   right: -4px;
-  width: min(16rem, calc(100vw - 2.5rem));
+  width: min(18.5rem, calc(100vw - 2.5rem));
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
@@ -727,16 +806,38 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   flex: 0 0 auto;
 }
 
-/* Four controls on a 360px-wide phone is the tightest row in the app. The
-   account pill is the only one that can lose characters without losing meaning,
-   so it is the one that truncates. */
+/* Four controls on a 360px-wide phone is the tightest row in the app, and the
+   two icons added with the mockup cost it another ~30px. Both flexible controls
+   now carry a floor, because the old "let the pill absorb everything" rule
+   truncated "Rahul" all the way down to a bare ellipsis — the account link lost
+   the one word that made it an account link.
+   The select gives way first: it is a native <select>, so tapping it opens the
+   full list with every language spelled out however narrow the closed control
+   is. A clipped language name still works; a clipped name does not. */
 .topbar .row { min-width: 0; }
+/* The pill holds its size and the select absorbs the shrink. The reverse — the
+   old rule — is what left "Rahul" as a bare ellipsis once the person icon
+   landed: an account link with no name on it is not an account link, whereas a
+   clipped language still opens a native list with every option spelled out. */
 .topbar .pill {
+  flex: 0 0 auto;
+  min-width: 0;
+  max-width: 6.5rem;
+}
+/* Exit holds its size too. A `<button>` does not get the automatic minimum size
+   that keeps other flex items from shrinking past their own content, so with the
+   default `shrink: 1` it was squeezed to 25.2px at 320px — narrower than its own
+   padding plus glyph, with the icon spilling out of the box. Shrink is the
+   select's job alone; both its neighbours opt out. */
+.topbar .btn-ghost { flex: 0 0 auto; }
+/* The ellipsis lives on the text, not the pill: `.pill` is inline-flex and
+   `text-overflow` does nothing on a flex container. Only bites on a first name
+   longer than about nine characters. */
+.pill-name {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  display: inline-block;
-  max-width: 6.5rem;
+  white-space: nowrap;
 }
 
 /* Language is the one *product* control in the header — not a buried setting —
@@ -744,11 +845,26 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
    inline style. Keeping the type at 0.82rem holds the control narrow enough to
    sit beside three siblings on a 360px phone. */
 .lang-select {
+  /* Shrinkable, with a floor that still shows a language. `width: auto` sizes a
+     native select to its widest *option* — "मराठी / Marathi" — which on a phone
+     ate the account pill's entire name. */
   width: auto;
+  flex: 1 1 auto;
+  min-width: 4.5rem;
+  max-width: 9.5rem;
   min-height: 44px;
-  padding: 0.3rem 1.5rem 0.3rem 0.65rem;
+  padding: 0.3rem 1.5rem 0.3rem 1.85rem;
   font-size: 0.82rem;
-  background-position: calc(100% - 12px) 51%, calc(100% - 7px) 51%;
+  text-overflow: ellipsis;
+  /* Third layer is a globe on the left, so the control announces itself as
+     *language* rather than as an unlabelled dropdown. An icon inside a <select>
+     has to be a background — there is no element to put one in. */
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--text-dim) 50%),
+    linear-gradient(135deg, var(--text-dim) 50%, transparent 50%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23404858' stroke-width='1.9' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M3 12h18'/%3E%3Cpath d='M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18'/%3E%3C/svg%3E");
+  background-position: calc(100% - 12px) 51%, calc(100% - 7px) 51%, 8px 50%;
+  background-size: 5px 5px, 5px 5px, 15px 15px;
 }
 
 /* 44px is the smallest reliably hittable target on a phone. The header shipped
@@ -757,6 +873,15 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
 @media (max-width: 859px) {
   .topbar .btn-sm { min-height: 44px; }
   .topbar .pill { padding-top: 0.8rem; padding-bottom: 0.8rem; }
+}
+
+/* Under ~360px the four controls cannot all keep their words. Exit drops to its
+   glyph — an arrow leaving a door is the one icon here that is legible without
+   its label, and `aria-label` keeps the button named for anyone who cannot see
+   it. That buys the select back the ~36px it needs to still show a language. */
+@media (max-width: 360px) {
+  .topbar .btn-ghost .btn-label { display: none; }
+  .topbar .btn-ghost { padding-left: 0.6rem; padding-right: 0.6rem; }
 }
 @media (min-width: 860px) {
   .lang-select { min-height: 36px; }
@@ -769,6 +894,20 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+/* Glyphs beside the account and exit controls. `currentColor` so each one takes
+   the colour of the control it sits in, including its hover and focus states.
+   No margin: both hosts are inline-flex and already own the gap. */
+.tb-icon {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 /* --- Video playback ----------------------------------------------------- */
@@ -1112,29 +1251,321 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   white-space: nowrap;
 }
 
-/* --- Home's four steps -------------------------------------------------- */
+/* --- Home ---------------------------------------------------------------- */
 
-/* Numbers, because watch -> record -> read -> plan is genuinely an ordered loop
-   and nothing on Home used to say so. The circle is the owl's cream and ink, so
-   the guide is visibly the buddy's voice. */
-.howto-step {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.7rem;
-  align-items: start;
+/* Home is the one screen with its own skin: flat mint instead of the sage glass
+   wash, solid white cards instead of frosted ones. It is the first thing a new
+   student sees and it is the only page that is a guide rather than a tool, so it
+   gets to look different.
+
+   The mechanism is a token override, not a second design system — `.card`,
+   `.pill`, `.nav-item` and the rest are unchanged and simply resolve different
+   values inside the wrapper. `AppShell` puts `.theme-mint` on for `/` only, so
+   the bar underneath goes green with the page rather than staying gold under it. */
+.theme-mint {
+  /* The mockup's cards are opaque. Frosted glass over a flat wash is just a
+     slightly grey card with a GPU cost. */
+  --surface:   rgba(255, 255, 255, 0.94);
+  --surface-2: rgba(255, 255, 255, 0.97);
+
+  /* Consumed by the active nav pill, .brand-flex and .link-chip:hover — so the
+     whole chrome follows the page without any of them knowing about mint. */
+  --cta-from: #34b06e;
+  --cta-to:   #11804a;
+
+  --mint-deep: #0f6b3f;
+  --mint-line: #bcdfc9;
+  /* The gradient's midpoint, used as the ring that masks the dashed rail where
+     it passes behind a step number. */
+  --mint-ring: #eaf6ee;
+
+  /* One accent per step, so four rows read as four things.
+   *
+   * Each is darkened from the mockup's swatch until white 16.8px bold clears
+   * 4.5:1 on the disc — the mockup's own amber measured 2.34:1, and the digit is
+   * not decoration: it is the step number, the one piece of information the rail
+   * exists to carry. Hue and order survive the darkening; only value moves.
+   * Purple already passed and is untouched.
+   *
+   * The same token inks the fallback glyph on `--step-tint`, so the pale-on-pale
+   * tiles come up with it. */
+  --step-1: #2d8355;
+  --step-2: #a1660c;
+  --step-3: #9b52d8;
+  --step-4: #3779b8;
+
+  position: relative;
 }
+
+/* Covers the body gradient. `#root` is z-index 1 and `.theme-mint` is inside it
+   with z-index auto, so -1 here lands above `body::before` and below every
+   sibling — no stacking context in between to trap it. */
+.theme-mint::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(178deg, #ddefe5 0%, #eaf6ee 46%, #f3faf6 100%);
+}
+
+.theme-mint .card {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-color: rgba(18, 88, 56, 0.07);
+  box-shadow: 0 2px 14px rgba(20, 70, 48, 0.07), 0 0 0 1px rgba(255, 255, 255, 0.9);
+}
+.theme-mint .card-accent {
+  border-color: rgba(229, 154, 34, 0.45);
+  box-shadow: 0 0 0 1px rgba(229, 154, 34, 0.3), 0 2px 14px rgba(20, 70, 48, 0.08);
+}
+
+/* --- Home: the greeting ------------------------------------------------- */
+
+/* The greeting spans the full width and the *quote* is what sits beside the
+   art. The obvious reading of the mockup — a two-column grid with the whole
+   left side stacked in one column — breaks the h1 at 375px: "Namaste, Rahul 👋"
+   needs 261px and a 1.08fr column gives it 181, so the name lands on its own
+   line. A greeting that splits its own sentence is worse than a slightly
+   shorter picture. */
+.home-hero {
+  display: flex;
+  flex-direction: column;
+}
+
+.home-hero h1 {
+  margin-bottom: 0.15rem;
+  /* Keeps "Rahul 👋" together if a longer first name does force a wrap. */
+  text-wrap: balance;
+}
+
+/* Two columns down to 320px, on purpose: stacking the art under the quote
+   would push step 1 below the fold, which is the one thing this page cannot
+   afford. */
+.home-hero-body {
+  display: grid;
+  grid-template-columns: 1fr minmax(7.5rem, 0.82fr);
+  gap: 0.6rem;
+  align-items: end;
+}
+
+/* A short bar, not a full-width rule: it terminates the greeting rather than
+   dividing the page. */
+.home-rule {
+  width: 3.4rem;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--mint-deep);
+  margin: 0.7rem 0 0.9rem;
+  flex: 0 0 auto;
+}
+
+.home-quote {
+  position: relative;
+  padding: 0.75rem 0.9rem 0.75rem 2.1rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(18, 88, 56, 0.08);
+  color: var(--text-dim);
+  font-size: 0.88rem;
+  font-style: italic;
+  line-height: 1.4;
+}
+.home-quote::before {
+  content: '“';
+  position: absolute;
+  left: 0.55rem;
+  top: 0.18rem;
+  font-family: var(--font-display);
+  font-size: 2.2rem;
+  font-style: normal;
+  line-height: 1;
+  color: var(--mint-line);
+}
+
+.home-hero-art {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 0;
+}
+
+/* Caveat, and the only place in the app that uses it. A handwritten note is a
+   different voice from the interface — it is the app talking about itself, not
+   labelling a control — and a second sans weight would not have said that. */
+.home-note {
+  align-self: flex-end;
+  padding: 0.5rem 0.85rem;
+  border-radius: 14px;
+  background: rgba(160, 214, 180, 0.42);
+  border: 1px solid rgba(18, 88, 56, 0.09);
+  font-family: 'Caveat', var(--font-display);
+  font-size: 1.22rem;
+  font-weight: 700;
+  line-height: 1.12;
+  color: var(--mint-deep);
+  text-align: center;
+  transform: rotate(-3deg);
+  z-index: 2;
+}
+.home-note u {
+  display: block;
+  text-decoration: none;
+  border-bottom: 2px solid var(--mint-deep);
+  width: 2.6rem;
+  margin: 0.1rem auto 0;
+}
+
+.home-hero-art .art {
+  width: 100%;
+  max-width: 13rem;
+  height: auto;
+  margin-top: -0.4rem;
+}
+.home-hero-art .art-fallback { font-size: 3.4rem; margin: 0.4rem 0.3rem 0; }
+
+/* --- Home: the four steps ----------------------------------------------- */
+
+/* Numbered, because watch -> record -> read -> plan is genuinely an ordered loop
+   and nothing on Home used to say so. The dashed rail is the same statement made
+   twice, which is what makes a sequence read as one at a glance. */
+.howto-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.howto-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2.5rem 1fr;
+  gap: 0.7rem;
+  align-items: center;
+}
+
+/* The rail measures itself. Each row draws a segment spanning its own height
+   plus the flex gap below it, so the line stays continuous whatever the cards
+   wrap to — no hard-coded card height anywhere. The first and last rows stop at
+   their own circle's centre so the sequence starts and ends on a number. */
+.howto-row::before {
+  content: '';
+  position: absolute;
+  left: 1.25rem;
+  top: 0;
+  bottom: -0.9rem;
+  border-left: 2px dashed var(--mint-line);
+}
+.howto-row:first-child::before { top: 50%; }
+.howto-row:last-child::before  { bottom: 50%; }
+
 .howto-num {
+  position: relative;
+  z-index: 1;
   display: grid;
   place-items: center;
-  width: 1.7rem;
-  height: 1.7rem;
+  width: 2.5rem;
+  height: 2.5rem;
   border-radius: 999px;
-  background: var(--fun-tint);
-  color: var(--mascot-ink);
+  background: var(--step);
+  color: #fff;
   font-family: var(--font-display);
-  font-size: 0.9rem;
+  font-size: 1.05rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+  /* Opaque ring in the page's own mint, so the rail is cut cleanly around the
+     disc instead of running under its edge. */
+  box-shadow: 0 0 0 5px var(--mint-ring), 0 3px 10px rgba(20, 70, 48, 0.18);
+}
+
+.howto-row-1 { --step: var(--step-1); --step-tint: #e7f5ec; }
+.howto-row-2 { --step: var(--step-2); --step-tint: #fdf0dd; }
+.howto-row-3 { --step: var(--step-3); --step-tint: #f2e9fc; }
+.howto-row-4 { --step: var(--step-4); --step-tint: #e6effa; }
+
+.howto-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.8rem;
+  align-items: center;
+  padding: 0.75rem 0.85rem;
+}
+
+.howto-tile {
+  display: grid;
+  place-items: center;
+  width: 3.15rem;
+  height: 3.15rem;
+  border-radius: 16px;
+  background: var(--step-tint);
+}
+.howto-tile .art { width: 2.15rem; height: 2.15rem; }
+.howto-tile .art-fallback { font-size: 1.5rem; color: var(--step); }
+
+.howto-title { display: block; font-weight: 700; line-height: 1.25; }
+.howto-how   { font-size: 0.8rem; color: var(--text-faint); line-height: 1.35; }
+
+/* The affordance that replaced "tap Lessons in the bottom bar" in the copy. */
+.howto-chev {
+  font-size: 1.35rem;
+  line-height: 1;
+  color: var(--mint-line);
+}
+
+/* --- Home: the closing panel -------------------------------------------- */
+
+.home-close {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.9rem;
+  align-items: center;
+  padding: 0.9rem 1rem;
+  border-radius: var(--radius);
+  background: rgba(160, 214, 180, 0.3);
+  border: 1px solid rgba(18, 88, 56, 0.1);
+}
+.home-close-art {
+  display: grid;
+  place-items: center;
+  width: 3.6rem;
+  height: 3.6rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.55);
+}
+.home-close-art .art { width: 2.4rem; height: 2.4rem; }
+.home-close-art .art-fallback { font-size: 1.7rem; color: var(--mint-deep); }
+.home-close-title {
+  font-family: var(--font-display);
+  font-size: 1.12rem;
+  font-weight: 700;
+  line-height: 1.18;
+  color: var(--text);
+}
+
+/* --- Home: the footer chips --------------------------------------------- */
+
+/* Not in the mockup, and here anyway: /practice, /progress, /leaderboard and
+   /mentor have no inbound link anywhere else in the app, so dropping this row
+   would leave four pages reachable only by typing the URL. Styled quiet, and
+   placed after the closing panel, so it reads as a footer rather than a fifth
+   thing competing with the four steps. */
+.theme-mint .link-chip {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: var(--mint-line);
+  color: var(--text-dim);
+}
+.theme-mint .link-chip:hover,
+.theme-mint .link-chip:focus-visible {
+  background: #fff;
+  color: var(--mint-deep);
+  border-color: var(--mint-deep);
+}
+
+/* --- Decorative artwork -------------------------------------------------- */
+
+.art { display: block; }
+.art-fallback {
+  display: grid;
+  place-items: center;
+  line-height: 1;
 }
 
 /* --- The buddy's two doors ---------------------------------------------- */

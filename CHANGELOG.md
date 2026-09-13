@@ -29,7 +29,143 @@ collides with one of these, the feature bends.
 
 ---
 
-## 2026-09-13 — The buddy's two doors are the owl's; Home tells you how
+## 2026-09-13 — Home rebuilt to the mockup; the owl's bubble becomes the menu
+
+**Why.** Two screenshots set the target. Home was to become a mint screen with a
+greeting hero, a real `How to use SkillFlex` heading, four numbered steps on a
+dashed rail, and a green closing panel. And the owl's bubble — one line of text
+about the current page — was to become the menu: `YOUR BUDDY`, a `● READY` chip,
+the guide line, then **Fun Time** and **AI Support** as two tappable rows.
+
+The content was already right from the previous entry: four numbered steps, same
+order, same destinations. What changed is everything around it.
+
+**Mint is scoped to Home by overriding tokens, not by adding a second design
+system.** The page wash lives on `body` and `body::before`, which no route can
+reach, so `AppShell` wraps its output in `.theme-mint` when
+`me?.role === 'student' && pathname === '/'`. That class redefines `--surface`
+and `--cta-from/--cta-to`, so `Card`, `Pill`, `.nav-item` and `.brand-flex`
+resolve different values with **zero component changes**.
+
+Covering the sage gradient without touching `body` took one stacking trick:
+`.theme-mint::before` is `position: fixed; z-index: -1` on a `position: relative`
+parent. `#root` is `z-index: 1`, so a `-1` pseudo-element inside it lands *above*
+`body::before` and *below* every sibling — exactly the slot needed, with no new
+stacking context in between.
+
+You chose "only Home is green" knowing the nav is global. The wrapper encloses
+both nav bars, so the active tab is green on Home and gold→teal everywhere else.
+The alternative — a mint page under a gold bar — looks like a bug rather than a
+decision.
+
+**The hero does not follow the mockup's layout, on purpose.** Read literally it
+is a two-column grid with the whole left side stacked in one column. At 375px
+that breaks the greeting: "Namaste, Rahul 👋" needs 261px and a 1.08fr column
+gives it 181, so the name lands on its own line. A greeting that splits its own
+sentence is worse than a slightly narrower picture. The h1, status line and rule
+now span full width and the **quote** is what sits beside the art.
+
+**The dashed rail measures itself.** Each row draws a segment spanning its own
+height plus the flex gap; `:first-child` starts at 50%, `:last-child` stops at
+50%, and the number disc carries an opaque `box-shadow` ring in `--mint-ring` to
+mask the line behind it. No card height is hardcoded anywhere, so the rail stays
+continuous when copy wraps to a third line.
+
+**A live contrast defect on the step discs, found by measuring rather than
+looking.** White 16.8px bold on the mockup's own swatches: step 1 at 3.13:1, step
+2 at **2.34:1**, step 4 at 3.27:1 — all under the 4.5:1 floor, and step 3 passed
+at 4.57:1 only by luck. The digit is not decoration; it is the step number, the
+one thing the rail exists to carry, so the text threshold applies. The four
+`--step-*` tokens are darkened until white clears 4.5:1 — hue and order survive,
+only value moves — and purple is untouched because it already passed.
+
+**Step 2 now reads bronze rather than the mockup's bright amber.** That is a
+visible departure and it is not recoverable: amber is a light hue, and no value
+of it holds white text at 4.5:1. The alternative was dark ink on the bright amber
+disc alone, which passes at ≈6:1 but leaves one disc in a different ink from the
+other three. Uniform white numerals won. Say the word and I will swap it.
+
+The same token inks the fallback glyph on each pale tile, so those came up with
+the discs (`▶` 2.78 → 4.16, `◎` 2.82 → 3.94). Only those two actually take the
+token — `🎤` and `✎` are emoji-substituted on Windows and paint their own
+palette, which is also why the first contrast sweep of the tiles was misleading:
+it measured CSS ink that three of the four glyphs never use.
+
+**The owl's bubble.** `role` moves `status` → `dialog`: a container with two
+links in it is not a live region, and announcing a whole menu on every navigation
+would be hostile. Menu rows are `<Link>`s, so tab order and long-press-to-open
+both work. The READY chip renders only when signed in — i.e. exactly when the
+menu below it works — so it states something true instead of decorating. The
+button's `aria-label` is three-way (`open` / `hasMenu` / neither), because after
+this change "what is this page?" was wrong on a student's bubble and "close the
+menu" was wrong on the signed-out one.
+
+**`/pet` is now reachable only by backing out of a game.** A grep gives it
+exactly two inbound links, both `back-link`s —
+`features/funtime/FunTimePage.tsx:57` and `features/support/AiSupportPage.tsx:87`.
+Home's chip row does not carry it and the bubble now goes straight past it to
+`/fun-time` and `/ai-support`. The page is untouched and still the back-link
+target for both games and the support chat, but it is no longer somewhere you
+arrive on purpose. Worth knowing before anything else is built on it.
+
+**One deliberate addition to the mockup.** `/practice`, `/progress`,
+`/leaderboard` and `/mentor` have zero inbound links anywhere outside
+`HomePage.tsx`. Building the mockup literally would strand all four behind
+URL-typing, so `.link-row.link-row-lg` survives, moved below the closing panel
+and restyled quiet.
+
+**Two smaller things.** The topbar's shrink order was backwards once the person
+icon landed: the pill and the select both shrank, leaving "Rahul" as a bare
+ellipsis. The pill and the Exit button now hold their size and the **select**
+absorbs everything — a clipped language still opens a native list with every
+option spelled out, whereas an account link with no name on it is not an account
+link. `.topbar .btn-ghost` needed `flex: 0 0 auto` explicitly: a `<button>` does
+not get the automatic minimum size that stops other flex items shrinking past
+their own content, so it was being squeezed to 25.2px — narrower than its own
+padding plus glyph, with the icon spilling out. And the ellipsis lives on a new
+`.pill-name` span rather than on `.pill`, because `.pill` is `inline-flex` and
+`text-overflow` does nothing on a flex container.
+
+**Verified.** `npm run typecheck` clean across all four workspaces; `npm run build
+-w @skillflex/web` clean (133 modules, 437.54 kB JS / 30.01 kB CSS). Then in a
+browser, against a stub API on `:4000` behind the Vite proxy driving the real
+unmodified client:
+
+Theme scoping — on `/` a card computes `rgba(255,255,255,0.94)` and the active
+nav pill is `rgb(52,176,110) → rgb(17,128,74)`; on `/lessons` and `/plan` the
+same reads give `rgba(255,255,255,0.58)` and `rgb(193,155,26) → rgb(15,122,106)`,
+and `.theme-mint` is absent from the DOM. Returning to `/` restores both. All
+four discs now measure 4.68 / 4.75 / 4.57 / 4.58 against white, and all four
+tiles clear the 3:1 non-text floor. The rail's endpoints sit exactly on circle 1
+and circle 4's centres with 0px gaps between segments. Every `<Art>` renders its
+CSS fallback with no broken-image glyph and nothing thrown. All four steps and
+all five chips land on the routes they name. The bubble opens on three different
+routes with the guide line changing each time, both rows at 44.8px, Escape
+closing it, and Fun Time navigating with the bubble shut on arrival; signed out,
+the READY chip and the menu are both absent and the greeting survives. At 375px
+the h1 holds one line and "Rahul" is whole. At 320px there is zero horizontal
+overflow, the hero stays two columns, the `≤360px` rule drops the Exit label to
+its glyph (35.8×44, icon inside), the select holds its 72px floor still showing
+"हिंदी / Hindi", and the bubble spans 29.6→309.6 — inside the viewport with ~10px
+clear each side.
+
+Two measurement notes, because both nearly produced false entries here.
+`getBoundingClientRect()` during a CSS keyframe returns the *animated* box: the
+`pet-pop` scale made the menu rows read 36.7px until the animation was awaited
+via `getAnimations({subtree:true})`. And while the preview pane is hidden, rAF is
+paused, so that await never resolves and the transform sits frozen at 0.82 —
+`offsetWidth`/`offsetHeight` are transform-independent and were used instead.
+
+**Not verified.** The six artwork files do not exist yet, so **every `<Art>` on
+Home is currently showing its fallback glyph** — the screenshots above are the
+page without its illustrations. Requirements are in the plan: `hero.png` ~900×700
+and five 256×256 icons, transparent alpha, no coloured tile behind the icon (CSS
+draws those so the radius matches the cards), and **no text in any image** — the
+"Practice / Learn / Grow" note is CSS so it can be translated to Hindi. And the
+stub invented every row: the task counts driving both badges and the status line
+come from `/curriculum/my-week`, which still needs a real database.
+
+---
 
 **Why.** Two problems on the first two screens a new student sees.
 

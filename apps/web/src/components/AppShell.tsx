@@ -36,6 +36,38 @@ const MENTOR_NAV: NavEntry[] = [
 
 const ADMIN_NAV: NavEntry[] = [{ to: '/', label: 'Dashboard', icon: '▤' }]
 
+/**
+ * The two topbar glyphs, inline rather than in the icon font of unicode
+ * characters the nav uses.
+ *
+ * The nav gets away with `⌂ ▶ ◉ ✎ ✓` because each one sits above its own word.
+ * These two sit *inside* a word, at 15px, where the unicode options render at
+ * wildly different weights per platform — `☺` in particular is emoji-substituted
+ * on Windows and arrives full-colour. `aria-hidden` throughout: the pill already
+ * says the name and the button already says Exit.
+ *
+ * Both inherit `currentColor`, so the pill's ink and the ghost button's ink
+ * carry them — including under `.theme-mint`, where the pill goes green.
+ */
+function IconPerson() {
+  return (
+    <svg className="tb-icon" viewBox="0 0 24 24" aria-hidden focusable="false">
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4.5 20a7.5 7.5 0 0 1 15 0" />
+    </svg>
+  )
+}
+
+function IconExit() {
+  return (
+    <svg className="tb-icon" viewBox="0 0 24 24" aria-hidden focusable="false">
+      <path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3" />
+      <path d="M10 8l-4 4 4 4" />
+      <path d="M6 12h9" />
+    </svg>
+  )
+}
+
 /** Same markup in the desktop pill bar and the mobile bottom bar. */
 function NavItems({ items }: { items: NavEntry[] }) {
   return (
@@ -62,6 +94,25 @@ export function AppShell({ children }: { children: ReactNode }) {
   const nav =
     me?.role === 'student' ? STUDENT_NAV : me?.role === 'mentor' ? MENTOR_NAV : ADMIN_NAV
 
+  /**
+   * Mint is Home's, and only Home's.
+   *
+   * The wash lives on `body` and `body::before`, which no route can reach, so
+   * the theme is a class on a wrapper instead — `.theme-mint` redefines the
+   * tokens `Card`, `Pill`, `.nav-item` and `.brand-flex` already read from, and
+   * paints over the sage gradient with a fixed pseudo-element. Nothing inside
+   * had to learn about it.
+   *
+   * The wrapper encloses the two nav bars as well, so the active tab is green
+   * while you are on Home and gold→teal everywhere else. That is deliberate: the
+   * alternative is a mint page sitting under a gold bar, which looks like a bug
+   * rather than a decision.
+   *
+   * Students only. The mentor queue and the admin dashboard share this shell and
+   * `/` renders something different for each of them.
+   */
+  const mint = me?.role === 'student' && pathname === '/'
+
   // Router keeps the scroll position across navigations, which lands you
   // mid-page on the next screen. Jump (not smooth-scroll — that would animate
   // *away* from content that is already gone) before the enter transition runs.
@@ -70,7 +121,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, [pathname])
 
   return (
-    <>
+    <div className={mint ? 'theme-mint' : undefined}>
       <nav className="nav nav-desktop">
         <NavItems items={nav} />
       </nav>
@@ -98,10 +149,12 @@ export function AppShell({ children }: { children: ReactNode }) {
               </select>
             )}
             <NavLink to="/account" className="pill">
-              {me?.name?.split(' ')[0] ?? 'Account'}
+              <IconPerson />
+              <span className="pill-name">{me?.name?.split(' ')[0] ?? 'Account'}</span>
             </NavLink>
-            <button className="btn btn-ghost btn-sm" onClick={signOut}>
-              Exit
+            <button className="btn btn-ghost btn-sm" onClick={signOut} aria-label="Exit">
+              <IconExit />
+              <span className="btn-label">Exit</span>
             </button>
           </div>
         </header>
@@ -120,6 +173,6 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Every signed-in page. The sign-in screen renders outside this shell, so
           it mounts its own copy — see App.tsx. */}
       <MascotGuide />
-    </>
+    </div>
   )
 }

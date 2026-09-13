@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Link, useNavigate } from 'react-router-dom'
 import { api } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
-import { Card, Pill } from '../../components/ui'
+import { Art, Card } from '../../components/ui'
 
 /**
  * Home — how to use SkillFlex, in four steps.
@@ -20,11 +20,10 @@ import { Card, Pill } from '../../components/ui'
  * your mentor wrote, work the plan it produced) looked like four unrelated
  * places among eleven.
  *
- * So: the four loop doors are now four numbered steps that name their tap target
- * literally, and the other seven drop to a second tier. Every line is a *how*.
- * Trust claims are not lost, they are just stated where they are acted on —
- * /progress says "No AI computes it" in its own header, /mentor says switching
- * is free on its own screen.
+ * So: the four loop doors are four numbered steps on a dashed rail, and the
+ * other seven drop to a footer. Every line is a *how*. Trust claims are not
+ * lost, they are stated where they are acted on — /progress says "No AI computes
+ * it" in its own header, /mentor says switching is free on its own screen.
  *
  * The guide shows for everyone, always. A Home that changes shape once you stop
  * being new is a Home you have to learn twice.
@@ -41,58 +40,57 @@ interface WeekAssignment {
 interface Step {
   to: string
   title: string
-  /** Mechanical instruction. Names the control, in the words on the control. */
+  /** Mechanical instruction — what you do, not why it is worth doing. */
   how: string
+  /** Lives in public/assets/art/. Falls back to the glyph if absent. */
+  art: string
+  glyph: string
 }
 
 /**
- * Steps 1, 3 and 4 name real bottom-nav tabs. Step 2 deliberately does not:
- * /assignments has no tab (see STUDENT_NAV in AppShell), so telling a new user
- * to look for one would send them hunting for something that is not there.
- *
- * "Record my answer" is quoted exactly as AssignmentsPage renders it. An
- * instruction that paraphrases a button stops being an instruction.
+ * The copy names the action, and the card itself is the tap target — the whole
+ * row navigates and carries a chevron, so it no longer has to spell out which
+ * bottom-bar tab to look for. That matters most for step 2: /assignments has no
+ * tab at all (see STUDENT_NAV in AppShell), so any instruction pointing at one
+ * would send a new user hunting for something that is not there.
  */
 const STEPS: Step[] = [
   {
     to: '/lessons',
     title: 'Watch a lesson',
-    how: 'Tap Lessons in the bar at the bottom. Pick any video and play it to the end.',
+    how: 'Pick any video and play it to the end.',
+    art: '/assets/art/step-lesson.png',
+    glyph: '▶',
   },
   {
     to: '/assignments',
     title: 'Record your answer',
-    how: 'Tap this step to open your tasks. Open one, then tap “Record my answer” and speak into your phone.',
+    how: 'Open a task and speak into your phone.',
+    art: '/assets/art/step-record.png',
+    glyph: '🎤',
   },
   {
     to: '/feedback',
-    title: "Read your mentor's notes",
-    how: 'Tap Feedback in the bottom bar. Notes land a day or two after you record — a person writes them, so they are not instant.',
+    title: "Read mentor's notes",
+    how: 'Check feedback after a day or two — a person writes them.',
+    art: '/assets/art/step-notes.png',
+    glyph: '✎',
   },
   {
     to: '/plan',
     title: 'Work through your plan',
-    how: 'Tap Plan in the bottom bar. Five small things built from those notes. Tick each one off as you do it.',
+    how: 'Take small steps from your notes.',
+    art: '/assets/art/step-plan.png',
+    glyph: '◎',
   },
 ]
 
-/** The two off-loop places a new user would not otherwise find. */
-const EXTRAS = [
-  {
-    to: '/live',
-    title: 'Live lectures',
-    how: 'These happen at a set time. Open it to see when the next one is, and tap in when it starts.',
-    cta: '◉ See',
-  },
-  {
-    to: '/pet',
-    title: 'Your buddy',
-    how: 'The owl in the bottom right corner. Its page has four games, and a chat for when the app itself breaks.',
-    cta: '☺ Open',
-  },
-]
-
-/** Self-explanatory once you know they exist. Labelled with their own names. */
+/**
+ * Not in the design, and here anyway: none of these five has an inbound link
+ * anywhere else in the app except /languages, so without this row four pages
+ * would be reachable only by typing the URL. /live has a nav tab and /pet is the
+ * owl, so neither needs a chip.
+ */
 const CHIPS = [
   { to: '/practice', label: 'Practise a word' },
   { to: '/progress', label: 'Your level' },
@@ -123,51 +121,92 @@ export default function HomePage() {
 
   return (
     <div className="stack">
-      <div>
-        <h1>Namaste, {me?.name?.split(' ')[0]}</h1>
-        <p className="small">
+      <div className="home-hero">
+        <h1>
+          Namaste, {me?.name?.split(' ')[0]} <span aria-hidden>👋</span>
+        </h1>
+        <p className="small" style={{ margin: 0 }}>
           {pending > 0
             ? `${pending} task${pending > 1 ? 's' : ''} waiting for you this week.`
             : awaiting > 0
               ? 'Your mentor is reviewing your work.'
               : 'All caught up. Watch a lesson and get ahead.'}
         </p>
+        <div className="home-rule" />
+
+        <div className="home-hero-body">
+          <p className="home-quote" style={{ margin: 0 }}>
+            Learn at your pace,
+            <br />
+            grow with real practice.
+          </p>
+
+          <div className="home-hero-art">
+            <div className="home-note" aria-hidden>
+              Practice
+              <br />
+              Learn
+              <br />
+              Grow
+              <u />
+            </div>
+            <Art src="/assets/art/hero.png" fallback="🧑‍💻" />
+          </div>
+        </div>
       </div>
 
-      <div className="section-title" style={{ marginTop: 0 }}>
-        How to use SkillFlex
+      <div>
+        <h2 style={{ marginBottom: '0.2rem' }}>How to use SkillFlex</h2>
+        <p className="small" style={{ margin: 0 }}>
+          Just 4 simple steps to make the most of your learning journey.
+        </p>
       </div>
 
-      {STEPS.map((s, i) => (
-        <Card key={s.to} accent={s.to === '/assignments' && pending > 0} onClick={() => navigate(s.to)}>
-          <div className="howto-step">
+      <div className="howto-list">
+        {STEPS.map((s, i) => (
+          <div key={s.to} className={`howto-row howto-row-${i + 1}`}>
             {/* Not aria-hidden: the number *is* the information here, so a
                 screen reader should hear "1 Watch a lesson". */}
             <span className="howto-num">{i + 1}</span>
-            <div>
-              <div className="strong">
-                {s.title}
-                {badge[s.to] && <span className="door-badge">{badge[s.to]}</span>}
-              </div>
-              <div className="tiny dim">{s.how}</div>
-            </div>
-          </div>
-        </Card>
-      ))}
 
-      <div className="section-title">Everything else</div>
-
-      {EXTRAS.map((e) => (
-        <Card key={e.to} onClick={() => navigate(e.to)}>
-          <div className="row-between">
-            <div>
-              <div className="strong">{e.title}</div>
-              <div className="tiny dim">{e.how}</div>
-            </div>
-            <Pill tone="brand">{e.cta}</Pill>
+            <Card
+              className="howto-card"
+              accent={s.to === '/assignments' && pending > 0}
+              onClick={() => navigate(s.to)}
+            >
+              <span className="howto-tile">
+                <Art src={s.art} fallback={s.glyph} />
+              </span>
+              <span>
+                <span className="howto-title">
+                  {s.title}
+                  {badge[s.to] && <span className="door-badge">{badge[s.to]}</span>}
+                </span>
+                <span className="howto-how" style={{ display: 'block' }}>
+                  {s.how}
+                </span>
+              </span>
+              <span className="howto-chev" aria-hidden>
+                ›
+              </span>
+            </Card>
           </div>
-        </Card>
-      ))}
+        ))}
+      </div>
+
+      <div className="home-close">
+        <span className="home-close-art">
+          <Art src="/assets/art/progress.png" fallback="📈" />
+        </span>
+        <div>
+          <div className="home-close-title">
+            Small steps.
+            <br />
+            Big progress.
+          </div>
+          <div className="tiny dim">Your mentor is with you at every step.</div>
+        </div>
+      </div>
 
       <div className="link-row link-row-lg">
         {CHIPS.map((c) => (
