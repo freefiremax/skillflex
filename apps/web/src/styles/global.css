@@ -536,26 +536,25 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Mobile: floating liquid glass capsule at bottom */
+/* Mobile: floating light frosted liquid glass capsule at bottom */
 .ios-tab-bar.nav-mobile {
   display: flex;
-  bottom: calc(12px + env(safe-area-inset-bottom));
+  bottom: calc(14px + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
   width: calc(100% - 24px);
   max-width: 440px;
   height: 66px;
-  padding: 4px;
+  padding: 5px;
   border-radius: 999px;
-  background: linear-gradient(180deg, rgba(6, 32, 22, 0.90) 0%, rgba(3, 20, 14, 0.96) 100%);
-  backdrop-filter: blur(28px) saturate(190%);
-  -webkit-backdrop-filter: blur(28px) saturate(190%);
-  border: 1px solid rgba(52, 211, 153, 0.32);
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.95);
   box-shadow:
-    0 16px 36px rgba(0, 16, 10, 0.55),
-    0 0 24px rgba(52, 211, 153, 0.18),
-    inset 0 1px 1.5px rgba(210, 250, 230, 0.4),
-    inset 0 -1px 1px rgba(0, 16, 10, 0.5);
+    0 14px 34px -4px rgba(16, 75, 45, 0.15),
+    0 4px 16px rgba(0, 0, 0, 0.04),
+    inset 0 1px 2px rgba(255, 255, 255, 1);
 }
 
 .ios-tab-bar.nav-desktop {
@@ -567,19 +566,19 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   position: absolute;
   inset: -2px;
   border-radius: 999px;
-  background: radial-gradient(circle at 50% 50%, rgba(52, 211, 153, 0.22), transparent 70%);
+  background: radial-gradient(circle at 50% 50%, rgba(52, 211, 153, 0.16), transparent 70%);
   pointer-events: none;
   z-index: 0;
-  filter: blur(10px);
+  filter: blur(12px);
 }
 
 /* Active indicator track and capsule */
 .ios-tab-indicator-track {
   position: absolute;
-  top: 4px;
-  bottom: 4px;
-  left: 4px;
-  right: 4px;
+  top: 5px;
+  bottom: 5px;
+  left: 5px;
+  right: 5px;
   pointer-events: none;
   z-index: 1;
 }
@@ -595,7 +594,7 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2px 3px;
+  padding: 2px;
   box-sizing: border-box;
 }
 
@@ -603,12 +602,12 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   width: 100%;
   height: 100%;
   border-radius: 999px;
-  background: radial-gradient(circle at 50% 0%, #34d399 0%, #10b981 55%, #065f46 100%);
+  background: linear-gradient(135deg, #34d399 0%, #10b981 55%, #059669 100%);
   box-shadow:
-    0 4px 18px rgba(52, 211, 153, 0.52),
-    inset 0 1.5px 2px rgba(225, 255, 240, 0.8),
-    inset 0 -1px 2px rgba(2, 28, 16, 0.6);
-  border: 1px solid rgba(210, 250, 230, 0.45);
+    0 4px 16px rgba(16, 185, 129, 0.40),
+    inset 0 1.5px 2px rgba(255, 255, 255, 0.70),
+    inset 0 -1px 2px rgba(4, 78, 44, 0.30);
+  border: 1px solid rgba(255, 255, 255, 0.55);
   position: relative;
   overflow: hidden;
 }
@@ -617,9 +616,9 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   content: '';
   position: absolute;
   top: 0;
-  left: 18%;
-  right: 18%;
-  height: 38%;
+  left: 16%;
+  right: 16%;
+  height: 42%;
   border-radius: 999px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 100%);
   pointer-events: none;
@@ -627,9 +626,9 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
 
 .ios-indicator-glow {
   position: absolute;
-  inset: 0;
+  inset: -2px;
   border-radius: 999px;
-  background: radial-gradient(circle at 50% 50%, rgba(52, 211, 153, 0.4) 0%, transparent 70%);
+  background: radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.25) 0%, transparent 70%);
   filter: blur(6px);
   pointer-events: none;
 }
@@ -652,7 +651,7 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   align-items: center;
   justify-content: center;
   gap: 3px;
-  color: rgba(162, 218, 188, 0.72);
+  color: #526577;
   text-decoration: none;
   font-size: 0.65rem;
   font-weight: 600;
@@ -664,7 +663,7 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
 
 .ios-tab-item:hover {
   text-decoration: none;
-  color: #d1fae5;
+  color: #065f46;
 }
 
 .ios-tab-item:active {
@@ -672,8 +671,9 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
 }
 
 .ios-tab-item.active {
-  color: #e6fcf1;
-  text-shadow: 0 0 10px rgba(52, 211, 153, 0.65), 0 0 2px rgba(255, 255, 255, 0.85);
+  color: #ffffff;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(4, 60, 34, 0.35);
 }
 
 .ios-tab-icon-wrap {
@@ -1970,14 +1970,14 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
     margin: 14px auto 0;
     padding: 4px;
     border-radius: 999px;
-    background: linear-gradient(180deg, rgba(6, 32, 22, 0.90) 0%, rgba(3, 20, 14, 0.96) 100%);
-    backdrop-filter: blur(28px) saturate(190%);
-    -webkit-backdrop-filter: blur(28px) saturate(190%);
-    border: 1px solid rgba(52, 211, 153, 0.32);
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.95);
     box-shadow:
-      0 16px 36px rgba(0, 16, 10, 0.45),
-      0 0 24px rgba(52, 211, 153, 0.18),
-      inset 0 1px 1.5px rgba(210, 250, 230, 0.4);
+      0 14px 34px -4px rgba(16, 75, 45, 0.12),
+      0 4px 16px rgba(0, 0, 0, 0.04),
+      inset 0 1px 2px rgba(255, 255, 255, 1);
   }
 
   .ios-tab-bar.nav-desktop .ios-tab-item {

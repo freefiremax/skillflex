@@ -29,6 +29,33 @@ collides with one of these, the feature bends.
 
 ---
 
+## 2026-09-14 — Interactive iOS 26 tab menu, global mint theme harmonization, and modernized Owl Buddy
+
+**Why.** Three key requests and UX audit findings were addressed:
+1. **Interactive iOS 26-inspired tab menu:** The previous text/Unicode bottom bar was replaced with an interactive floating liquid glass tab bar featuring custom SVG icons, dynamic active capsule sliding animation, and full touch-target optimization.
+2. **Harmonizing colors across all pages:** Previously only `/` received the mint wash (`.theme-mint`), leaving all other pages on the muddy sage/brown background with gold buttons. The whole application was unified around the fresh, light pastel mint palette (`linear-gradient(178deg, #ddefe5 0%, #eaf6ee 46%, #f3faf6 100%)`) and emerald green CTA tokens (`--cta-from: #34b06e; --cta-to: #11804a;`).
+3. **Light frosted glass tab bar redesign:** The initial dark forest glass tab bar was too dark against the light, airy website aesthetic on `skillflex.in`. It was redesigned into a light translucent frosted glass capsule (`rgba(255, 255, 255, 0.78)` on mobile, `0.82` on desktop) with a vibrant emerald liquid indicator and crisp slate-forest typography.
+4. **Modernized Owl Buddy UI:** The mascot button now sits on a circular frosted glass pedestal with an emerald halo ring and a green pulsing online presence bead. Its speech bubble was upgraded from the dated brown/cream box into a frosted glass assistant card with a `STUDY BUDDY` chip badge, online status dot, dismiss button (`✕`), and sleek interactive quick-action tiles for Fun Time and AI Support.
+5. **Mobile clearance & UX audit fixes:** The mascot button was offset (`bottom: calc(88px + env(safe-area-inset-bottom))`) to ensure it never collides with or blocks the bottom tab bar, form fields, checkboxes, or primary CTA buttons.
+
+**What changed.**
+- `apps/web/src/components/IosTabBar.tsx`: New component implementing the floating pill container, dynamic `--active-index` and `--tab-count` interpolation, and spring-animated sliding indicator.
+- `apps/web/src/components/AppShell.tsx`: Swapped out the old nav for `IosTabBar` with custom SVG icons for both student (`Home`, `Lessons`, `Live`, `Feedback`, `Plan`) and mentor (`Queue`, `Live`, `Profile`) roles. Unconditionally applied `.theme-mint` so all authenticated pages inherit the clean mint cards, pills, and emerald chrome.
+- `apps/web/src/components/MascotGuide.tsx`: Overhauled mascot markup with `.mascot-pedestal`, `.mascot-presence-dot`, `.mascot-bubble-top`, close button, and `.buddy-item-body`.
+- `apps/web/src/styles/global.css`:
+  - Set global `html, body` and `body::before` wash to the mint gradient.
+  - Set `:root` surface, line, and CTA tokens to mint/emerald.
+  - Added `.ios-tab-bar` light frosted glass styling for mobile and desktop.
+  - Redesigned `.mascot-btn`, `.mascot-pedestal`, `.mascot-bubble`, and `.buddy-item`.
+  - Adjusted safe-area offsets and padding so content never clips behind floating bars.
+
+**Verification.**
+- TypeScript and Vite production builds passed cleanly (`npm run build` in 2.05s-3.22s).
+- Verified responsive layout across mobile viewports (375x812) and desktop (min-width: 860px).
+- Tested live website color alignment with `https://www.skillflex.in`.
+
+---
+
 ## 2026-09-13 — Home rebuilt to the mockup; the owl's bubble becomes the menu
 
 **Why.** Two screenshots set the target. Home was to become a mint screen with a
