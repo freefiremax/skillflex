@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
+import { useTranslation } from '../lib/i18n'
 
 /**
  * The owl — one small guide that rides along on every screen.
@@ -84,26 +85,11 @@ function useReducedMotion() {
   return reduced
 }
 
-/** The two doors the bubble carries. Kept in step with /pet's tiles by hand. */
-const MENU = [
-  {
-    to: '/fun-time',
-    className: 'buddy-item-fun',
-    icon: '⚔',
-    title: 'Fun Time',
-    blurb: 'Take a quick break',
-  },
-  {
-    to: '/ai-support',
-    className: 'buddy-item-support',
-    icon: '☂',
-    title: 'AI Support',
-    blurb: 'Get unstuck faster',
-  },
-]
+
 
 export function MascotGuide() {
   const { me } = useAuth()
+  const { t } = useTranslation()
   const { pathname } = useLocation()
   const reduced = useReducedMotion()
   const [open, setOpen] = useState(false)
@@ -111,7 +97,12 @@ export function MascotGuide() {
   const wrapRef = useRef<HTMLDivElement>(null)
   const objectRef = useRef<HTMLObjectElement>(null)
 
-  const text = lineFor(pathname, Boolean(me))
+  let text = lineFor(pathname, Boolean(me))
+  if (pathname === '/account') text = t('mascot.account_line')
+  else if (pathname === '/profile') text = t('mascot.profile_line')
+  else if (pathname === '/lessons') text = t('mascot.lessons_line')
+  else if (pathname === '/live') text = t('mascot.live_line')
+  else if (!me) text = t('mascot.signed_out')
 
   /* Only a student's bubble carries the two doors, so only a student's button is
      a menu. Mentors, admins and the sign-in screen get one line of text. */
@@ -191,13 +182,13 @@ export function MascotGuide() {
   return (
     <div ref={wrapRef} className={`pet-wrap${me ? '' : ' pet-wrap-bare'}`}>
       {open && (
-        <div className="pet-bubble mascot-bubble" role="dialog" aria-label="Your study buddy">
+        <div className="pet-bubble mascot-bubble" role="dialog" aria-label={t('mascot.study_buddy')}>
           <div className="mascot-bubble-top">
             <div className="row" style={{ gap: '0.45rem' }}>
-              <span className="mascot-badge">STUDY BUDDY</span>
+              <span className="mascot-badge">{t('mascot.study_buddy')}</span>
               {me && (
                 <span className="buddy-status-pill">
-                  <span className="status-live-dot" /> Online
+                  <span className="status-live-dot" /> {t('mascot.online')}
                 </span>
               )}
             </div>
@@ -205,7 +196,7 @@ export function MascotGuide() {
               type="button"
               className="mascot-bubble-close"
               onClick={() => setOpen(false)}
-              aria-label="Dismiss assistant"
+              aria-label={t('common.close')}
             >
               ✕
             </button>
@@ -215,20 +206,30 @@ export function MascotGuide() {
 
           {hasMenu && (
             <div className="buddy-menu">
-              {MENU.map((m) => (
-                <Link key={m.to} to={m.to} className="buddy-item">
-                  <span className={`buddy-item-icon ${m.className}`} aria-hidden>
-                    {m.icon}
-                  </span>
-                  <span className="buddy-item-body">
-                    <span className="buddy-item-title">{m.title}</span>
-                    <span className="buddy-item-blurb">{m.blurb}</span>
-                  </span>
-                  <span className="buddy-item-go" aria-hidden>
-                    →
-                  </span>
-                </Link>
-              ))}
+              <Link to="/fun-time" className="buddy-item">
+                <span className="buddy-item-icon buddy-item-fun" aria-hidden>
+                  ⚔
+                </span>
+                <span className="buddy-item-body">
+                  <span className="buddy-item-title">{t('mascot.fun_time')}</span>
+                  <span className="buddy-item-blurb">{t('mascot.fun_time_desc')}</span>
+                </span>
+                <span className="buddy-item-go" aria-hidden>
+                  →
+                </span>
+              </Link>
+              <Link to="/ai-support" className="buddy-item">
+                <span className="buddy-item-icon buddy-item-support" aria-hidden>
+                  ☂
+                </span>
+                <span className="buddy-item-body">
+                  <span className="buddy-item-title">{t('mascot.ai_support')}</span>
+                  <span className="buddy-item-blurb">{t('mascot.ai_support_desc')}</span>
+                </span>
+                <span className="buddy-item-go" aria-hidden>
+                  →
+                </span>
+              </Link>
             </div>
           )}
         </div>

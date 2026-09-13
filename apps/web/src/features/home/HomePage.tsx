@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Link, useNavigate } from 'react-router-dom'
 import { api } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
+import { useTranslation } from '../../lib/i18n'
 import { Art, Card } from '../../components/ui'
 
 /**
@@ -47,61 +48,51 @@ interface Step {
   glyph: string
 }
 
-/**
- * The copy names the action, and the card itself is the tap target — the whole
- * row navigates and carries a chevron, so it no longer has to spell out which
- * bottom-bar tab to look for. That matters most for step 2: /assignments has no
- * tab at all (see STUDENT_NAV in AppShell), so any instruction pointing at one
- * would send a new user hunting for something that is not there.
- */
-const STEPS: Step[] = [
-  {
-    to: '/lessons',
-    title: 'Watch a lesson',
-    how: 'Pick any video and play it to the end.',
-    art: '/assets/art/step-lesson.png',
-    glyph: '▶',
-  },
-  {
-    to: '/assignments',
-    title: 'Record your answer',
-    how: 'Open a task and speak into your phone.',
-    art: '/assets/art/step-record.png',
-    glyph: '🎤',
-  },
-  {
-    to: '/feedback',
-    title: "Read mentor's notes",
-    how: 'Check feedback after a day or two — a person writes them.',
-    art: '/assets/art/step-notes.png',
-    glyph: '✎',
-  },
-  {
-    to: '/plan',
-    title: 'Work through your plan',
-    how: 'Take small steps from your notes.',
-    art: '/assets/art/step-plan.png',
-    glyph: '◎',
-  },
-]
 
-/**
- * Not in the design, and here anyway: none of these five has an inbound link
- * anywhere else in the app except /languages, so without this row four pages
- * would be reachable only by typing the URL. /live has a nav tab and /pet is the
- * owl, so neither needs a chip.
- */
-const CHIPS = [
-  { to: '/practice', label: 'Practise a word' },
-  { to: '/progress', label: 'Your level' },
-  { to: '/leaderboard', label: 'Leaderboard' },
-  { to: '/languages', label: 'Languages' },
-  { to: '/mentor', label: 'Your mentor' },
-]
 
 export default function HomePage() {
   const { me } = useAuth()
+  const { t } = useTranslation()
   const navigate = useNavigate()
+
+  const steps: Step[] = [
+    {
+      to: '/lessons',
+      title: t('home.watch_lesson'),
+      how: t('home.watch_lesson_desc'),
+      art: '/assets/art/step-lesson.png',
+      glyph: '▶',
+    },
+    {
+      to: '/assignments',
+      title: t('home.record_task'),
+      how: t('home.record_task_desc'),
+      art: '/assets/art/step-record.png',
+      glyph: '🎤',
+    },
+    {
+      to: '/feedback',
+      title: t('home.read_notes'),
+      how: t('home.read_notes_desc'),
+      art: '/assets/art/step-notes.png',
+      glyph: '✎',
+    },
+    {
+      to: '/plan',
+      title: t('home.work_plan'),
+      how: t('home.work_plan_desc'),
+      art: '/assets/art/step-plan.png',
+      glyph: '◎',
+    },
+  ]
+
+  const chips = [
+    { to: '/practice', label: t('home.practice_word') },
+    { to: '/progress', label: t('home.your_level') },
+    { to: '/leaderboard', label: t('home.leaderboard') },
+    { to: '/languages', label: t('home.languages') },
+    { to: '/mentor', label: t('home.your_mentor') },
+  ]
 
   const week = useQuery({
     queryKey: ['my-week'],
@@ -123,7 +114,7 @@ export default function HomePage() {
     <div className="stack">
       <div className="home-hero">
         <h1>
-          Namaste, {me?.name?.split(' ')[0]} <span aria-hidden>👋</span>
+          {t('home.greeting')}, {me?.name?.split(' ')[0]} <span aria-hidden>👋</span>
         </h1>
         <p className="small" style={{ margin: 0 }}>
           {pending > 0
@@ -136,9 +127,7 @@ export default function HomePage() {
 
         <div className="home-hero-body">
           <p className="home-quote" style={{ margin: 0 }}>
-            Learn at your pace,
-            <br />
-            grow with real practice.
+            {t('home.quote')}
           </p>
 
           <div className="home-hero-art">
@@ -163,7 +152,7 @@ export default function HomePage() {
       </div>
 
       <div className="howto-list">
-        {STEPS.map((s, i) => (
+        {steps.map((s, i) => (
           <div key={s.to} className={`howto-row howto-row-${i + 1}`}>
             {/* Not aria-hidden: the number *is* the information here, so a
                 screen reader should hear "1 Watch a lesson". */}
@@ -209,7 +198,7 @@ export default function HomePage() {
       </div>
 
       <div className="link-row link-row-lg">
-        {CHIPS.map((c) => (
+        {chips.map((c) => (
           <Link key={c.to} to={c.to} className="link-chip">
             {c.label}
           </Link>

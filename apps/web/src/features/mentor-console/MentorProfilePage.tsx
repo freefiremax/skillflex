@@ -10,10 +10,12 @@ import {
 } from '@skillflex/shared'
 import { api } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
+import { useTranslation } from '../../lib/i18n'
 import { Alert, Card, ErrorNote } from '../../components/ui'
 
 export default function MentorProfilePage() {
   const { me, refresh } = useAuth()
+  const { t } = useTranslation()
 
   const [headline, setHeadline] = useState('')
   const [bio, setBio] = useState('')
@@ -56,38 +58,38 @@ export default function MentorProfilePage() {
   return (
     <div className="stack">
       <div>
-        <h1>Your profile</h1>
+        <h1>{t('mentor.title')}</h1>
         <p className="small">
-          Languages and skills are how students find you — this is the matching input, not decoration.
+          {t('mentor.subtitle')}
         </p>
       </div>
 
-      {saved && <Alert tone="ok">Saved.</Alert>}
+      {saved && <Alert tone="ok">{t('common.saved')}</Alert>}
 
       <Card>
         <div className="field">
-          <label htmlFor="headline">Headline</label>
+          <label htmlFor="headline">{t('mentor.headline')}</label>
           <input
             id="headline"
             value={headline}
             onChange={(e) => setHeadline(e.target.value)}
-            placeholder="Interview coach, ex-TCS"
+            placeholder={t('mentor.headline_ph')}
             maxLength={200}
           />
         </div>
 
         <div className="field">
-          <label htmlFor="bio">About you</label>
+          <label htmlFor="bio">{t('mentor.bio')}</label>
           <textarea
             id="bio"
             value={bio}
             onChange={(e) => setBio(e.target.value)}
-            placeholder="How you work with students, and who you're best for."
+            placeholder={t('mentor.bio_ph')}
           />
         </div>
 
         <div className="field">
-          <label>I can mentor in</label>
+          <label>{t('mentor.languages')}</label>
           <div className="row wrap" style={{ gap: '0.35rem' }}>
             {SUPPORTED_LANGUAGES.map((l) => {
               const active = languages.includes(l)
@@ -111,11 +113,11 @@ export default function MentorProfilePage() {
               )
             })}
           </div>
-          <div className="hint">Select languages you can mentor students in. Changes apply when saved below.</div>
+          <div className="hint">{t('mentor.languages_hint')}</div>
         </div>
 
         <div className="field">
-          <label>Skills I coach</label>
+          <label>{t('mentor.skills')}</label>
           <div className="row wrap" style={{ gap: '0.35rem' }}>
             {SKILLS.map((s) => (
               <button
@@ -133,7 +135,7 @@ export default function MentorProfilePage() {
         </div>
 
         <div className="field">
-          <label htmlFor="cap">Max active students</label>
+          <label htmlFor="cap">{t('mentor.max_students')}</label>
           <input
             id="cap"
             type="number"
@@ -143,8 +145,7 @@ export default function MentorProfilePage() {
             onChange={(e) => setMaxActiveStudents(Number(e.target.value))}
           />
           <div className="hint">
-            Once you hit this, students can't switch to you until a slot frees up. Set it to what you
-            can genuinely review every week.
+            {t('mentor.max_students_hint')}
           </div>
         </div>
 
@@ -157,7 +158,7 @@ export default function MentorProfilePage() {
               style={{ width: 20, height: 20, minHeight: 20, flex: '0 0 auto' }}
             />
             <span className="small" style={{ fontWeight: 400, color: 'var(--text-dim)' }}>
-              I'm accepting new students
+              {t('mentor.accepting')}
             </span>
           </label>
         </div>
@@ -166,7 +167,7 @@ export default function MentorProfilePage() {
       <ErrorNote error={save.error} />
 
       <button className="btn btn-primary btn-block" disabled={save.isPending} onClick={() => save.mutate()}>
-        {save.isPending ? 'Saving…' : 'Save profile'}
+        {save.isPending ? t('common.saving') : t('mentor.save')}
       </button>
     </div>
   )

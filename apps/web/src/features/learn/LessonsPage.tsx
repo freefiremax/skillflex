@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { LANGUAGE_LABELS } from '@skillflex/shared'
 import { api } from '../../lib/api'
-import { useAuth } from '../../lib/auth'
+import { useTranslation } from '../../lib/i18n'
 import { Empty, ErrorNote, Loading, Pill } from '../../components/ui'
 
 /**
@@ -40,7 +40,7 @@ interface TrackTree {
 }
 
 export default function LessonsPage() {
-  const { language } = useAuth()
+  const { language, t } = useTranslation()
 
   const tracks = useQuery({
     queryKey: ['tracks', language],
@@ -50,11 +50,11 @@ export default function LessonsPage() {
   return (
     <div className="stack">
       <div>
-        <h1>Lessons</h1>
+        <h1>{t('lessons.title')}</h1>
         <p className="small">
-          Every lecture, module by module. Active language:{' '}
+          {t('lessons.active_lang')}:{' '}
           <strong style={{ color: 'var(--brand)' }}>{LANGUAGE_LABELS[language]}</strong>{' '}
-          (with English fallback where unavailable) — switch anytime using the language selector in the top bar.
+          {t('lessons.lang_fallback')}
         </p>
       </div>
 
@@ -63,7 +63,7 @@ export default function LessonsPage() {
       ) : tracks.error ? (
         <ErrorNote error={tracks.error} />
       ) : tracks.data?.tracks.length === 0 ? (
-        <Empty icon="▤" title="No lessons yet" body="Your college is still setting up the curriculum." />
+        <Empty icon="▤" title={t('lessons.no_lessons')} body={t('lessons.no_lessons_sub')} />
       ) : (
         <div className="stack">
           {tracks.data?.tracks.map((t) => (

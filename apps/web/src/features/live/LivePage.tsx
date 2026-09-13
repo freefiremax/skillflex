@@ -2,27 +2,14 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { SKILLS, SKILL_LABELS, LANGUAGE_LABELS } from '@skillflex/shared'
 import { api } from '../../lib/api'
-import { useAuth } from '../../lib/auth'
 import { Card, Empty, ErrorNote, Loading, Pill } from '../../components/ui'
 import { LiveClassCard, type LiveClassView } from './LiveBits'
+import { useTranslation } from '../../lib/i18n'
 
 type Tab = 'upcoming' | 'mine' | 'recordings'
 
-const TABS: Array<{ key: Tab; label: string }> = [
-  { key: 'upcoming', label: 'Upcoming' },
-  { key: 'mine', label: 'Mine' },
-  { key: 'recordings', label: 'Recordings' },
-]
-
-/**
- * Live lectures and the recording library, one screen with tabs.
- *
- * Two nav entries would push the student bottom bar to six items on a phone,
- * which is where a bottom bar stops being tappable. And the two halves are the
- * same object anyway: today's lecture is next week's recording.
- */
 export default function LivePage() {
-  const { language } = useAuth()
+  const { language, t } = useTranslation()
   const [tab, setTab] = useState<Tab>('upcoming')
   const [skill, setSkill] = useState('')
   const [onlyMyLanguage, setOnlyMyLanguage] = useState(false)
@@ -54,24 +41,30 @@ export default function LivePage() {
   const liveNow = (upcoming.data?.classes ?? []).filter((c) => c.status === 'live')
   const later = (upcoming.data?.classes ?? []).filter((c) => c.status !== 'live')
 
+  const tabs: Array<{ key: Tab; label: string }> = [
+    { key: 'upcoming', label: t('live.upcoming') },
+    { key: 'mine', label: t('live.mine') },
+    { key: 'recordings', label: t('live.recordings') },
+  ]
+
   return (
     <div className="stack">
       <div>
-        <h1>Live</h1>
+        <h1>{t('live.title')}</h1>
         <p className="small">
           Group lectures with a real mentor, and every past one recorded so you can catch up.
         </p>
       </div>
 
       <div className="tabs">
-        {TABS.map((t) => (
+        {tabs.map((tabItem) => (
           <button
-            key={t.key}
+            key={tabItem.key}
             type="button"
-            className={`tab${tab === t.key ? ' active' : ''}`}
-            onClick={() => setTab(t.key)}
+            className={`tab${tab === tabItem.key ? ' active' : ''}`}
+            onClick={() => setTab(tabItem.key)}
           >
-            {t.label}
+            {tabItem.label}
           </button>
         ))}
       </div>
@@ -85,7 +78,7 @@ export default function LivePage() {
               className={`btn btn-sm ${skill === '' ? 'btn-primary' : 'btn-ghost'}`}
               onClick={() => setSkill('')}
             >
-              All skills
+              {t('live.all_skills')}
             </button>
             {SKILLS.map((s) => (
               <button
@@ -105,7 +98,7 @@ export default function LivePage() {
               onChange={(e) => setOnlyMyLanguage(e.target.checked)}
               style={{ width: 20, height: 20, minHeight: 20, flex: '0 0 auto' }}
             />
-            <span className="tiny dim">Only in my language ({LANGUAGE_LABELS[language]})</span>
+            <span className="tiny dim">{t('live.only_my_lang')} ({LANGUAGE_LABELS[language]})</span>
           </label>
         </Card>
       )}
@@ -118,8 +111,8 @@ export default function LivePage() {
           ) : (upcoming.data?.classes.length ?? 0) === 0 ? (
             <Empty
               icon="◉"
-              title="No lectures scheduled"
-              body="Mentors post group sessions here. Check the Recordings tab in the meantime."
+              title={t('live.no_classes')}
+              body={t('live.no_classes_sub')}
             />
           ) : (
             <>
