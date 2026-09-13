@@ -3,52 +3,91 @@ import { NavLink, useLocation } from 'react-router-dom'
 import { LANGUAGE_LABELS, SUPPORTED_LANGUAGES, type Language } from '@skillflex/shared'
 import { useAuth } from '../lib/auth'
 import { MascotGuide } from './MascotGuide'
+import { IosTabBar, type IosTabItem } from './IosTabBar'
 
-interface NavEntry {
-  to: string
-  label: string
-  icon: string
+function HomeIcon({ active }: { active: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 10.5L12 3l9 7.5v9.5a1 1 0 0 1-1 1h-5v-6h-4v6H4a1 1 0 0 1-1-1v-9.5z" fill={active ? 'currentColor' : 'none'} fillOpacity={active ? 0.22 : 0} />
+    </svg>
+  )
 }
 
-// Five is the ceiling for the mobile bottom bar — past that the targets get too
-// narrow to hit. Live lectures and their recordings share one entry for exactly
-// that reason; the split lives in tabs inside the page.
-//
-// `/` is Home, not "Learn". It was labelled Learn while rendering a grid of
-// doors, so signing in looked like being dumped into a lesson index — and there
-// appeared to be two competing home screens. Lessons is now its own tab, which
-// is what "Learn" always meant. Mentor gave up its slot to keep the bar at five:
-// it is one tap from Home and named on every feedback card, whereas lectures are
-// the thing you come back for daily.
-const STUDENT_NAV: NavEntry[] = [
-  { to: '/', label: 'Home', icon: '⌂' },
-  { to: '/lessons', label: 'Lessons', icon: '▶' },
-  { to: '/live', label: 'Live', icon: '◉' },
-  { to: '/feedback', label: 'Feedback', icon: '✎' },
-  { to: '/plan', label: 'Plan', icon: '✓' },
+function LessonsIcon({ active }: { active: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="18" height="15" rx="3" fill={active ? 'currentColor' : 'none'} fillOpacity={active ? 0.22 : 0} />
+      <polygon points="10 8.5 15.5 11.5 10 14.5" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+
+function LiveIcon({ active }: { active: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3" fill="currentColor" />
+      <path d="M7.05 16.95a7 7 0 0 1 0-9.9M16.95 7.05a7 7 0 0 1 0 9.9" />
+      <path d="M4.22 19.78a11 11 0 0 1 0-15.56M19.78 4.22a11 11 0 0 1 0 15.56" opacity={active ? 1 : 0.6} />
+    </svg>
+  )
+}
+
+function FeedbackIcon({ active }: { active: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill={active ? 'currentColor' : 'none'} fillOpacity={active ? 0.25 : 0} />
+    </svg>
+  )
+}
+
+function PlanIcon({ active }: { active: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 2H6v7a6 6 0 0 0 12 0V2z" fill={active ? 'currentColor' : 'none'} fillOpacity={active ? 0.22 : 0} />
+      <path d="M6 4H4.5a2.5 2.5 0 0 0 0 5H6M18 4h1.5a2.5 2.5 0 0 1 0 5H18" />
+      <path d="M12 15v4M8 22h8" />
+    </svg>
+  )
+}
+
+function QueueIcon({ active }: { active: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="4" y="4" width="16" height="16" rx="2.5" fill={active ? 'currentColor' : 'none'} fillOpacity={active ? 0.22 : 0} />
+      <line x1="8" y1="9" x2="16" y2="9" />
+      <line x1="8" y1="13" x2="16" y2="13" />
+      <line x1="8" y1="17" x2="13" y2="17" />
+    </svg>
+  )
+}
+
+function ProfileIcon({ active }: { active: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="7.5" r="4" fill={active ? 'currentColor' : 'none'} fillOpacity={active ? 0.22 : 0} />
+      <path d="M5 20.5c0-3.5 3.13-6 7-6s7 2.5 7 6" />
+    </svg>
+  )
+}
+
+const STUDENT_NAV: IosTabItem[] = [
+  { to: '/', label: 'Home', icon: (active) => <HomeIcon active={active} /> },
+  { to: '/lessons', label: 'Lessons', icon: (active) => <LessonsIcon active={active} /> },
+  { to: '/live', label: 'Live', icon: (active) => <LiveIcon active={active} /> },
+  { to: '/feedback', label: 'Feedback', icon: (active) => <FeedbackIcon active={active} /> },
+  { to: '/plan', label: 'Plan', icon: (active) => <PlanIcon active={active} /> },
 ]
 
-const MENTOR_NAV: NavEntry[] = [
-  { to: '/', label: 'Queue', icon: '▤' },
-  { to: '/live', label: 'Live', icon: '◉' },
-  { to: '/profile', label: 'Profile', icon: '☺' },
+const MENTOR_NAV: IosTabItem[] = [
+  { to: '/', label: 'Queue', icon: (active) => <QueueIcon active={active} /> },
+  { to: '/live', label: 'Live', icon: (active) => <LiveIcon active={active} /> },
+  { to: '/profile', label: 'Profile', icon: (active) => <ProfileIcon active={active} /> },
 ]
 
-const ADMIN_NAV: NavEntry[] = [{ to: '/', label: 'Dashboard', icon: '▤' }]
+const ADMIN_NAV: IosTabItem[] = [
+  { to: '/', label: 'Dashboard', icon: (active) => <QueueIcon active={active} /> },
+]
 
-/**
- * The two topbar glyphs, inline rather than in the icon font of unicode
- * characters the nav uses.
- *
- * The nav gets away with `⌂ ▶ ◉ ✎ ✓` because each one sits above its own word.
- * These two sit *inside* a word, at 15px, where the unicode options render at
- * wildly different weights per platform — `☺` in particular is emoji-substituted
- * on Windows and arrives full-colour. `aria-hidden` throughout: the pill already
- * says the name and the button already says Exit.
- *
- * Both inherit `currentColor`, so the pill's ink and the ghost button's ink
- * carry them — including under `.theme-mint`, where the pill goes green.
- */
 function IconPerson() {
   return (
     <svg className="tb-icon" viewBox="0 0 24 24" aria-hidden focusable="false">
@@ -68,25 +107,6 @@ function IconExit() {
   )
 }
 
-/** Same markup in the desktop pill bar and the mobile bottom bar. */
-function NavItems({ items }: { items: NavEntry[] }) {
-  return (
-    <>
-      {items.map((item) => (
-        <NavLink
-          key={item.to}
-          to={item.to}
-          end={item.to === '/'}
-          className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
-        >
-          <span className="nav-icon">{item.icon}</span>
-          <span>{item.label}</span>
-        </NavLink>
-      ))}
-    </>
-  )
-}
-
 export function AppShell({ children }: { children: ReactNode }) {
   const { me, language, setLanguage, signOut } = useAuth()
   const { pathname } = useLocation()
@@ -94,37 +114,15 @@ export function AppShell({ children }: { children: ReactNode }) {
   const nav =
     me?.role === 'student' ? STUDENT_NAV : me?.role === 'mentor' ? MENTOR_NAV : ADMIN_NAV
 
-  /**
-   * Mint is Home's, and only Home's.
-   *
-   * The wash lives on `body` and `body::before`, which no route can reach, so
-   * the theme is a class on a wrapper instead — `.theme-mint` redefines the
-   * tokens `Card`, `Pill`, `.nav-item` and `.brand-flex` already read from, and
-   * paints over the sage gradient with a fixed pseudo-element. Nothing inside
-   * had to learn about it.
-   *
-   * The wrapper encloses the two nav bars as well, so the active tab is green
-   * while you are on Home and gold→teal everywhere else. That is deliberate: the
-   * alternative is a mint page sitting under a gold bar, which looks like a bug
-   * rather than a decision.
-   *
-   * Students only. The mentor queue and the admin dashboard share this shell and
-   * `/` renders something different for each of them.
-   */
   const mint = me?.role === 'student' && pathname === '/'
 
-  // Router keeps the scroll position across navigations, which lands you
-  // mid-page on the next screen. Jump (not smooth-scroll — that would animate
-  // *away* from content that is already gone) before the enter transition runs.
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })
   }, [pathname])
 
   return (
     <div className={mint ? 'theme-mint' : undefined}>
-      <nav className="nav nav-desktop">
-        <NavItems items={nav} />
-      </nav>
+      <IosTabBar items={nav} className="nav-desktop" />
 
       <div className="shell">
         <header className="topbar">
@@ -132,8 +130,6 @@ export function AppShell({ children }: { children: ReactNode }) {
             Skill<span className="brand-flex">Flex</span>
           </div>
           <div className="row" style={{ gap: '0.5rem' }}>
-            {/* Language is a product-level switch for students, not a setting
-                buried in a menu — it's the thing that makes lessons usable. */}
             {me?.role === 'student' && (
               <select
                 aria-label="Lesson language"
@@ -159,19 +155,13 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </header>
 
-        {/* Keyed on the route so every navigation replays the enter animation
-            instead of swapping content in place. */}
         <main className="page" key={pathname}>
           {children}
         </main>
       </div>
 
-      <nav className="nav nav-mobile">
-        <NavItems items={nav} />
-      </nav>
+      <IosTabBar items={nav} className="nav-mobile" />
 
-      {/* Every signed-in page. The sign-in screen renders outside this shell, so
-          it mounts its own copy — see App.tsx. */}
       <MascotGuide />
     </div>
   )

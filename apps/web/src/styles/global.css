@@ -530,86 +530,183 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   margin: 1.4rem 0 0.65rem;
 }
 
-/* --- Nav (bottom on mobile, sticky pill bar on desktop) ------------------ */
+/* --- iOS 26 Inspired Interactive Floating Tab Bar --------------------- */
 
-.nav {
+.ios-tab-bar {
+  --tab-count: 5;
+  --active-index: 0;
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: calc(var(--nav-h) + env(safe-area-inset-bottom));
-  padding-bottom: env(safe-area-inset-bottom);
-  background: rgba(255, 255, 255, 0.65);
-  backdrop-filter: blur(24px) saturate(150%);
-  -webkit-backdrop-filter: blur(24px) saturate(150%);
-  border-top: 1px solid rgba(255, 255, 255, 0.80);
-  box-shadow: 0 -4px 24px rgba(30, 40, 60, 0.08);
-  display: flex;
   z-index: 50;
-  border-radius: 20px 20px 0 0;
-}
-@supports not (backdrop-filter: blur(4px)) {
-  .nav { background: rgba(240, 244, 240, 0.96); }
+  box-sizing: border-box;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.nav-desktop { display: none; }
-.nav-mobile  { display: flex; }
+/* Mobile: floating liquid glass capsule at bottom */
+.ios-tab-bar.nav-mobile {
+  display: flex;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 24px);
+  max-width: 440px;
+  height: 66px;
+  padding: 4px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(8, 32, 54, 0.88) 0%, rgba(3, 19, 34, 0.95) 100%);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border: 1px solid rgba(78, 211, 234, 0.28);
+  box-shadow:
+    0 16px 36px rgba(0, 10, 24, 0.55),
+    0 0 24px rgba(78, 211, 234, 0.16),
+    inset 0 1px 1.5px rgba(211, 249, 255, 0.38),
+    inset 0 -1px 1px rgba(0, 10, 24, 0.5);
+}
 
-.nav-item {
+.ios-tab-bar.nav-desktop {
+  display: none;
+}
+
+/* Outer subtle glow blur behind the bar */
+.ios-tab-glow {
+  position: absolute;
+  inset: -2px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 50% 50%, rgba(78, 211, 234, 0.2), transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+  filter: blur(10px);
+}
+
+/* Active indicator track and capsule */
+.ios-tab-indicator-track {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  right: 4px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.ios-tab-indicator {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: calc(100% / var(--tab-count));
+  left: 0;
+  transform: translateX(calc(var(--active-index) * 100%));
+  transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 3px;
+  box-sizing: border-box;
+}
+
+.ios-indicator-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  background: radial-gradient(circle at 50% 0%, #1ab5e8 0%, #0d6394 58%, #083c5e 100%);
+  box-shadow:
+    0 4px 18px rgba(78, 211, 234, 0.48),
+    inset 0 1.5px 2px rgba(211, 249, 255, 0.75),
+    inset 0 -1px 2px rgba(0, 20, 40, 0.6);
+  border: 1px solid rgba(211, 249, 255, 0.42);
+  position: relative;
+  overflow: hidden;
+}
+
+.ios-indicator-inner::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 18%;
+  right: 18%;
+  height: 38%;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 100%);
+  pointer-events: none;
+}
+
+.ios-indicator-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: radial-gradient(circle at 50% 50%, rgba(78, 211, 234, 0.4) 0%, transparent 70%);
+  filter: blur(6px);
+  pointer-events: none;
+}
+
+/* Tab items row */
+.ios-tab-items {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.ios-tab-item {
   flex: 1;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 3px;
-  font-size: 0.68rem;
-  font-weight: 600;
-  color: var(--text-faint);
+  color: rgba(142, 192, 222, 0.72);
   text-decoration: none;
-  transition: color var(--t) var(--ease);
-  -webkit-tap-highlight-color: transparent;
-}
-.nav-item:hover { text-decoration: none; color: var(--text-dim); }
-.nav-item.active { color: var(--cta-to); }
-
-.nav-icon {
-  width: 42px;
-  height: 30px;
-  display: grid;
-  place-items: center;
-  border-radius: 999px;
-  font-size: 0.95rem;
-  transition:
-    background var(--t) var(--ease),
-    box-shadow var(--t) var(--ease),
-    transform var(--t) var(--ease);
-}
-.nav-item:active .nav-icon { transform: scale(0.92); }
-
-/* Active tab: gold→teal gradient oval, white icon */
-.nav-item.active .nav-icon {
-  background: linear-gradient(135deg, var(--cta-from) 0%, var(--cta-to) 100%);
-  color: #fff;
-  box-shadow: 0 3px 12px rgba(15, 122, 106, 0.28);
-  transform: translateY(-2px);
-  animation: nav-pop var(--t) var(--ease) both;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: color 0.22s var(--ease), transform 0.16s var(--ease);
+  position: relative;
+  min-width: 44px;
 }
 
-@keyframes nav-pop {
-  0%   { transform: translateY(-2px) scale(0.86); }
-  60%  { transform: translateY(-2px) scale(1.06); }
-  100% { transform: translateY(-2px) scale(1); }
+.ios-tab-item:hover {
+  text-decoration: none;
+  color: #bce9f7;
+}
+
+.ios-tab-item:active {
+  transform: scale(0.92);
+}
+
+.ios-tab-item.active {
+  color: #d3f9ff;
+  text-shadow: 0 0 10px rgba(78, 211, 234, 0.65), 0 0 2px rgba(255, 255, 255, 0.8);
+}
+
+.ios-tab-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.ios-tab-item.active .ios-tab-icon-wrap {
+  transform: translateY(-1px) scale(1.08);
+}
+
+.ios-tab-label {
+  line-height: 1;
+  transition: opacity 0.2s ease;
 }
 
 /* --- Study buddy -------------------------------------------------------- */
 
-/* The owl sits still in the bottom-right, clear of the nav bar. Its predecessor
-   roamed across the viewport on a walk loop, which meant it could wander out
-   from under its own speech bubble — and on a 320px screen, over the content. */
+/* The owl sits safely above the floating iOS tab bar */
 .pet-wrap {
   position: fixed;
   right: max(0.9rem, env(safe-area-inset-right));
-  bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 4px);
+  bottom: calc(88px + env(safe-area-inset-bottom));
   z-index: 45;
   pointer-events: none;
 }
@@ -1767,51 +1864,40 @@ a.pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: v
   .shell { padding: 1.5rem 1.5rem 3rem; }
   h1 { font-size: 2.15rem; }
 
+  .ios-tab-bar.nav-mobile,
   .nav-mobile { display: none; }
 
-  /* Floating glass pill bar at the top */
-  .nav-desktop {
+  /* Floating iOS glass pill bar at top for desktop */
+  .ios-tab-bar.nav-desktop {
     display: flex;
     position: sticky;
     top: 14px;
     bottom: auto;
     left: auto;
-    right: auto;
-    height: auto;
-    gap: 0.25rem;
-    padding: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.80);
-    max-width: fit-content;
-    margin: 14px auto 0;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.65);
-    backdrop-filter: blur(24px) saturate(150%);
-    -webkit-backdrop-filter: blur(24px) saturate(150%);
-    box-shadow: var(--shadow);
-    border-top: 1px solid rgba(255, 255, 255, 0.80);
-  }
-  .nav-item {
-    flex: none;
-    flex-direction: row;
-    gap: 0.45rem;
-    font-size: 0.85rem;
-    padding: 0.5rem 1.1rem;
-    border-radius: 999px;
-    transition: background var(--t) var(--ease), color var(--t) var(--ease);
-  }
-  .nav-item:hover { background: rgba(255, 255, 255, 0.55); }
-  .nav-item.active {
-    background: linear-gradient(135deg, var(--cta-from) 0%, var(--cta-to) 100%);
-    color: #fff;
-  }
-  .nav-item.active .nav-icon {
-    background: transparent;
-    box-shadow: none;
     transform: none;
-    animation: none;
-    color: #fff;
+    height: 56px;
+    width: auto;
+    min-width: 480px;
+    max-width: 600px;
+    margin: 14px auto 0;
+    padding: 4px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(8, 32, 54, 0.88) 0%, rgba(3, 19, 34, 0.95) 100%);
+    backdrop-filter: blur(28px) saturate(190%);
+    -webkit-backdrop-filter: blur(28px) saturate(190%);
+    border: 1px solid rgba(78, 211, 234, 0.28);
+    box-shadow:
+      0 16px 36px rgba(0, 10, 24, 0.45),
+      0 0 24px rgba(78, 211, 234, 0.16),
+      inset 0 1px 1.5px rgba(211, 249, 255, 0.38);
   }
-  .nav-icon { width: auto; height: auto; }
+
+  .ios-tab-bar.nav-desktop .ios-tab-item {
+    flex-direction: row;
+    gap: 8px;
+    font-size: 0.84rem;
+    padding: 0 12px;
+  }
 
   .grid-2 { grid-template-columns: 1fr 1fr; }
 }
