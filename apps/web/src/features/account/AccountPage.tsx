@@ -5,7 +5,10 @@ import {
   CONSENT_SCOPE_LABELS,
   CURRENT_POLICY_VERSION,
   ROLE_LABELS,
+  LANGUAGE_LABELS,
+  SUPPORTED_LANGUAGES,
   type ConsentScope,
+  type Language,
 } from '@skillflex/shared'
 import { api } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
@@ -28,7 +31,7 @@ interface ConsentState {
 const DESTRUCTIVE_SCOPE: ConsentScope = 'video_recording'
 
 export default function AccountPage() {
-  const { me, signOut } = useAuth()
+  const { me, language, setLanguage, signOut } = useAuth()
   const queryClient = useQueryClient()
 
   const [confirming, setConfirming] = useState<ConsentScope | null>(null)
@@ -142,6 +145,28 @@ export default function AccountPage() {
             {me.student?.cohort ? ` · ${me.student.cohort}` : ''}
           </div>
         )}
+      </Card>
+
+      <div className="section-title">Preferred Language</div>
+      <Card>
+        <p className="small" style={{ marginBottom: '0.75rem' }}>
+          Select the active language for lectures, lesson materials, and interface.
+        </p>
+        <div className="row wrap" style={{ gap: '0.4rem' }}>
+          {SUPPORTED_LANGUAGES.map((l) => {
+            const active = language === l
+            return (
+              <button
+                key={l}
+                type="button"
+                className={`btn btn-sm ${active ? 'btn-primary' : 'btn-ghost'}`}
+                onClick={() => setLanguage(l)}
+              >
+                {active ? `✓ ${LANGUAGE_LABELS[l]}` : LANGUAGE_LABELS[l]}
+              </button>
+            )
+          })}
+        </div>
       </Card>
 
       <div className="section-title">Consent</div>

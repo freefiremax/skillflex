@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
+import { LANGUAGE_LABELS } from '@skillflex/shared'
 import { api } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
 import { Empty, ErrorNote, Loading, Pill } from '../../components/ui'
@@ -51,9 +52,9 @@ export default function LessonsPage() {
       <div>
         <h1>Lessons</h1>
         <p className="small">
-          Every lecture, module by module. They play in{' '}
-          {language === 'hi' ? 'Hindi where it exists, English otherwise' : 'English'} — change that
-          on <Link to="/languages">Languages</Link>.
+          Every lecture, module by module. Active language:{' '}
+          <strong style={{ color: 'var(--brand)' }}>{LANGUAGE_LABELS[language]}</strong>{' '}
+          (with English fallback where unavailable) — switch anytime using the language selector in the top bar.
         </p>
       </div>
 

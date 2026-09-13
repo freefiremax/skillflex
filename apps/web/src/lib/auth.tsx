@@ -60,9 +60,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await api.get<Me>('/auth/me')
       setMe(data)
       setAuthError(null)
-      // Default the UI language to the student's own first preference.
-      if (!localStorage.getItem(LANG_KEY) && data.student?.preferredLanguages[0]) {
-        setLanguage(data.student.preferredLanguages[0])
+      // Default the UI language to the user's first preferred language (student or mentor)
+      if (!localStorage.getItem(LANG_KEY)) {
+        if (data.student?.preferredLanguages?.[0]) {
+          setLanguage(data.student.preferredLanguages[0])
+        } else if (data.mentor?.languages?.[0]) {
+          setLanguage(data.mentor.languages[0])
+        }
       }
     } catch (err) {
       setMe(null)
@@ -96,8 +100,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   function setLanguage(l: Language) {
-    localStorage.setItem(LANG_KEY, l)
+    try {
+      localStorage.setItem(LANG_KEY, l)
+    } catch {}
     setLanguageState(l)
+    if (typeof document !== 'undefined') {
+      document.documentElement.lang = l
+    }
   }
 
   const value = useMemo<AuthState>(

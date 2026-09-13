@@ -29,6 +29,26 @@ collides with one of these, the feature bends.
 
 ---
 
+## 2026-09-14 — Language toggle fixes across all roles, profile, and account settings
+
+**Why.**
+1. **Header language toggle missing for mentors and admins:** The topbar language dropdown (`.lang-select`) was previously wrapped in `{me?.role === 'student' && ...}` in `AppShell.tsx`. When logged in as a mentor (e.g. visiting `/profile`) or admin, the language toggle was completely invisible.
+2. **Mentor profile language selection resilience:** In `MentorProfilePage.tsx`, `languages` was initialized to `[]` and hydrated without defensive checks; unselecting all options caused a backend 400 validation error on save (`updateMentorProfileSchema` requires `.min(1)`). Selected languages lacked explicit visual checkmark indicators.
+3. **Misleading lesson description text:** In `LessonsPage.tsx`, the subtitle hardcoded `language === 'hi' ? 'Hindi where it exists, English otherwise' : 'English'` and directed students to click `Languages` (`/languages`), which is an offline foreign phrasebook rather than the language switcher.
+4. **No account-level language preference switch:** Users had no dedicated language selector on their `/account` page.
+
+**What changed.**
+- `apps/web/src/components/AppShell.tsx`: Made the topbar language dropdown visible and functional for all logged-in roles (students, mentors, and administrators).
+- `apps/web/src/features/mentor-console/MentorProfilePage.tsx`: Safely hydrated `languages` state (`Array.isArray(me.mentor.languages) ? me.mentor.languages : ['en']`), added a minimum 1-language guard to avoid 400 errors, and added `✓` checkmarks to selected language buttons for instant visual feedback.
+- `apps/web/src/features/account/AccountPage.tsx`: Added an interactive **Preferred Language** card with active checkmarks allowing users to view and switch their language preference on `/account`.
+- `apps/web/src/features/learn/LessonsPage.tsx`: Replaced misleading hardcoded text with dynamic active language name (`LANGUAGE_LABELS[language]`) and clarified that switching is done in the top bar.
+- `apps/web/src/features/live/LivePage.tsx`: Clarified the "Only in my language" filter with the active language name tag `({LANGUAGE_LABELS[language]})`.
+- `apps/web/src/features/auth/AuthPage.tsx`: Added `✓` indicators to selected language pills on the signup form.
+- `apps/web/src/lib/auth.tsx`: Synced `document.documentElement.lang` on language changes and added fallback hydration for mentors.
+- `apps/web/src/styles/global.css`: Enhanced `.lang-select` styling with `cursor: pointer`, `background-repeat: no-repeat`, emerald accents, and smooth hover elevation.
+
+---
+
 ## 2026-09-14 — Interactive iOS 26 tab menu, global mint theme harmonization, and modernized Owl Buddy
 
 **Why.** Three key requests and UX audit findings were addressed:

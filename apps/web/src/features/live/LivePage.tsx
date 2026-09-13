@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { SKILLS, SKILL_LABELS } from '@skillflex/shared'
+import { SKILLS, SKILL_LABELS, LANGUAGE_LABELS } from '@skillflex/shared'
 import { api } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
 import { Card, Empty, ErrorNote, Loading, Pill } from '../../components/ui'
@@ -105,7 +105,7 @@ export default function LivePage() {
               onChange={(e) => setOnlyMyLanguage(e.target.checked)}
               style={{ width: 20, height: 20, minHeight: 20, flex: '0 0 auto' }}
             />
-            <span className="tiny dim">Only in my language</span>
+            <span className="tiny dim">Only in my language ({LANGUAGE_LABELS[language]})</span>
           </label>
         </Card>
       )}

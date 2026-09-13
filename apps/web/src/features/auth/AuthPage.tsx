@@ -121,7 +121,7 @@ export default function AuthPage() {
                     className={`btn btn-sm ${languages.includes(l) ? 'btn-primary' : 'btn-ghost'}`}
                     onClick={() => toggleLanguage(l)}
                   >
-                    {LANGUAGE_LABELS[l]}
+                    {languages.includes(l) ? `✓ ${LANGUAGE_LABELS[l]}` : LANGUAGE_LABELS[l]}
                   </button>
                 ))}
               </div>
