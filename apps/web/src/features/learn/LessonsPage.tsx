@@ -25,10 +25,9 @@ interface TrackTree {
   }>
 }
 
-const LESSON_ART_SAMPLES = [
-  '/assets/master/lessons/intro-student.png',
-  '/assets/master/lessons/gd-group.png',
-  '/assets/master/lessons/study-student.png',
+const REAL_LESSON_ARTS = [
+  '/assets/real/intro-student.jpg',
+  '/assets/real/gd-student.jpg',
 ]
 
 export default function LessonsPage() {
@@ -41,44 +40,59 @@ export default function LessonsPage() {
 
   return (
     <div className="master-container">
-      <div className="master-header">
-        <h1>{t('lessons.title')}</h1>
-        <p className="master-lead">
-          Every lecture, module by module. Active language:{' '}
-          <strong>{LANGUAGE_LABELS[language]}</strong> — change that on{' '}
-          <Link to="/languages" style={{ color: 'inherit', textDecoration: 'underline' }}>
-            Languages
-          </Link>
-          .
-        </p>
-      </div>
-
-      {/* Master Hero */}
-      <section className="master-hero">
-        <div className="master-hero-copy">
-          <h2>Learn at your own pace</h2>
-          <p>Build real skills for a better tomorrow.</p>
-          <div className="master-hero-features">
-            <div className="master-feature-item">
-              <span className="master-feature-icon">▶</span>
-              <div>Short<br />lectures</div>
-            </div>
-            <div className="master-feature-item">
-              <span className="master-feature-icon">▮▮▮</span>
-              <div>Step by step<br />modules</div>
-            </div>
-            <div className="master-feature-item">
-              <span className="master-feature-icon">✓</span>
-              <div>Placement<br />ready skills</div>
-            </div>
+      {/* Master Hero from SkillFlex_Master */}
+      <section
+        className="master-card"
+        style={{
+          padding: 0,
+          overflow: 'hidden',
+          display: 'grid',
+          gridTemplateColumns: '1.05fr 0.95fr',
+          minHeight: '380px',
+          background: 'rgba(255, 255, 255, 0.7)',
+          marginBottom: '32px',
+        }}
+      >
+        <div style={{ padding: '44px 38px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <div
+            style={{
+              fontSize: '13px',
+              letterSpacing: '2px',
+              textTransform: 'uppercase',
+              color: '#6a7789',
+              fontWeight: 800,
+              marginBottom: '10px',
+            }}
+          >
+            Learn · Practice · Grow
+          </div>
+          <h1 style={{ fontSize: 'clamp(38px, 4.5vw, 62px)', letterSpacing: '-3px', lineHeight: 1, margin: '0 0 16px', fontWeight: 850 }}>
+            {t('lessons.title')}
+          </h1>
+          <p style={{ fontSize: '18px', color: '#59687b', margin: '0 0 16px', lineHeight: 1.5 }}>
+            Every lecture, module by module. They play in English — change that on{' '}
+            <Link to="/languages" style={{ color: 'var(--master-green)', fontWeight: 800, textDecoration: 'none' }}>
+              Languages.
+            </Link>
+          </p>
+          <div
+            style={{
+              fontFamily: '"Segoe Print", "Comic Sans MS", cursive',
+              fontSize: '18px',
+              lineHeight: 1.35,
+              color: '#26364b',
+              marginTop: '12px',
+            }}
+          >
+            “Small steps today,<br />big career tomorrow.”
           </div>
         </div>
-        <div className="master-hero-art-wrapper">
-          <div className="master-scribble">Small Steps<br />Big Growth ↗</div>
+
+        <div style={{ minHeight: '280px', background: '#dceee6', overflow: 'hidden' }}>
           <img
-            className="master-hero-art"
-            src="/assets/master/lessons/hero-student.png"
-            alt="Student learning at a laptop"
+            src="/assets/real/hero-study.jpg"
+            alt="Student studying with a laptop"
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
           />
         </div>
       </section>
@@ -93,59 +107,90 @@ export default function LessonsPage() {
         <div>
           {tracks.data?.tracks.map((track) => (
             <div key={track.id} style={{ marginBottom: '36px' }}>
-              <div className="master-section-title">{track.title}</div>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-end',
+                  margin: '32px 2px 18px',
+                }}
+              >
+                <h2 style={{ fontSize: '26px', margin: 0, letterSpacing: '-1px', fontWeight: 850 }}>
+                  {track.title}
+                </h2>
+                <span style={{ color: 'var(--master-green-dark)', fontWeight: 750, fontSize: '15px' }}>
+                  View all →
+                </span>
+              </div>
+
               {track.modules.map((module, mIdx) => (
-                <div key={module.id} style={{ marginBottom: '28px' }}>
-                  <div
-                    style={{
-                      fontSize: '13px',
-                      fontWeight: 800,
-                      color: 'var(--master-muted)',
-                      textTransform: 'uppercase',
-                      letterSpacing: '1px',
-                      marginBottom: '14px',
-                    }}
-                  >
-                    {module.title}
-                  </div>
-                  <div className="master-lesson-grid">
+                <div key={module.id} style={{ marginBottom: '24px' }}>
+                  <div className="master-lesson-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}>
                     {module.lessons.map((lesson, lIdx) => {
-                      const art = LESSON_ART_SAMPLES[(mIdx + lIdx) % LESSON_ART_SAMPLES.length]
+                      const art = REAL_LESSON_ARTS[(mIdx + lIdx) % REAL_LESSON_ARTS.length]
                       const durationMin = lesson.durationSeconds
                         ? Math.max(1, Math.round(lesson.durationSeconds / 60))
                         : 5
                       return (
-                        <article key={lesson.id} className="master-lesson-card">
-                          <div className="master-thumb">
-                            <img src={art} alt={lesson.title} />
+                        <article
+                          key={lesson.id}
+                          className="master-card"
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns: '150px 1fr',
+                            gap: '18px',
+                            alignItems: 'center',
+                            padding: '16px',
+                            margin: 0,
+                          }}
+                        >
+                          <div
+                            style={{
+                              height: '140px',
+                              borderRadius: '18px',
+                              overflow: 'hidden',
+                              background: '#edf7f2',
+                            }}
+                          >
+                            <img
+                              src={art}
+                              alt={lesson.title}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                            />
                           </div>
+
                           <div>
-                            <div className="master-eyebrow">{module.title}</div>
-                            <div className="master-lesson-title">{lesson.title}</div>
-                            <div className="master-meta">
-                              <span>◷ <b>{durationMin} min</b></span>
-                              <span>│</span>
-                              <span>
-                                {lesson.availableLanguages.includes(language) ? (
-                                  <span style={{ color: 'var(--master-green-dark)', fontWeight: 700 }}>
-                                    ● {language.toUpperCase()}
-                                  </span>
-                                ) : (
-                                  <span>EN available</span>
-                                )}
+                            <div style={{ fontSize: '12px', letterSpacing: '0.4px', textTransform: 'uppercase', color: '#718095', fontWeight: 750, marginBottom: '4px' }}>
+                              {module.title}
+                            </div>
+                            <h3 style={{ fontSize: '19px', lineHeight: 1.25, margin: '4px 0 10px', letterSpacing: '-0.5px', fontWeight: 800 }}>
+                              {lesson.title}
+                            </h3>
+                            <div style={{ color: '#657388', fontSize: '14px', display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '14px' }}>
+                              <span>◷ {durationMin} min</span>
+                              <span>• Beginner</span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <Link to={`/lessons/${lesson.id}`} aria-label={`Play ${lesson.title}`}>
+                                <button className="master-play-btn" style={{ width: '44px', height: '44px', fontSize: '18px' }} type="button">
+                                  ▶
+                                </button>
+                              </Link>
+                              <span
+                                style={{
+                                  border: '1px solid #dcece5',
+                                  color: 'var(--master-green-dark)',
+                                  background: '#fff',
+                                  borderRadius: '999px',
+                                  padding: '6px 12px',
+                                  fontWeight: 750,
+                                  fontSize: '12px',
+                                }}
+                              >
+                                {language.toUpperCase()}
                               </span>
-                              <span>│</span>
-                              <span>▮▮ <b>Placement Ready</b></span>
                             </div>
                           </div>
-                          <div style={{ position: 'absolute', right: 26, top: 20, color: '#657087', fontSize: 22 }}>
-                            ⋮
-                          </div>
-                          <Link to={`/lessons/${lesson.id}`} aria-label={`Play ${lesson.title}`}>
-                            <button className="master-play-btn" type="button">
-                              ▶
-                            </button>
-                          </Link>
                         </article>
                       )
                     })}
@@ -157,21 +202,43 @@ export default function LessonsPage() {
         </div>
       )}
 
-      {/* Master Consistency Reminder */}
-      <section className="master-reminder">
-        <div className="master-target-icon">◎</div>
-        <div>
-          <h3>Stay consistent</h3>
-          <p>Practice today, get placed tomorrow.</p>
+      {/* Banner from SkillFlex_Master */}
+      <section
+        className="master-card"
+        style={{
+          padding: 0,
+          borderRadius: '25px',
+          overflow: 'hidden',
+          display: 'grid',
+          gridTemplateColumns: '1.1fr 0.9fr',
+          background: '#ddf4e9',
+          border: '1px solid #d4ede2',
+          marginTop: '32px',
+        }}
+      >
+        <div style={{ padding: '34px' }}>
+          <h3 style={{ margin: '0 0 8px', fontSize: '26px', fontWeight: 850 }}>Keep learning.</h3>
+          <p style={{ margin: 0, color: '#556475', fontSize: '17px', lineHeight: 1.45 }}>
+            Improve a little every day. You’re building a stronger you.
+          </p>
+          <div
+            style={{
+              fontFamily: '"Segoe Print", "Comic Sans MS", cursive',
+              fontSize: '18px',
+              color: '#26364b',
+              marginTop: '18px',
+            }}
+          >
+            Consistency beats talent.
+          </div>
         </div>
-        <img
-          className="master-reminder-art"
-          src="/assets/master/lessons/study-student.png"
-          alt="Student studying and improving"
-        />
-        <Link to="/practice" className="master-go-btn" style={{ textDecoration: 'none' }} title="Practice">
-          ›
-        </Link>
+        <div style={{ minHeight: '190px' }}>
+          <img
+            src="/assets/real/keep-learning.jpg"
+            alt="Student learning at a desk"
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          />
+        </div>
       </section>
     </div>
   )
