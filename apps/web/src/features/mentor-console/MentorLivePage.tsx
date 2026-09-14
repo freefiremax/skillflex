@@ -12,7 +12,6 @@ import {
 import { api } from '../../lib/api'
 import {
   Alert,
-  Card,
   Empty,
   ErrorNote,
   Loading,
@@ -24,7 +23,6 @@ import {
 } from '../../components/ui'
 import { LiveStatusPill } from '../live/LiveBits'
 
-/** What serializeForMentor() returns, Dates as ISO strings. */
 interface MentorClassView {
   id: string
   title: string
@@ -32,7 +30,6 @@ interface MentorClassView {
   skill: string | null
   language: Language
   status: LiveClassStatus
-  /** The stored value, before the clock-derived override. Shown when they differ. */
   storedStatus: string
   scheduledAt: string
   durationMinutes: number
@@ -55,7 +52,6 @@ interface RosterRow {
   completedAt: string | null
 }
 
-/** Everything the schedule form edits. Shared by "new" and "edit". */
 interface ClassDraft {
   title: string
   description: string
@@ -67,18 +63,11 @@ interface ClassDraft {
   joinUrl: string
 }
 
-/**
- * A `datetime-local` value, which has to be `YYYY-MM-DDTHH:mm` in *local* time.
- *
- * Not toISOString(): that converts to UTC, so an IST mentor would open the form
- * and be shown a time five and a half hours off their own clock.
- */
 function localDateTimeValue(d: Date): string {
   const pad = (n: number) => String(n).padStart(2, '0')
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-/** A blank lecture, provisionally an hour from now on the hour. */
 function emptyDraft(): ClassDraft {
   const d = new Date(Date.now() + 60 * 60 * 1000)
   d.setMinutes(0, 0, 0)
@@ -89,7 +78,7 @@ function emptyDraft(): ClassDraft {
     language: 'en',
     scheduledAt: localDateTimeValue(d),
     durationMinutes: 45,
-    capacity: 100,
+    capacity: 50,
     joinUrl: '',
   }
 }
@@ -107,11 +96,6 @@ function draftFrom(cls: MentorClassView): ClassDraft {
   }
 }
 
-/**
- * `skill` and `joinUrl` are dropped when blank rather than sent as `''`, which
- * the contract's `.enum()` / `.url()` would reject. So a room link can be
- * corrected but not removed — an edge nobody has ever asked for.
- */
 function draftToPayload(d: ClassDraft) {
   return {
     title: d.title.trim(),
@@ -125,12 +109,6 @@ function draftToPayload(d: ClassDraft) {
   }
 }
 
-/**
- * Duration read off the file itself, so the completion threshold means something.
- *
- * Resolves undefined rather than rejecting on failure: a missing duration costs
- * a progress bar, and refusing to publish the recording over it would be absurd.
- */
 function readVideoDuration(file: File): Promise<number | undefined> {
   return new Promise((resolve) => {
     const url = URL.createObjectURL(file)
@@ -147,137 +125,12 @@ function readVideoDuration(file: File): Promise<number | undefined> {
   })
 }
 
-/** The same fields whether the lecture exists yet or not. */
-function ClassForm({
-  draft,
-  onChange,
-  idPrefix,
-}: {
-  draft: ClassDraft
-  onChange: (next: ClassDraft) => void
-  idPrefix: string
-}) {
-  const set = <K extends keyof ClassDraft>(key: K, value: ClassDraft[K]) =>
-    onChange({ ...draft, [key]: value })
-
-  return (
-    <>
-      <div className="field">
-        <label htmlFor={`${idPrefix}-title`}>Title</label>
-        <input
-          id={`${idPrefix}-title`}
-          value={draft.title}
-          onChange={(e) => set('title', e.target.value)}
-          placeholder="Cracking the 'tell me about yourself' question"
-          maxLength={160}
-        />
-      </div>
-
-      <div className="field">
-        <label htmlFor={`${idPrefix}-desc`}>What it covers (optional)</label>
-        <textarea
-          id={`${idPrefix}-desc`}
-          value={draft.description}
-          onChange={(e) => set('description', e.target.value)}
-          placeholder="Who this is for, and what they'll walk away able to do."
-        />
-      </div>
-
-      <div className="field">
-        <label htmlFor={`${idPrefix}-when`}>When</label>
-        <input
-          id={`${idPrefix}-when`}
-          type="datetime-local"
-          value={draft.scheduledAt}
-          onChange={(e) => set('scheduledAt', e.target.value)}
-        />
-        <div className="hint">
-          Students can enter the room 10 minutes early, and it stays open 20 minutes past the end.
-        </div>
-      </div>
-
-      <div className="row" style={{ gap: '0.6rem' }}>
-        <div className="field grow">
-          <label htmlFor={`${idPrefix}-dur`}>Minutes</label>
-          <input
-            id={`${idPrefix}-dur`}
-            type="number"
-            min={10}
-            max={240}
-            value={draft.durationMinutes}
-            onChange={(e) => set('durationMinutes', Number(e.target.value))}
-          />
-        </div>
-        <div className="field grow">
-          <label htmlFor={`${idPrefix}-cap`}>Seats</label>
-          <input
-            id={`${idPrefix}-cap`}
-            type="number"
-            min={1}
-            max={1000}
-            value={draft.capacity}
-            onChange={(e) => set('capacity', Number(e.target.value))}
-          />
-        </div>
-      </div>
-
-      <div className="field">
-        <label htmlFor={`${idPrefix}-room`}>Room link</label>
-        <input
-          id={`${idPrefix}-room`}
-          value={draft.joinUrl}
-          onChange={(e) => set('joinUrl', e.target.value)}
-          placeholder="https://meet.google.com/…"
-        />
-        <div className="hint">
-          Meet, Zoom, Jitsi — whatever you already use. Students only see it once the room opens, and
-          you can't start the lecture without it.
-        </div>
-      </div>
-
-      <div className="field">
-        <label>Language</label>
-        <div className="row wrap" style={{ gap: '0.35rem' }}>
-          {SUPPORTED_LANGUAGES.map((l) => (
-            <button
-              key={l}
-              type="button"
-              className={`btn btn-sm ${draft.language === l ? 'btn-primary' : 'btn-ghost'}`}
-              onClick={() => set('language', l)}
-            >
-              {LANGUAGE_LABELS[l]}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="field" style={{ marginBottom: 0 }}>
-        <label>Skill (optional)</label>
-        <div className="row wrap" style={{ gap: '0.35rem' }}>
-          {SKILLS.map((s) => (
-            <button
-              key={s}
-              type="button"
-              className={`btn btn-sm ${draft.skill === s ? 'btn-primary' : 'btn-ghost'}`}
-              onClick={() => set('skill', draft.skill === s ? '' : s)}
-            >
-              {SKILL_LABELS[s]}
-            </button>
-          ))}
-        </div>
-        <div className="hint">Tagging it puts the lecture in front of the right students.</div>
-      </div>
-    </>
-  )
-}
-
 export default function MentorLivePage() {
   const queryClient = useQueryClient()
   const [showForm, setShowForm] = useState(false)
   const [expanded, setExpanded] = useState<string | null>(null)
   const [draft, setDraft] = useState<ClassDraft>(emptyDraft)
-
-  /** Which lecture is open for editing, and its in-flight edits. */
+  const [saveRecording, setSaveRecording] = useState(true)
   const [editing, setEditing] = useState<{ id: string; draft: ClassDraft } | null>(null)
 
   const classes = useQuery({
@@ -297,10 +150,6 @@ export default function MentorLivePage() {
     },
   })
 
-  /**
-   * Reschedule, retitle, or paste in the room link the mentor didn't have when
-   * they created the lecture. Registered students keep their seats.
-   */
   const update = useMutation({
     mutationFn: ({ id, draft: d }: { id: string; draft: ClassDraft }) =>
       api.patch(`/live/classes/${id}`, draftToPayload(d)),
@@ -319,11 +168,6 @@ export default function MentorLivePage() {
     onSuccess: invalidate,
   })
 
-  /**
-   * Publish a recording: reserve a media asset, push the bytes wherever the
-   * provider wants them, then attach it. Same three steps as a student
-   * submission — only the kind and the final attach call differ.
-   */
   const publish = useMutation({
     mutationFn: async ({ id, file }: { id: string; file: File }) => {
       const contentType = file.type || 'video/mp4'
@@ -378,84 +222,388 @@ export default function MentorLivePage() {
     },
   })
 
-  return (
-    <div className="stack">
-      <div>
-        <h1>Live lectures</h1>
-        <p className="small">
-          Teach a room instead of one student. Publish the recording afterwards and it stays in the
-          library for everyone who couldn't make it.
-        </p>
+  // If Mentor is scheduling a new lecture: render Master Schedule view
+  if (showForm) {
+    return (
+      <div className="master-container">
+        <section className="master-hero">
+          <div className="master-hero-copy">
+            <h1>Schedule a live lecture</h1>
+            <p>
+              Share your knowledge with a room full of learners. Go live, help more students, and make a bigger impact.
+            </p>
+            <div className="master-hero-features">
+              <div className="master-feature-item">
+                <span className="master-feature-icon">👥</span>
+                <div>Reach many<br />students</div>
+              </div>
+              <div className="master-feature-item">
+                <span className="master-feature-icon">▶</span>
+                <div>Recorded<br />automatically</div>
+              </div>
+              <div className="master-feature-item">
+                <span className="master-feature-icon">◷</span>
+                <div>Build your<br />mentor profile</div>
+              </div>
+            </div>
+          </div>
+          <div className="master-hero-art-wrapper">
+            <img
+              className="master-hero-art"
+              src="/assets/master/mentor-schedule/schedule-hero.png"
+              alt="Mentor scheduling a live lecture"
+            />
+          </div>
+        </section>
+
+        <div className="master-2col">
+          {/* Lecture Form */}
+          <article className="master-card">
+            <h2 style={{ fontSize: '24px', fontWeight: 800, margin: '0 0 6px' }}>Lecture details</h2>
+            <div style={{ color: 'var(--master-muted)', marginBottom: '20px', fontSize: '15px' }}>
+              Fill in the details and let the right students find your session.
+            </div>
+
+            <ErrorNote error={create.error} />
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontWeight: 750, color: '#4a596e', marginBottom: '8px' }}>
+                Title *
+              </label>
+              <input
+                className="master-input"
+                value={draft.title}
+                onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+                placeholder="Interview preparation for freshers"
+              />
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontWeight: 750, color: '#4a596e', marginBottom: '8px' }}>
+                Description *
+              </label>
+              <textarea
+                className="master-textarea"
+                value={draft.description}
+                onChange={(e) => setDraft({ ...draft, description: e.target.value })}
+                placeholder="In this session we will cover common interview questions, answer structure, and confidence tips..."
+              />
+              <div style={{ textAlign: 'right', color: '#738092', fontSize: '13px', marginTop: '4px' }}>
+                {draft.description.length}/500
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontWeight: 750, color: '#4a596e', marginBottom: '8px' }}>
+                Skills covered *
+              </label>
+              <div className="master-chips">
+                {SKILLS.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    className={`master-chip ${draft.skill === s ? 'active' : ''}`}
+                    onClick={() => setDraft({ ...draft, skill: draft.skill === s ? '' : s })}
+                  >
+                    {draft.skill === s ? `✓ ${SKILL_LABELS[s]}` : SKILL_LABELS[s]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '16px' }}>
+              <div>
+                <label style={{ display: 'block', fontWeight: 750, color: '#4a596e', marginBottom: '8px' }}>
+                  Language *
+                </label>
+                <select
+                  className="master-select"
+                  value={draft.language}
+                  onChange={(e) => setDraft({ ...draft, language: e.target.value as Language })}
+                >
+                  {SUPPORTED_LANGUAGES.map((l) => (
+                    <option key={l} value={l}>
+                      {LANGUAGE_LABELS[l]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontWeight: 750, color: '#4a596e', marginBottom: '8px' }}>
+                  Max participants
+                </label>
+                <select
+                  className="master-select"
+                  value={draft.capacity}
+                  onChange={(e) => setDraft({ ...draft, capacity: Number(e.target.value) })}
+                >
+                  <option value={25}>25 students</option>
+                  <option value={50}>50 students</option>
+                  <option value={100}>100 students</option>
+                  <option value={200}>200 students</option>
+                </select>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '16px' }}>
+              <div>
+                <label style={{ display: 'block', fontWeight: 750, color: '#4a596e', marginBottom: '8px' }}>
+                  Date & time *
+                </label>
+                <input
+                  className="master-input"
+                  type="datetime-local"
+                  value={draft.scheduledAt}
+                  onChange={(e) => setDraft({ ...draft, scheduledAt: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontWeight: 750, color: '#4a596e', marginBottom: '8px' }}>
+                  Duration (mins)
+                </label>
+                <input
+                  className="master-input"
+                  type="number"
+                  min={15}
+                  max={240}
+                  value={draft.durationMinutes}
+                  onChange={(e) => setDraft({ ...draft, durationMinutes: Number(e.target.value) })}
+                />
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontWeight: 750, color: '#4a596e', marginBottom: '8px' }}>
+                Room link (Google Meet, Zoom, Jitsi)
+              </label>
+              <input
+                className="master-input"
+                value={draft.joinUrl}
+                onChange={(e) => setDraft({ ...draft, joinUrl: e.target.value })}
+                placeholder="https://meet.google.com/..."
+              />
+            </div>
+
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '14px',
+                padding: '14px 0 20px',
+              }}
+            >
+              <div
+                className={`master-toggle ${saveRecording ? '' : 'off'}`}
+                onClick={() => setSaveRecording(!saveRecording)}
+              />
+              <div>
+                <strong style={{ display: 'block', fontSize: '15px' }}>Save recording to library</strong>
+                <span style={{ color: 'var(--master-muted)', fontSize: '13px' }}>
+                  Let students who couldn't attend watch it later.
+                </span>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button
+                type="button"
+                className="master-btn-primary"
+                style={{ flex: 1, justifyContent: 'center' }}
+                disabled={create.isPending || draft.title.trim().length < 4}
+                onClick={() => create.mutate()}
+              >
+                {create.isPending ? 'Scheduling…' : '▣ Schedule lecture'}
+              </button>
+              <button
+                type="button"
+                className="master-chip"
+                style={{ padding: '14px 22px' }}
+                onClick={() => setShowForm(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </article>
+
+          {/* Sidebar */}
+          <aside style={{ display: 'grid', gap: '20px' }}>
+            <div className="master-card">
+              <h3 style={{ fontSize: '20px', margin: '0 0 16px', fontWeight: 800 }}>💡 Before you go live</h3>
+              <div style={{ display: 'grid', gap: '12px', fontSize: '15px', color: '#4b5b71' }}>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <b style={{ color: 'var(--master-green)' }}>✓</b>
+                  <span>Choose a clear and specific title</span>
+                </div>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <b style={{ color: 'var(--master-green)' }}>✓</b>
+                  <span>Add a short and helpful description</span>
+                </div>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <b style={{ color: 'var(--master-green)' }}>✓</b>
+                  <span>Select relevant skills and language</span>
+                </div>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <b style={{ color: 'var(--master-green)' }}>✓</b>
+                  <span>Pick a suitable date and time</span>
+                </div>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <b style={{ color: 'var(--master-green)' }}>✓</b>
+                  <span>Make sure you have a stable internet connection</span>
+                </div>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <b style={{ color: 'var(--master-green)' }}>✓</b>
+                  <span>Be ready to engage with students</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="master-card">
+              <img
+                src="/assets/master/mentor-schedule/schedule-side.png"
+                alt="Mentor encouraging students"
+                style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '18px' }}
+              />
+              <div
+                style={{
+                  marginTop: '16px',
+                  background: '#ddf5e9',
+                  borderRadius: '16px',
+                  padding: '16px',
+                  color: 'var(--master-green-dark)',
+                  fontSize: '17px',
+                  fontWeight: 800,
+                  lineHeight: 1.35,
+                }}
+              >
+                “One session” can change someone's journey.
+              </div>
+            </div>
+          </aside>
+        </div>
       </div>
+    )
+  }
+
+  // Master Live view
+  return (
+    <div className="master-container">
+      {/* Master Hero */}
+      <section className="master-hero">
+        <div className="master-hero-copy">
+          <h1>Live lectures</h1>
+          <p>
+            Teach a room instead of one student. Publish the recording afterwards and it stays in the library for everyone who couldn't make it.
+          </p>
+        </div>
+        <div
+          style={{
+            width: '100%',
+            height: '240px',
+            borderRadius: '24px',
+            background: 'linear-gradient(135deg, #d6f4e6, #aee8cb)',
+            display: 'grid',
+            placeItems: 'center',
+            fontSize: '90px',
+            boxShadow: 'var(--master-shadow-soft)',
+          }}
+        >
+          🧑‍🏫
+        </div>
+      </section>
 
       <button
-        className={`btn ${showForm ? 'btn-ghost' : 'btn-primary'} btn-block`}
-        onClick={() => setShowForm((v) => !v)}
+        type="button"
+        className="master-btn-primary"
+        style={{ width: '100%', justifyContent: 'center', padding: '18px', fontSize: '20px', marginBottom: '28px' }}
+        onClick={() => setShowForm(true)}
       >
-        {showForm ? 'Cancel' : '+ Schedule a lecture'}
+        ＋ Schedule a lecture
       </button>
 
-      {showForm && (
-        <>
-          <Card>
-            <ClassForm draft={draft} onChange={setDraft} idPrefix="lc-new" />
-          </Card>
-          <ErrorNote error={create.error} />
-          <button
-            className="btn btn-primary btn-block"
-            disabled={create.isPending || draft.title.trim().length < 4}
-            onClick={() => create.mutate()}
-          >
-            {create.isPending ? 'Scheduling…' : 'Schedule it'}
-          </button>
-        </>
-      )}
-
       <ErrorNote error={classes.error ?? action.error ?? publish.error ?? update.error} />
-
       {publish.isPending && (
         <Alert tone="info">Uploading the recording — keep this screen open.</Alert>
       )}
 
-      <div className="section-title">Scheduled</div>
-      {classes.isLoading ? (
-        <Loading rows={2} />
-      ) : upcoming.length === 0 ? (
-        <Empty
-          icon="◉"
-          title="Nothing scheduled"
-          body="Schedule a lecture and every student who matches its language and skill will see it."
-        />
-      ) : (
-        <div className="stack-sm">
-          {upcoming.map((c) => (
-            <MentorClassCard key={c.id} {...cardProps(c)} />
-          ))}
-        </div>
-      )}
+      {/* Scheduled Section */}
+      <section style={{ marginBottom: '36px' }}>
+        <h2 style={{ fontSize: '22px', fontWeight: 800, color: '#56667a', margin: '0 0 18px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+          Scheduled
+        </h2>
 
-      <div className="section-title">Finished</div>
-      {past.length === 0 ? (
-        <Empty icon="▤" title="No past lectures" body="Ended lectures and their recordings live here." />
-      ) : (
-        <div className="stack-sm">
-          {past.map((c) => (
-            <MentorClassCard key={c.id} {...cardProps(c)} />
-          ))}
-        </div>
-      )}
+        {classes.isLoading ? (
+          <Loading rows={2} />
+        ) : upcoming.length === 0 ? (
+          <div className="master-card" style={{ textAlign: 'center', padding: '36px 20px' }}>
+            <div
+              style={{
+                width: '72px',
+                height: '72px',
+                borderRadius: '50%',
+                display: 'grid',
+                placeItems: 'center',
+                background: '#effaf5',
+                color: 'var(--master-green)',
+                fontSize: '34px',
+                margin: '0 auto 16px',
+              }}
+            >
+              ◉
+            </div>
+            <h3 style={{ fontSize: '24px', margin: '0 0 8px', fontWeight: 800 }}>Nothing scheduled</h3>
+            <p style={{ fontSize: '16px', color: 'var(--master-muted)', maxWidth: '500px', margin: '0 auto' }}>
+              Schedule a lecture and every student who matches its language and skill will see it.
+            </p>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gap: '16px' }}>
+            {upcoming.map((c) => (
+              <MentorClassCard key={c.id} {...cardProps(c)} />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Finished Section */}
+      <section>
+        <h2 style={{ fontSize: '22px', fontWeight: 800, color: '#56667a', margin: '0 0 18px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+          Finished
+        </h2>
+
+        {past.length === 0 ? (
+          <div className="master-card" style={{ textAlign: 'center', padding: '36px 20px' }}>
+            <div
+              style={{
+                width: '72px',
+                height: '72px',
+                borderRadius: '50%',
+                display: 'grid',
+                placeItems: 'center',
+                background: '#effaf5',
+                color: '#657487',
+                fontSize: '34px',
+                margin: '0 auto 16px',
+              }}
+            >
+              ▤
+            </div>
+            <h3 style={{ fontSize: '24px', margin: '0 0 8px', fontWeight: 800 }}>No past lectures</h3>
+            <p style={{ fontSize: '16px', color: 'var(--master-muted)', maxWidth: '500px', margin: '0 auto' }}>
+              Ended lectures and their recordings live here.
+            </p>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gap: '16px' }}>
+            {past.map((c) => (
+              <MentorClassCard key={c.id} {...cardProps(c)} />
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   )
-}
-
-interface EditHandle {
-  /** Non-null only while *this* card is the one being edited. */
-  draft: ClassDraft | null
-  saving: boolean
-  onOpen: () => void
-  onCancel: () => void
-  onChange: (next: ClassDraft) => void
-  onSave: () => void
 }
 
 function MentorClassCard({
@@ -473,32 +621,30 @@ function MentorClassCard({
   onAction: (verb: 'start' | 'end' | 'cancel' | 'unpublish') => void
   onPublish: (file: File) => void
   busy: boolean
-  edit: EditHandle
+  edit: {
+    draft: ClassDraft | null
+    saving: boolean
+    onOpen: () => void
+    onCancel: () => void
+    onChange: (next: ClassDraft) => void
+    onSave: () => void
+  }
 }) {
   const canStart = cls.status === 'scheduled' || cls.status === 'live'
-  /** The API refuses to edit an ended class, so don't offer it. */
   const canEdit = canStart
-  /**
-   * The clock closed the room, not the mentor. Two ways in: they started it and
-   * never pressed End, or they never started it at all — and the second one is
-   * the case worth naming, because "Finished" reads as a lie for a lecture that
-   * never happened.
-   */
-  const autoEnded = cls.status === 'ended' && cls.storedStatus !== 'ended'
-  const neverStarted = autoEnded && cls.storedStatus === 'scheduled'
 
   return (
-    <Card>
-      <div className="row-between" style={{ marginBottom: '0.4rem' }}>
-        <span className="tiny faint">
+    <article className="master-card" style={{ margin: 0 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+        <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--master-muted)', letterSpacing: '0.8px' }}>
           {cls.skill ? (SKILL_LABELS[cls.skill as Skill] ?? cls.skill).toUpperCase() : 'LECTURE'}
         </span>
         <LiveStatusPill status={cls.status} />
       </div>
 
-      <div className="strong">{cls.title}</div>
+      <div style={{ fontSize: '20px', fontWeight: 800, marginBottom: '10px' }}>{cls.title}</div>
 
-      <div className="row wrap" style={{ gap: '0.35rem', marginTop: '0.5rem' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '14px' }}>
         <Pill>{formatDateTime(cls.scheduledAt)}</Pill>
         {cls.status === 'scheduled' && <Pill tone="brand">{formatRelative(cls.scheduledAt)}</Pill>}
         <Pill>{cls.durationMinutes} min</Pill>
@@ -509,30 +655,24 @@ function MentorClassCard({
         {!cls.joinUrl && canStart && <Pill tone="warn">No room link</Pill>}
       </div>
 
-      {autoEnded && (
-        <div className="tiny faint" style={{ marginTop: '0.5rem' }}>
-          {neverStarted
-            ? 'Never started — the slot came and went without the room being opened.'
-            : 'Closed automatically — the join window ran out while it was still marked live.'}
-        </div>
-      )}
-
-      <div className="row wrap" style={{ gap: '0.4rem', marginTop: '0.7rem' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
         {cls.status === 'scheduled' && (
           <button
+            type="button"
             className="btn btn-record btn-sm"
             disabled={busy || !cls.joinUrl}
             onClick={() => onAction('start')}
             title={cls.joinUrl ? undefined : 'Add a room link first'}
           >
-            Start
+            Start lecture
           </button>
         )}
         {cls.status === 'live' && (
           <>
             {cls.joinUrl && (
               <a
-                className="btn btn-primary btn-sm"
+                className="master-btn-primary"
+                style={{ padding: '8px 16px', fontSize: '14px', textDecoration: 'none' }}
                 href={cls.joinUrl}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -540,26 +680,37 @@ function MentorClassCard({
                 Open room →
               </a>
             )}
-            <button className="btn btn-ghost btn-sm" disabled={busy} onClick={() => onAction('end')}>
+            <button
+              type="button"
+              className="master-chip"
+              disabled={busy}
+              onClick={() => onAction('end')}
+            >
               End
             </button>
           </>
         )}
         {canEdit && (
           <button
-            className="btn btn-ghost btn-sm"
+            type="button"
+            className="master-chip"
             onClick={edit.draft ? edit.onCancel : edit.onOpen}
           >
             {edit.draft ? 'Close editor' : 'Edit'}
           </button>
         )}
         {(cls.status === 'scheduled' || cls.status === 'live') && (
-          <button className="btn btn-ghost btn-sm" disabled={busy} onClick={() => onAction('cancel')}>
+          <button
+            type="button"
+            className="master-chip"
+            disabled={busy}
+            onClick={() => onAction('cancel')}
+          >
             Cancel
           </button>
         )}
         {cls.status !== 'cancelled' && (
-          <label className="btn btn-ghost btn-sm" style={{ cursor: 'pointer' }}>
+          <label className="master-chip" style={{ cursor: 'pointer', display: 'inline-flex' }}>
             {cls.hasRecording ? 'Replace recording' : 'Publish recording'}
             <input
               type="file"
@@ -568,57 +719,22 @@ function MentorClassCard({
               disabled={busy}
               onChange={(e) => {
                 const file = e.target.files?.[0]
-                // Reset so picking the same file twice still fires onChange.
                 e.target.value = ''
                 if (file) onPublish(file)
               }}
             />
           </label>
         )}
-        {cls.hasRecording && (
-          <button
-            className="btn btn-ghost btn-sm"
-            disabled={busy}
-            onClick={() => onAction('unpublish')}
-          >
-            Unpublish
-          </button>
-        )}
-        <button className="btn btn-ghost btn-sm" onClick={onToggle}>
-          {expanded ? 'Hide roster' : 'Roster'}
+        <button type="button" className="master-chip" onClick={onToggle}>
+          {expanded ? 'Hide roster' : 'View roster'}
         </button>
       </div>
 
-      {edit.draft && (
-        <div style={{ marginTop: '0.8rem' }}>
-          {cls.seatsTaken > 0 && (
-            <Alert tone="warn">
-              {cls.seatsTaken} student{cls.seatsTaken > 1 ? 's have' : ' has'} already registered.
-              They keep their seat, but nothing tells them you moved the time — say so in the room.
-            </Alert>
-          )}
-          <ClassForm draft={edit.draft} onChange={edit.onChange} idPrefix={`lc-${cls.id}`} />
-          <div className="row" style={{ gap: '0.4rem', marginTop: '0.7rem' }}>
-            <button
-              className="btn btn-primary btn-sm"
-              disabled={edit.saving || edit.draft.title.trim().length < 4}
-              onClick={edit.onSave}
-            >
-              {edit.saving ? 'Saving…' : 'Save changes'}
-            </button>
-            <button className="btn btn-ghost btn-sm" disabled={edit.saving} onClick={edit.onCancel}>
-              Discard
-            </button>
-          </div>
-        </div>
-      )}
-
       {expanded && <ClassRoster classId={cls.id} />}
-    </Card>
+    </article>
   )
 }
 
-/** Fetched only when opened — a mentor with 30 lectures shouldn't load 30 rosters. */
 function ClassRoster({ classId }: { classId: string }) {
   const { data, isLoading, error } = useQuery({
     queryKey: ['mentor-live-roster', classId],
@@ -626,32 +742,28 @@ function ClassRoster({ classId }: { classId: string }) {
       api.get<{ roster: RosterRow[]; attendedCount: number }>(`/live/mentor/classes/${classId}`),
   })
 
-  if (isLoading) return <div style={{ marginTop: '0.7rem' }}><Loading rows={2} /></div>
-  if (error) return <div style={{ marginTop: '0.7rem' }}><ErrorNote error={error} /></div>
+  if (isLoading) return <div style={{ marginTop: '12px' }}><Loading rows={2} /></div>
+  if (error) return <div style={{ marginTop: '12px' }}><ErrorNote error={error} /></div>
 
   const roster = data?.roster ?? []
 
   return (
-    <div className="stack-sm" style={{ marginTop: '0.7rem' }}>
-      <div className="row-between tiny faint">
+    <div style={{ marginTop: '16px', borderTop: '1px solid #eef3f0', paddingTop: '14px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 700, color: 'var(--master-muted)', marginBottom: '8px' }}>
         <span>{roster.length} REGISTERED</span>
         <span>{data?.attendedCount ?? 0} ATTENDED LIVE</span>
       </div>
       {roster.length === 0 ? (
-        <div className="tiny faint">Nobody has registered yet.</div>
+        <div style={{ color: 'var(--master-muted)', fontSize: '14px' }}>Nobody has registered yet.</div>
       ) : (
         roster.map((r) => (
-          <div key={r.studentId} className="row-between small">
+          <div key={r.studentId} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', fontSize: '14px' }}>
             <div>
-              <span className="strong">{r.name}</span>
-              <span className="tiny faint"> · {r.cohort ?? 'no cohort'}</span>
+              <strong>{r.name}</strong>
+              <span style={{ color: 'var(--master-muted)' }}> · {r.cohort ?? 'no cohort'}</span>
             </div>
-            <div className="row" style={{ gap: '0.25rem' }}>
-              {r.attendedAt ? (
-                <Pill tone="ok">Live</Pill>
-              ) : (
-                <Pill>{formatDate(r.registeredAt)}</Pill>
-              )}
+            <div style={{ display: 'flex', gap: '6px' }}>
+              {r.attendedAt ? <Pill tone="ok">Live</Pill> : <Pill>{formatDate(r.registeredAt)}</Pill>}
               {r.completedAt ? (
                 <Pill tone="ok">Watched</Pill>
               ) : r.watchedSeconds > 0 ? (

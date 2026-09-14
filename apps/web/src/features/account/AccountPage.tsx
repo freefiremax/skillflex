@@ -13,7 +13,7 @@ import {
 import { api } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
 import { useTranslation } from '../../lib/i18n'
-import { Alert, Card, ErrorNote, Loading, Pill, formatDate } from '../../components/ui'
+import { Alert, ErrorNote, Loading, Pill, formatDate } from '../../components/ui'
 
 interface ConsentState {
   policyVersion: string
@@ -28,7 +28,6 @@ interface ConsentState {
   }>
 }
 
-/** Withdrawing this scope schedules the student's recordings for deletion. */
 const DESTRUCTIVE_SCOPE: ConsentScope = 'video_recording'
 
 export default function AccountPage() {
@@ -63,8 +62,6 @@ export default function AccountPage() {
   const exportData = useMutation({
     mutationFn: () => api.get<unknown>('/consent/export'),
     onSuccess: (data) => {
-      // Client-side download — the export endpoint returns JSON, and we
-      // deliberately don't stream video bytes into a data URL.
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -76,25 +73,26 @@ export default function AccountPage() {
   })
 
   const scopes = consent.data?.consents ?? []
-  // A stale policy version only matters for scopes the user actually granted —
-  // nagging someone to "re-confirm" something they declined is nonsense.
   const stale = scopes.some((s) => s.granted && s.needsRefresh)
 
   if (confirming) {
     const scope = confirming
     const isDestructive = scope === DESTRUCTIVE_SCOPE
     return (
-      <div className="stack">
+      <div className="master-container" style={{ maxWidth: '720px', margin: '0 auto' }}>
         <button
-          className="btn btn-ghost btn-sm"
-          style={{ alignSelf: 'flex-start' }}
+          type="button"
+          className="master-chip"
+          style={{ marginBottom: '16px' }}
           onClick={() => setConfirming(null)}
         >
           ← {t('common.back')}
         </button>
 
-        <h1>{t('account.withdraw_title')}</h1>
-        <p className="small">{CONSENT_SCOPE_LABELS[scope]}</p>
+        <h1 style={{ fontSize: '32px', fontWeight: 850 }}>{t('account.withdraw_title')}</h1>
+        <p style={{ color: 'var(--master-muted)', fontSize: '16px', marginBottom: '20px' }}>
+          {CONSENT_SCOPE_LABELS[scope]}
+        </p>
 
         {isDestructive ? (
           <Alert tone="error">
@@ -110,58 +108,112 @@ export default function AccountPage() {
 
         <ErrorNote error={decide.error} />
 
-        <button
-          className="btn btn-danger btn-block"
-          disabled={decide.isPending}
-          onClick={() => decide.mutate({ scope, granted: false })}
-        >
-          {decide.isPending ? t('common.saving') : t('account.confirm_withdraw')}
-        </button>
-        <button className="btn btn-ghost btn-block" onClick={() => setConfirming(null)}>
-          {t('account.keep_as_is')}
-        </button>
+        <div style={{ display: 'grid', gap: '10px', marginTop: '20px' }}>
+          <button
+            type="button"
+            className="master-btn-primary"
+            style={{ background: '#c22a3a', justifyContent: 'center' }}
+            disabled={decide.isPending}
+            onClick={() => decide.mutate({ scope, granted: false })}
+          >
+            {decide.isPending ? t('common.saving') : t('account.confirm_withdraw')}
+          </button>
+          <button
+            type="button"
+            className="master-chip"
+            style={{ textAlign: 'center', padding: '14px' }}
+            onClick={() => setConfirming(null)}
+          >
+            {t('account.keep_as_is')}
+          </button>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="stack">
-      <div>
-        <h1>{t('account.title')}</h1>
-        <p className="small">{t('account.subtitle')}</p>
+    <div className="master-container" style={{ maxWidth: '760px', margin: '0 auto' }}>
+      <div className="master-header">
+        <h1 style={{ fontSize: '42px', letterSpacing: '-2px', margin: '0 0 8px' }}>
+          {t('account.title')}
+        </h1>
+        <p className="master-lead" style={{ fontSize: '17px' }}>
+          What we hold, why we hold it, and how to take it back.
+        </p>
       </div>
 
       {notice && <Alert tone="ok">{notice}</Alert>}
 
-      <Card>
-        <div className="row-between">
-          <div>
-            <div className="strong">{me?.name}</div>
-            <div className="tiny faint">{me?.email}</div>
+      {/* Identity Card */}
+      <section className="master-card" style={{ padding: '20px', marginBottom: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div
+            style={{
+              width: '62px',
+              height: '62px',
+              borderRadius: '20px',
+              background: 'linear-gradient(145deg, #d5f4e4, #9edabd)',
+              display: 'grid',
+              placeItems: 'center',
+              fontSize: '28px',
+              fontWeight: 850,
+              color: 'var(--master-green-dark)',
+              flexShrink: 0,
+            }}
+          >
+            {me?.name ? me.name.charAt(0).toUpperCase() : 'U'}
           </div>
-          <Pill tone="brand">{me ? ROLE_LABELS[me.role] : ''}</Pill>
+          <div>
+            <h2 style={{ fontSize: '20px', margin: '0 0 3px', fontWeight: 800 }}>{me?.name}</h2>
+            <p style={{ margin: 0, color: 'var(--master-muted)', fontSize: '14px' }}>{me?.email}</p>
+          </div>
+          <div
+            style={{
+              marginLeft: 'auto',
+              background: '#fff',
+              border: '1px solid #e3d9f5',
+              color: '#65409a',
+              borderRadius: '20px',
+              padding: '8px 14px',
+              fontWeight: 800,
+              fontSize: '13px',
+            }}
+          >
+            {me ? ROLE_LABELS[me.role] : 'Student'}
+          </div>
         </div>
         {me?.org && (
-          <div className="tiny faint" style={{ marginTop: '0.5rem' }}>
+          <div
+            style={{
+              marginTop: '14px',
+              paddingTop: '12px',
+              borderTop: '1px solid #edf4f0',
+              color: 'var(--master-muted)',
+              fontSize: '14px',
+            }}
+          >
             {me.org.name}
             {me.student?.cohort ? ` · ${me.student.cohort}` : ''}
           </div>
         )}
-      </Card>
+      </section>
 
-      <div className="section-title">{t('account.pref_lang')}</div>
-      <Card>
-        <p className="small" style={{ marginBottom: '0.75rem' }}>
+      {/* Language Preference */}
+      <div className="master-section-title" style={{ fontSize: '16px', margin: '24px 0 10px' }}>
+        {t('account.pref_lang')}
+      </div>
+      <section className="master-card" style={{ padding: '18px', marginBottom: '16px' }}>
+        <p style={{ margin: '0 0 12px', fontSize: '14px', color: 'var(--master-muted)' }}>
           {t('account.pref_lang_desc')}
         </p>
-        <div className="row wrap" style={{ gap: '0.4rem' }}>
+        <div className="master-chips" style={{ margin: 0 }}>
           {SUPPORTED_LANGUAGES.map((l) => {
             const active = language === l
             return (
               <button
                 key={l}
                 type="button"
-                className={`btn btn-sm ${active ? 'btn-primary' : 'btn-ghost'}`}
+                className={`master-chip ${active ? 'active' : ''}`}
                 onClick={() => setLanguage(l)}
               >
                 {active ? `✓ ${LANGUAGE_LABELS[l]}` : LANGUAGE_LABELS[l]}
@@ -169,86 +221,110 @@ export default function AccountPage() {
             )
           })}
         </div>
-      </Card>
+      </section>
 
-      <div className="section-title">{t('account.consent')}</div>
+      {/* Consent Section */}
+      <div className="master-section-title" style={{ fontSize: '16px', margin: '24px 0 10px' }}>
+        Consent
+      </div>
 
-      {stale && (
-        <Alert tone="warn">
-          {t('account.consent_updated')}
-        </Alert>
-      )}
-
+      {stale && <Alert tone="warn">{t('account.consent_updated')}</Alert>}
       <ErrorNote error={consent.error} />
 
       {consent.isLoading ? (
         <Loading rows={3} />
       ) : (
-        <div className="stack-sm">
+        <div style={{ display: 'grid', gap: '12px', marginBottom: '24px' }}>
           {CONSENT_SCOPES.map((scope) => {
             const s = scopes.find((x) => x.scope === scope)
             const granted = s?.granted ?? false
             const needsRefresh = Boolean(s?.granted && s.needsRefresh)
             const decidedAt = s ? (s.revokedAt ?? s.grantedAt) : null
+
             return (
-              <Card key={scope} className="card-tight">
-                <div className="row-between" style={{ marginBottom: '0.4rem' }}>
-                  <span className="small strong">{CONSENT_SCOPE_LABELS[scope]}</span>
-                  {needsRefresh ? (
-                    <Pill tone="warn">{t('account.reconfirm')}</Pill>
-                  ) : granted ? (
-                    <Pill tone="ok">{t('account.granted')}</Pill>
-                  ) : (
-                    <Pill>{t('account.not_granted')}</Pill>
-                  )}
+              <article key={scope} className="master-card" style={{ padding: '18px', margin: 0 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start' }}>
+                  <h3 style={{ fontSize: '15px', lineHeight: 1.45, margin: 0, fontWeight: 750 }}>
+                    {CONSENT_SCOPE_LABELS[scope]}
+                  </h3>
+                  <span
+                    style={{
+                      whiteSpace: 'nowrap',
+                      background: granted ? '#dff7eb' : '#fff',
+                      border: `1px solid ${granted ? '#bcebd3' : '#e5e7e8'}`,
+                      borderRadius: '16px',
+                      padding: '6px 12px',
+                      color: granted ? 'var(--master-green-dark)' : '#59616c',
+                      fontSize: '12px',
+                      fontWeight: 800,
+                    }}
+                  >
+                    {needsRefresh ? 'Needs update' : granted ? 'Granted' : 'Not granted'}
+                  </span>
                 </div>
-                <div className="tiny faint" style={{ marginBottom: '0.5rem' }}>
+
+                <div style={{ fontSize: '13px', color: 'var(--master-muted)', margin: '8px 0 12px' }}>
                   {decidedAt
-                    ? `Decided ${formatDate(decidedAt)} · policy ${s?.policyVersion}`
+                    ? `Decision recorded ${formatDate(decidedAt)} · policy ${s?.policyVersion}`
                     : 'No decision recorded yet'}
                 </div>
+
                 {granted && !needsRefresh ? (
                   <button
-                    className="btn btn-ghost btn-sm btn-block"
+                    type="button"
+                    className="master-chip"
+                    style={{ width: '100%', textAlign: 'center' }}
                     onClick={() => setConfirming(scope)}
                   >
-                    {t('account.withdraw')}
+                    Revoke
                   </button>
                 ) : (
                   <button
-                    className="btn btn-ghost btn-sm btn-block"
+                    type="button"
+                    className="master-btn-primary"
+                    style={{ width: '100%', justifyContent: 'center', padding: '10px' }}
                     disabled={decide.isPending}
                     onClick={() => decide.mutate({ scope, granted: true })}
                   >
-                    {needsRefresh ? t('account.reconfirm') : t('account.grant')}
+                    {needsRefresh ? 'Reconfirm' : 'Grant'}
                   </button>
                 )}
-              </Card>
+              </article>
             )
           })}
         </div>
       )}
 
-      <div className="section-title">{t('account.your_data')}</div>
-      <Card>
-        <p className="small" style={{ marginBottom: '0.75rem' }}>
-          {t('account.your_data_desc')}
+      {/* Your Data Section */}
+      <div className="master-section-title" style={{ fontSize: '16px', margin: '24px 0 10px' }}>
+        Your data
+      </div>
+      <section className="master-card" style={{ padding: '18px', marginBottom: '20px' }}>
+        <p style={{ fontSize: '14px', color: 'var(--master-muted)', lineHeight: 1.5, margin: '0 0 14px' }}>
+          Download everything we hold about you — profile, submissions, your mentors' written feedback, your plans, and the full consent log — as one JSON file.
         </p>
         <ErrorNote error={exportData.error} />
         <button
-          className="btn btn-ghost btn-block btn-sm"
+          type="button"
+          className="master-chip"
+          style={{ width: '100%', textAlign: 'center', padding: '12px' }}
           disabled={exportData.isPending}
           onClick={() => exportData.mutate()}
         >
-          {exportData.isPending ? t('account.preparing') : t('account.download_data')}
+          {exportData.isPending ? 'Preparing export...' : 'Download my data'}
         </button>
-      </Card>
+      </section>
 
-      <button className="btn btn-ghost btn-block" onClick={signOut}>
+      <button
+        type="button"
+        className="master-chip"
+        style={{ width: '100%', textAlign: 'center', padding: '14px', fontWeight: 800, marginBottom: '20px' }}
+        onClick={signOut}
+      >
         {t('common.sign_out')}
       </button>
 
-      <div className="tiny faint center">
+      <div style={{ textAlign: 'center', color: '#7b8088', fontSize: '12px', marginBottom: '32px' }}>
         SkillFlex · policy {CURRENT_POLICY_VERSION} · DPDP Act 2023
       </div>
     </div>
