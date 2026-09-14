@@ -13,7 +13,6 @@ export default function LivePage() {
   const [tab, setTab] = useState<Tab>('upcoming')
   const [skill, setSkill] = useState('')
   const [onlyMyLanguage, setOnlyMyLanguage] = useState(false)
-  const [notified, setNotified] = useState(false)
 
   const query = new URLSearchParams()
   if (skill) query.set('skill', skill)
@@ -44,34 +43,52 @@ export default function LivePage() {
 
   return (
     <div className="master-container">
-      {/* Hero Section */}
-      <section className="master-hero">
-        <div className="master-hero-copy">
-          <h1>{t('live.title')}</h1>
-          <p>
+      {/* Hero Section from SkillFlex_Master */}
+      <section
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          gap: '16px',
+          marginBottom: '28px',
+        }}
+      >
+        <div>
+          <div
+            style={{
+              color: 'var(--master-green)',
+              fontWeight: 800,
+              fontSize: '13px',
+              letterSpacing: '1px',
+              marginBottom: '6px',
+            }}
+          >
+            ◉ LIVE LEARNING
+          </div>
+          <h1 style={{ fontSize: 'clamp(38px, 4.5vw, 56px)', lineHeight: 1, margin: '0 0 12px', letterSpacing: '-2px', fontWeight: 850 }}>
+            {t('live.title')}
+          </h1>
+          <p style={{ fontSize: '17px', lineHeight: 1.5, color: '#58667b', margin: 0, maxWidth: '580px' }}>
             Group lectures with a real mentor, and every past one recorded so you can catch up.
           </p>
-          <div className="master-hero-features">
-            <div className="master-feature-item">
-              <span className="master-feature-icon">●●●</span>
-              <div>Learn with<br />mentors</div>
-            </div>
-            <div className="master-feature-item">
-              <span className="master-feature-icon">▶</span>
-              <div>Interactive<br />sessions</div>
-            </div>
-            <div className="master-feature-item">
-              <span className="master-feature-icon">◷</span>
-              <div>Access recordings<br />anytime</div>
-            </div>
-          </div>
         </div>
-        <div className="master-hero-art-wrapper">
-          <img
-            className="master-hero-art"
-            src="/assets/master/live/live-hero.png"
-            alt="SkillFlex learner joining a live mentor session"
-          />
+
+        <div
+          style={{
+            fontFamily: '"Segoe Print", "Comic Sans MS", cursive',
+            fontSize: '16px',
+            lineHeight: 1.2,
+            fontWeight: 800,
+            color: 'var(--master-green-dark)',
+            transform: 'rotate(4deg)',
+            background: 'rgba(255, 255, 255, 0.85)',
+            padding: '10px 14px',
+            borderRadius: '14px',
+            boxShadow: '0 4px 14px rgba(30, 80, 60, 0.08)',
+            flexShrink: 0,
+          }}
+        >
+          Learn Together<br />Grow Better ↗
         </div>
       </section>
 
@@ -101,7 +118,7 @@ export default function LivePage() {
       </nav>
 
       {/* Main Filter & Classes Panel */}
-      <section className="master-card" style={{ padding: '28px' }}>
+      <section className="master-card" style={{ padding: '24px' }}>
         {tab !== 'mine' && (
           <div style={{ marginBottom: '22px' }}>
             <div className="master-chips">
@@ -110,7 +127,7 @@ export default function LivePage() {
                 className={`master-chip ${skill === '' ? 'active' : ''}`}
                 onClick={() => setSkill('')}
               >
-                ▦ &nbsp; {t('live.all_skills')}
+                All skills
               </button>
               {SKILLS.map((s) => (
                 <button
@@ -124,7 +141,7 @@ export default function LivePage() {
               ))}
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: '12px' }}>
               <label
                 style={{
                   display: 'inline-flex',
@@ -132,7 +149,7 @@ export default function LivePage() {
                   gap: '8px',
                   cursor: 'pointer',
                   color: '#5b697c',
-                  fontSize: '15px',
+                  fontSize: '14px',
                   fontWeight: 600,
                 }}
               >
@@ -155,23 +172,33 @@ export default function LivePage() {
             {upcoming.isLoading ? (
               <Loading rows={3} />
             ) : (upcoming.data?.classes.length ?? 0) === 0 ? (
-              <div className="master-empty-card">
+              <div style={{ textAlign: 'center', padding: '30px 10px' }}>
                 <img
-                  className="master-empty-art"
-                  src="/assets/master/live/live-empty.png"
-                  alt="No lectures scheduled"
+                  src="/assets/real/hero-study.jpg"
+                  alt="Student waiting for live lecture"
+                  style={{
+                    width: '200px',
+                    height: '200px',
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    objectPosition: 'center 30%',
+                    display: 'block',
+                    margin: '0 auto 18px',
+                    boxShadow: '0 10px 24px rgba(30, 80, 60, 0.12)',
+                  }}
                 />
-                <h2>No lectures scheduled</h2>
-                <p>
-                  You're all caught up!<br />
-                  New sessions will appear here.
+                <h2 style={{ fontSize: '24px', margin: '0 0 6px', fontWeight: 800 }}>
+                  No lectures scheduled
+                </h2>
+                <p style={{ fontSize: '15px', color: '#6c788b', lineHeight: 1.45, margin: '0 auto 20px', maxWidth: '300px' }}>
+                  New live lectures will appear here.<br />Keep checking!
                 </p>
                 <button
                   type="button"
                   className="master-btn-primary"
-                  onClick={() => setNotified(true)}
+                  onClick={() => setSkill('')}
                 >
-                  🔔 &nbsp; {notified ? 'Notification scheduled ✓' : 'Notify me when new lectures are scheduled'}
+                  ▣ &nbsp; Explore other skills
                 </button>
               </div>
             ) : (
@@ -208,14 +235,25 @@ export default function LivePage() {
             {mine.isLoading ? (
               <Loading rows={3} />
             ) : (mine.data?.upcoming.length ?? 0) + (mine.data?.past.length ?? 0) === 0 ? (
-              <div className="master-empty-card">
+              <div style={{ textAlign: 'center', padding: '30px 10px' }}>
                 <img
-                  className="master-empty-art"
-                  src="/assets/master/live/live-empty.png"
+                  src="/assets/real/hero-study.jpg"
                   alt="No registrations"
+                  style={{
+                    width: '200px',
+                    height: '200px',
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    display: 'block',
+                    margin: '0 auto 18px',
+                  }}
                 />
-                <h2>No live lectures yet</h2>
-                <p>Pick an upcoming lecture to attend live or review your recordings.</p>
+                <h2 style={{ fontSize: '24px', margin: '0 0 6px', fontWeight: 800 }}>
+                  No registered lectures
+                </h2>
+                <p style={{ fontSize: '15px', color: '#6c788b', margin: '0 0 20px' }}>
+                  Pick an upcoming lecture to attend live or review your recordings.
+                </p>
                 <button
                   type="button"
                   className="master-btn-primary"
@@ -258,14 +296,25 @@ export default function LivePage() {
             {recordings.isLoading ? (
               <Loading rows={3} />
             ) : (recordings.data?.recordings.length ?? 0) === 0 ? (
-              <div className="master-empty-card">
+              <div style={{ textAlign: 'center', padding: '30px 10px' }}>
                 <img
-                  className="master-empty-art"
-                  src="/assets/master/live/live-empty.png"
-                  alt="No recordings yet"
+                  src="/assets/real/hero-study.jpg"
+                  alt="No recordings"
+                  style={{
+                    width: '200px',
+                    height: '200px',
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    display: 'block',
+                    margin: '0 auto 18px',
+                  }}
                 />
-                <h2>No recordings available yet</h2>
-                <p>Lectures are automatically recorded and published here after they end.</p>
+                <h2 style={{ fontSize: '24px', margin: '0 0 6px', fontWeight: 800 }}>
+                  No recordings yet
+                </h2>
+                <p style={{ fontSize: '15px', color: '#6c788b' }}>
+                  Lectures are automatically recorded and published here after they end.
+                </p>
               </div>
             ) : (
               <div>
@@ -279,15 +328,6 @@ export default function LivePage() {
             )}
           </>
         )}
-
-        {/* Master Tip */}
-        <div className="master-tip">
-          <div className="master-tip-icon">💡</div>
-          <div>
-            <h3>Tip: Keep exploring different skills</h3>
-            <p>Attend live lectures to learn directly from mentors and ask your doubts.</p>
-          </div>
-        </div>
       </section>
     </div>
   )
