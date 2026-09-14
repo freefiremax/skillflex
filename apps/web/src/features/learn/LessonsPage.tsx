@@ -3,21 +3,7 @@ import { Link } from 'react-router-dom'
 import { LANGUAGE_LABELS } from '@skillflex/shared'
 import { api } from '../../lib/api'
 import { useTranslation } from '../../lib/i18n'
-import { Empty, ErrorNote, Loading, Pill } from '../../components/ui'
-
-/**
- * The whole curriculum, track by track. Lectures and nothing else.
- *
- * Lifted out of HomePage, which used to carry the greeting, the mentor card,
- * the next lecture, this week's tasks and six nav cards above it; on a phone the
- * lessons were four screens of scrolling away. It is now a bottom-nav tab.
- *
- * Deliberately says nothing about assignments — not the per-lesson task count,
- * not "then record your answer". This is the watch list. The task attached to a
- * lesson appears when you open that lesson, and the whole week's worth lives on
- * /assignments; announcing homework next to every title turned a video library
- * into a chore list.
- */
+import { Empty, ErrorNote, Loading } from '../../components/ui'
 
 interface TrackTree {
   id: string
@@ -39,6 +25,12 @@ interface TrackTree {
   }>
 }
 
+const LESSON_ART_SAMPLES = [
+  '/assets/master/lessons/intro-student.png',
+  '/assets/master/lessons/gd-group.png',
+  '/assets/master/lessons/study-student.png',
+]
+
 export default function LessonsPage() {
   const { language, t } = useTranslation()
 
@@ -48,56 +40,115 @@ export default function LessonsPage() {
   })
 
   return (
-    <div className="stack">
-      <div>
+    <div className="master-container">
+      <div className="master-header">
         <h1>{t('lessons.title')}</h1>
-        <p className="small">
-          {t('lessons.active_lang')}:{' '}
-          <strong style={{ color: 'var(--brand)' }}>{LANGUAGE_LABELS[language]}</strong>{' '}
-          {t('lessons.lang_fallback')}
+        <p className="master-lead">
+          Every lecture, module by module. Active language:{' '}
+          <strong>{LANGUAGE_LABELS[language]}</strong> — change that on{' '}
+          <Link to="/languages" style={{ color: 'inherit', textDecoration: 'underline' }}>
+            Languages
+          </Link>
+          .
         </p>
       </div>
 
+      {/* Master Hero */}
+      <section className="master-hero">
+        <div className="master-hero-copy">
+          <h2>Learn at your own pace</h2>
+          <p>Build real skills for a better tomorrow.</p>
+          <div className="master-hero-features">
+            <div className="master-feature-item">
+              <span className="master-feature-icon">▶</span>
+              <div>Short<br />lectures</div>
+            </div>
+            <div className="master-feature-item">
+              <span className="master-feature-icon">▮▮▮</span>
+              <div>Step by step<br />modules</div>
+            </div>
+            <div className="master-feature-item">
+              <span className="master-feature-icon">✓</span>
+              <div>Placement<br />ready skills</div>
+            </div>
+          </div>
+        </div>
+        <div className="master-hero-art-wrapper">
+          <div className="master-scribble">Small Steps<br />Big Growth ↗</div>
+          <img
+            className="master-hero-art"
+            src="/assets/master/lessons/hero-student.png"
+            alt="Student learning at a laptop"
+          />
+        </div>
+      </section>
+
       {tracks.isLoading ? (
-        <Loading rows={3} />
+        <Loading rows={4} />
       ) : tracks.error ? (
         <ErrorNote error={tracks.error} />
       ) : tracks.data?.tracks.length === 0 ? (
         <Empty icon="▤" title={t('lessons.no_lessons')} body={t('lessons.no_lessons_sub')} />
       ) : (
-        <div className="stack">
-          {tracks.data?.tracks.map((t) => (
-            <div key={t.id} className="stack-sm">
-              <div className="section-title">{t.title}</div>
-              {t.modules.map((m) => (
-                <div key={m.id}>
-                  <div className="tiny faint" style={{ margin: '0.5rem 0 0.35rem' }}>
-                    {m.title.toUpperCase()}
+        <div>
+          {tracks.data?.tracks.map((track) => (
+            <div key={track.id} style={{ marginBottom: '36px' }}>
+              <div className="master-section-title">{track.title}</div>
+              {track.modules.map((module, mIdx) => (
+                <div key={module.id} style={{ marginBottom: '28px' }}>
+                  <div
+                    style={{
+                      fontSize: '13px',
+                      fontWeight: 800,
+                      color: 'var(--master-muted)',
+                      textTransform: 'uppercase',
+                      letterSpacing: '1px',
+                      marginBottom: '14px',
+                    }}
+                  >
+                    {module.title}
                   </div>
-                  <div className="stack-sm">
-                    {m.lessons.map((l) => (
-                      <Link
-                        key={l.id}
-                        to={`/lessons/${l.id}`}
-                        style={{ textDecoration: 'none', color: 'inherit' }}
-                      >
-                        <div className="card card-tight card-interactive">
-                          <div className="row-between">
-                            <div>
-                              <div className="strong small">{l.title}</div>
-                              <div className="tiny faint">
-                                {l.durationSeconds ? `${Math.round(l.durationSeconds / 60)} min` : 'Video'}
-                              </div>
-                            </div>
-                            {l.availableLanguages.includes(language) ? (
-                              <Pill tone="brand">{language.toUpperCase()}</Pill>
-                            ) : (
-                              <Pill>EN</Pill>
-                            )}
+                  <div className="master-lesson-grid">
+                    {module.lessons.map((lesson, lIdx) => {
+                      const art = LESSON_ART_SAMPLES[(mIdx + lIdx) % LESSON_ART_SAMPLES.length]
+                      const durationMin = lesson.durationSeconds
+                        ? Math.max(1, Math.round(lesson.durationSeconds / 60))
+                        : 5
+                      return (
+                        <article key={lesson.id} className="master-lesson-card">
+                          <div className="master-thumb">
+                            <img src={art} alt={lesson.title} />
                           </div>
-                        </div>
-                      </Link>
-                    ))}
+                          <div>
+                            <div className="master-eyebrow">{module.title}</div>
+                            <div className="master-lesson-title">{lesson.title}</div>
+                            <div className="master-meta">
+                              <span>◷ <b>{durationMin} min</b></span>
+                              <span>│</span>
+                              <span>
+                                {lesson.availableLanguages.includes(language) ? (
+                                  <span style={{ color: 'var(--master-green-dark)', fontWeight: 700 }}>
+                                    ● {language.toUpperCase()}
+                                  </span>
+                                ) : (
+                                  <span>EN available</span>
+                                )}
+                              </span>
+                              <span>│</span>
+                              <span>▮▮ <b>Placement Ready</b></span>
+                            </div>
+                          </div>
+                          <div style={{ position: 'absolute', right: 26, top: 20, color: '#657087', fontSize: 22 }}>
+                            ⋮
+                          </div>
+                          <Link to={`/lessons/${lesson.id}`} aria-label={`Play ${lesson.title}`}>
+                            <button className="master-play-btn" type="button">
+                              ▶
+                            </button>
+                          </Link>
+                        </article>
+                      )
+                    })}
                   </div>
                 </div>
               ))}
@@ -105,6 +156,23 @@ export default function LessonsPage() {
           ))}
         </div>
       )}
+
+      {/* Master Consistency Reminder */}
+      <section className="master-reminder">
+        <div className="master-target-icon">◎</div>
+        <div>
+          <h3>Stay consistent</h3>
+          <p>Practice today, get placed tomorrow.</p>
+        </div>
+        <img
+          className="master-reminder-art"
+          src="/assets/master/lessons/study-student.png"
+          alt="Student studying and improving"
+        />
+        <Link to="/practice" className="master-go-btn" style={{ textDecoration: 'none' }} title="Practice">
+          ›
+        </Link>
+      </section>
     </div>
   )
 }
