@@ -764,8 +764,23 @@ a.pill:hover {
   bottom: calc(88px + env(safe-area-inset-bottom));
   z-index: 45;
   pointer-events: none;
+  touch-action: none;
 }
 .pet-wrap > * { pointer-events: auto; }
+
+/* When custom positioned via drag */
+.pet-wrap-dragged {
+  right: auto !important;
+  bottom: auto !important;
+}
+
+.pet-wrap-dragging {
+  cursor: grabbing !important;
+  user-select: none !important;
+}
+.pet-wrap-dragging * {
+  user-select: none !important;
+}
 
 /* Signed out there is no nav bar to clear. */
 .pet-wrap-bare { bottom: calc(env(safe-area-inset-bottom) + 14px); }
@@ -776,12 +791,16 @@ a.pill:hover {
   border: 0;
   background: none;
   padding: 0;
-  cursor: pointer;
+  cursor: grab;
   line-height: 0;
   -webkit-tap-highlight-color: transparent;
   position: relative;
   display: block;
   outline: none;
+}
+.mascot-btn:active,
+.pet-wrap-dragging .mascot-btn {
+  cursor: grabbing;
 }
 
 /* 3D Ceramic Porcelain Pedestal */
@@ -824,6 +843,7 @@ a.pill:hover {
   width: 52px;
   height: 52px;
   display: block;
+  position: relative;
 }
 #mascot-container > object,
 #mascot-container > svg {
@@ -831,6 +851,22 @@ a.pill:hover {
   height: 100%;
   display: block;
   pointer-events: none;
+}
+
+/* Scholar Spectacles / Glasses overlay */
+.mascot-specs {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+  filter: drop-shadow(0 2px 4px rgba(45, 25, 75, 0.35));
+  transition: transform 0.2s ease;
+}
+.mascot-btn:hover .mascot-specs {
+  transform: scale(1.03);
 }
 
 /* 3D Jewel presence dot in corner */
@@ -880,6 +916,52 @@ a.pill:hover {
   border-right: 1px solid rgba(139, 92, 246, 0.25);
   border-bottom: 1px solid rgba(139, 92, 246, 0.25);
   transform: rotate(45deg);
+}
+
+/* Flipped downwards when dragged to top of viewport */
+.mascot-bubble.mascot-bubble-below {
+  bottom: auto;
+  top: calc(100% + 14px);
+  transform-origin: 86% 0%;
+}
+.mascot-bubble.mascot-bubble-below::after {
+  bottom: auto;
+  top: -7px;
+  border-right: none;
+  border-bottom: none;
+  border-left: 1px solid rgba(139, 92, 246, 0.25);
+  border-top: 1px solid rgba(139, 92, 246, 0.25);
+}
+
+/* Flipped to right when dragged to left edge */
+.mascot-bubble.mascot-bubble-left {
+  right: auto;
+  left: -4px;
+  transform-origin: 14% 100%;
+}
+.mascot-bubble.mascot-bubble-left::after {
+  right: auto;
+  left: 26px;
+}
+.mascot-bubble.mascot-bubble-below.mascot-bubble-left {
+  transform-origin: 14% 0%;
+}
+
+.mascot-bubble-top {
+  cursor: grab;
+}
+.pet-wrap-dragging .mascot-bubble-top,
+.mascot-bubble-top:active {
+  cursor: grabbing;
+}
+.mascot-drag-grip {
+  color: #9d8db8;
+  font-size: 13px;
+  letter-spacing: -1px;
+  cursor: grab;
+  user-select: none;
+  padding: 0 4px;
+  line-height: 1;
 }
 
 .mascot-bubble-top {
