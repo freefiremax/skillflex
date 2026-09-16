@@ -94,6 +94,25 @@ export function MascotGuide() {
   const reduced = useReducedMotion()
   const [open, setOpen] = useState(false)
 
+  // Dragging state and position persistence
+  const [position, setPosition] = useState<{ x: number; y: number } | null>(() => {
+    try {
+      const saved = localStorage.getItem('skillflex_mascot_pos')
+      if (saved) return JSON.parse(saved)
+    } catch {}
+    return null
+  })
+
+  const [isDragging, setIsDragging] = useState(false)
+  const dragRef = useRef<{
+    startX: number
+    startY: number
+    initialLeft: number
+    initialTop: number
+    hasMoved: boolean
+  } | null>(null)
+
+  const preventClickRef = useRef(false)
   const wrapRef = useRef<HTMLDivElement>(null)
   const objectRef = useRef<HTMLObjectElement>(null)
 
@@ -104,21 +123,82 @@ export function MascotGuide() {
   else if (pathname === '/live') text = t('mascot.live_line')
   else if (!me) text = t('mascot.signed_out')
 
-  /* Only a student's bubble carries the two doors, so only a student's button is
-     a menu. Mentors, admins and the sign-in screen get one line of text. */
   const hasMenu = me?.role === 'student'
 
-  /**
-   * The owl is an `<object>` rather than an `<img>` for one reason: the file
-   * carries 22 `repeatCount="indefinite"` SMIL animations, and an `<img>` gives
-   * no handle on them. `pauseAnimations()` on the embedded document is the only
-   * way to honour prefers-reduced-motion without either inlining 288 KB into the
-   * bundle or shipping a second, static copy of the drawing.
-   *
-   * Cross-origin would block `contentDocument`; this is same-origin from
-   * `public/`, so it is readable. Wrapped anyway — a throw here would take the
-   * whole shell down, and a mascot is not worth that.
-   */
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (e.button !== 0) return
+    const el = wrapRef.current
+    if (!el) return
+
+    const rect = el.getBoundingClientRect()
+    dragRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      initialLeft: rect.left,
+      initialTop: rect.top,
+      hasMoved: false,
+    }
+
+    try {
+      ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+    } catch {}
+  }
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!dragRef.current) return
+    const dx = e.clientX - dragRef.current.startX
+    const dy = e.clientY - dragRef.current.startY
+
+    if (!dragRef.current.hasMoved && Math.hypot(dx, dy) > 5) {
+      dragRef.current.hasMoved = true
+      setIsDragging(true)
+    }
+
+    if (dragRef.current.hasMoved) {
+      const width = wrapRef.current?.offsetWidth || 70
+      const height = wrapRef.current?.offsetHeight || 70
+      const pad = 12
+
+      const nextX = Math.min(Math.max(pad, dragRef.current.initialLeft + dx), window.innerWidth - width - pad)
+      const nextY = Math.min(Math.max(pad, dragRef.current.initialTop + dy), window.innerHeight - height - pad)
+
+      setPosition({ x: nextX, y: nextY })
+    }
+  }
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    if (!dragRef.current) return
+    const moved = dragRef.current.hasMoved
+
+    try {
+      ;(e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId)
+    } catch {}
+
+    dragRef.current = null
+    setIsDragging(false)
+
+    if (moved) {
+      preventClickRef.current = true
+      setTimeout(() => {
+        preventClickRef.current = false
+      }, 120)
+
+      if (position) {
+        try {
+          localStorage.setItem('skillflex_mascot_pos', JSON.stringify(position))
+        } catch {}
+      }
+    }
+  }
+
+  const resetPosition = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setPosition(null)
+    try {
+      localStorage.removeItem('skillflex_mascot_pos')
+    } catch {}
+  }
+
   useEffect(() => {
     const el = objectRef.current
     if (!el) return
@@ -128,16 +208,14 @@ export function MascotGuide() {
         if (!doc?.pauseAnimations) return
         if (reduced) doc.pauseAnimations()
         else doc.unpauseAnimations()
-      } catch {
-        /* embedded document not readable — leave it animating */
-      }
+      } catch {}
     }
     apply()
     el.addEventListener('load', apply)
     return () => el.removeEventListener('load', apply)
   }, [reduced])
 
-  // Escape and outside-click close, carried over from the cat.
+  // Escape and outside-click close
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
@@ -152,39 +230,47 @@ export function MascotGuide() {
     }
   }, [open])
 
-  // A new page is a new thing to say, so the last page's bubble closes with it.
   useEffect(() => setOpen(false), [pathname])
 
-  /*
-   * Lottie, wired but not fired.
-   * ---------------------------------------------------------------------------
-   * `lottie-web` is declared in apps/web/package.json and the animation folder
-   * exists at apps/web/public/assets/lottie/. When a real .json lands there,
-   * delete the <object> below, uncomment this, and call it from an effect —
-   * `#mascot-container` is unchanged either way, so nothing else moves.
-   *
-   * The import is dynamic so that until that day the library is in no chunk:
-   * nothing references it at runtime, so Rollup never pulls it into the bundle.
-   *
-   * async function initLottie(container: HTMLElement, reduced: boolean) {
-   *   const lottie = (await import('lottie-web')).default
-   *   const anim = lottie.loadAnimation({
-   *     container,
-   *     renderer: 'svg',
-   *     loop: true,
-   *     autoplay: !reduced,
-   *     path: '/assets/lottie/angry-owl.json',
-   *   })
-   *   return () => anim.destroy()
-   * }
-   */
+  // Compute directional placement for speech bubble when dragged
+  const bubbleBelow = Boolean(position && position.y < 320)
+  const bubbleLeft = Boolean(position && position.x < 320)
 
   return (
-    <div ref={wrapRef} className={`pet-wrap${me ? '' : ' pet-wrap-bare'}`}>
+    <div
+      ref={wrapRef}
+      className={`pet-wrap${me ? '' : ' pet-wrap-bare'}${position ? ' pet-wrap-dragged' : ''}${
+        isDragging ? ' pet-wrap-dragging' : ''
+      }`}
+      style={
+        position
+          ? {
+              left: `${position.x}px`,
+              top: `${position.y}px`,
+            }
+          : undefined
+      }
+    >
       {open && (
-        <div className="pet-bubble mascot-bubble" role="dialog" aria-label={t('mascot.study_buddy')}>
-          <div className="mascot-bubble-top">
-            <div className="row" style={{ gap: '0.45rem' }}>
+        <div
+          className={`pet-bubble mascot-bubble${bubbleBelow ? ' mascot-bubble-below' : ''}${
+            bubbleLeft ? ' mascot-bubble-left' : ''
+          }`}
+          role="dialog"
+          aria-label={t('mascot.study_buddy')}
+        >
+          <div
+            className="mascot-bubble-top"
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerUp}
+            title="Drag to move buddy"
+          >
+            <div className="row" style={{ gap: '0.45rem', alignItems: 'center' }}>
+              <span className="mascot-drag-grip" aria-hidden>
+                ⋮⋮
+              </span>
               <span className="mascot-badge">{t('mascot.study_buddy')}</span>
               {me && (
                 <span className="buddy-status-pill">
@@ -192,14 +278,28 @@ export function MascotGuide() {
                 </span>
               )}
             </div>
-            <button
-              type="button"
-              className="mascot-bubble-close"
-              onClick={() => setOpen(false)}
-              aria-label={t('common.close')}
-            >
-              ✕
-            </button>
+            <div className="row" style={{ gap: '6px' }}>
+              {position && (
+                <button
+                  type="button"
+                  className="mascot-bubble-close"
+                  onClick={resetPosition}
+                  title="Snap back to default corner"
+                  aria-label="Snap back to default corner"
+                  style={{ fontSize: '11px', fontWeight: 800 }}
+                >
+                  ↩
+                </button>
+              )}
+              <button
+                type="button"
+                className="mascot-bubble-close"
+                onClick={() => setOpen(false)}
+                aria-label={t('common.close')}
+              >
+                ✕
+              </button>
+            </div>
           </div>
 
           <div className="mascot-speech-text">{text}</div>
@@ -246,7 +346,18 @@ export function MascotGuide() {
               : 'Your study buddy — what is this page?'
         }
         aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+        onClick={(e) => {
+          if (preventClickRef.current) {
+            e.preventDefault()
+            e.stopPropagation()
+            return
+          }
+          setOpen((v) => !v)
+        }}
       >
         <div className="mascot-pedestal">
           <div className="mascot-glow-ambient" />
