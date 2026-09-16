@@ -121,7 +121,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, [pathname])
 
   return (
-    <div className="theme-mint">
+    <div className="theme-lavender">
       <IosTabBar items={nav} className="nav-desktop" />
 
       <div className="shell">

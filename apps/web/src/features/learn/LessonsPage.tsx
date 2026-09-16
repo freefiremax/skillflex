@@ -88,7 +88,7 @@ export default function LessonsPage() {
           </div>
         </div>
 
-        <div style={{ minHeight: '280px', background: '#dceee6', overflow: 'hidden' }}>
+        <div style={{ minHeight: '280px', background: 'linear-gradient(145deg, #ede5fc, #ded0f7)', overflow: 'hidden' }}>
           <img
             src="/assets/real/hero-study.jpg"
             alt="Student studying with a laptop"
@@ -149,7 +149,7 @@ export default function LessonsPage() {
                               height: '140px',
                               borderRadius: '18px',
                               overflow: 'hidden',
-                              background: '#edf7f2',
+                              background: '#ede5fc',
                             }}
                           >
                             <img
@@ -178,7 +178,7 @@ export default function LessonsPage() {
                               </Link>
                               <span
                                 style={{
-                                  border: '1px solid #dcece5',
+                                  border: '1px solid var(--border)',
                                   color: 'var(--master-green-dark)',
                                   background: '#fff',
                                   borderRadius: '999px',
@@ -211,8 +211,8 @@ export default function LessonsPage() {
           overflow: 'hidden',
           display: 'grid',
           gridTemplateColumns: '1.1fr 0.9fr',
-          background: '#ddf4e9',
-          border: '1px solid #d4ede2',
+          background: 'linear-gradient(145deg, #ede5fc, #ded0f7)',
+          border: '1px solid var(--border-soft)',
           marginTop: '32px',
         }}
       >

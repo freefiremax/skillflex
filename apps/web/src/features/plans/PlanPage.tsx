@@ -68,8 +68,8 @@ export default function PlanPage() {
           {/* How this was made box from SkillFlex_Master */}
           <section
             style={{
-              background: '#dff3ea',
-              border: '1px solid #d6eee3',
+              background: 'linear-gradient(145deg, #ede5fc, #ded0f7)',
+              border: '1px solid var(--border-soft)',
               borderRadius: '22px',
               padding: '18px 20px',
               display: 'flex',
@@ -88,13 +88,13 @@ export default function PlanPage() {
                 placeItems: 'center',
                 fontSize: '22px',
                 flexShrink: 0,
-                boxShadow: '0 4px 12px rgba(30, 80, 60, 0.08)',
+                boxShadow: 'var(--shadow)',
               }}
             >
               💡
             </div>
             <div>
-              <b style={{ display: 'block', color: '#178a5c', fontSize: '15px', marginBottom: '4px', fontWeight: 800 }}>
+              <b style={{ display: 'block', color: 'var(--brand-deep)', fontSize: '15px', marginBottom: '4px', fontWeight: 800 }}>
                 HOW THIS WAS MADE
               </b>
               <span style={{ display: 'block', color: '#4f6075', fontSize: '14px', lineHeight: 1.45 }}>
@@ -122,7 +122,7 @@ export default function PlanPage() {
           <div
             style={{
               height: '8px',
-              background: '#dfe8e4',
+              background: 'var(--surface-sunken)',
               borderRadius: '99px',
               overflow: 'hidden',
               marginBottom: '18px',
@@ -131,7 +131,7 @@ export default function PlanPage() {
             <div
               style={{
                 height: '100%',
-                background: 'var(--master-green)',
+                background: 'linear-gradient(90deg, var(--cta-from), var(--cta-to))',
                 borderRadius: '99px',
                 width: `${pct}%`,
                 transition: 'width 0.3s ease',
@@ -148,13 +148,13 @@ export default function PlanPage() {
                 key={`${plan.id}-${i}`}
                 style={{
                   background: '#fff',
-                  border: '1px solid #edf3f0',
+                  border: '1px solid var(--border)',
                   borderRadius: '21px',
                   padding: '16px 18px',
                   display: 'flex',
                   gap: '14px',
                   alignItems: 'flex-start',
-                  boxShadow: '0 6px 18px rgba(41, 75, 59, 0.06)',
+                  boxShadow: 'var(--shadow)',
                   cursor: 'pointer',
                   transition: 'border-color 0.15s ease',
                 }}
@@ -208,18 +208,19 @@ export default function PlanPage() {
           {/* Motivation banner from SkillFlex_Master */}
           <div
             style={{
-              background: 'linear-gradient(90deg, #dff4e9, #edf8f4)',
+              background: 'linear-gradient(145deg, #ede5fc, #ded0f7)',
+              border: '1px solid var(--border-soft)',
               borderRadius: '20px',
               padding: '18px 20px',
               display: 'flex',
               alignItems: 'center',
               gap: '14px',
-              boxShadow: '0 4px 14px rgba(30, 80, 60, 0.06)',
+              boxShadow: 'var(--shadow)',
             }}
           >
             <div style={{ fontSize: '32px' }}>🌱</div>
             <div>
-              <b style={{ color: '#178e5f', fontSize: '16px' }}>Small steps. Big progress.</b>
+              <b style={{ color: 'var(--brand-deep)', fontSize: '16px' }}>Small steps. Big progress.</b>
               <span style={{ display: 'block', color: '#617084', fontSize: '14px', marginTop: '2px' }}>
                 Keep showing up!
               </span>

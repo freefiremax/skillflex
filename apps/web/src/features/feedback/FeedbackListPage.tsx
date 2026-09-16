@@ -82,7 +82,7 @@ export default function FeedbackListPage() {
             borderRadius: '18px',
             padding: '10px 16px',
             textAlign: 'center',
-            boxShadow: '0 4px 14px rgba(30, 80, 60, 0.08)',
+            boxShadow: 'var(--shadow)',
           }}
         >
           <b style={{ fontSize: '22px', display: 'block', color: 'var(--master-green-dark)' }}>4.0</b>
@@ -124,7 +124,8 @@ export default function FeedbackListPage() {
                       width: '42px',
                       height: '42px',
                       borderRadius: '50%',
-                      background: '#dcefe8',
+                      background: 'linear-gradient(145deg, #ede5fc, #ded0f7)',
+                      border: '1px solid var(--border)',
                       color: 'var(--master-green-dark)',
                       display: 'grid',
                       placeItems: 'center',
@@ -239,7 +240,7 @@ export default function FeedbackListPage() {
                             <div
                               style={{
                                 height: '100%',
-                                background: 'linear-gradient(90deg, #2dae79, #168d5d)',
+                                background: 'linear-gradient(90deg, var(--cta-from), var(--cta-to))',
                                 borderRadius: '8px',
                                 width: `${pct}%`,
                               }}
@@ -260,7 +261,7 @@ export default function FeedbackListPage() {
                     margin: '12px 0 10px',
                     padding: '14px 16px',
                     borderRadius: '15px',
-                    background: '#f3faf7',
+                    background: '#f1ebfa',
                     borderLeft: '4px solid var(--master-green-dark)',
                   }}
                 >
@@ -294,7 +295,7 @@ export default function FeedbackListPage() {
                     style={{
                       height: '44px',
                       borderRadius: '14px',
-                      border: '1px solid #cfe5dc',
+                      border: '1px solid var(--border)',
                       background: '#fff',
                       color: 'var(--master-ink)',
                       fontWeight: 700,
@@ -340,8 +341,8 @@ export default function FeedbackListPage() {
           marginTop: '18px',
           padding: '16px 20px',
           borderRadius: '20px',
-          background: '#ddf4e9',
-          border: '1px solid #d2ede1',
+          background: 'linear-gradient(145deg, #ede5fc, #ded0f7)',
+          border: '1px solid var(--border-soft)',
           display: 'flex',
           alignItems: 'center',
           gap: '14px',
