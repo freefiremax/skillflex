@@ -152,12 +152,14 @@ export default function AccountPage() {
               width: '62px',
               height: '62px',
               borderRadius: '20px',
-              background: 'linear-gradient(145deg, #d5f4e4, #9edabd)',
+              background: 'linear-gradient(145deg, #ede5fc, #d5c4f5)',
+              border: '1px solid var(--border)',
               display: 'grid',
               placeItems: 'center',
               fontSize: '28px',
               fontWeight: 850,
-              color: 'var(--master-green-dark)',
+              color: 'var(--brand-deep)',
+              boxShadow: 'var(--shadow)',
               flexShrink: 0,
             }}
           >
@@ -187,7 +189,7 @@ export default function AccountPage() {
             style={{
               marginTop: '14px',
               paddingTop: '12px',
-              borderTop: '1px solid #edf4f0',
+              borderTop: '1px solid var(--border)',
               color: 'var(--master-muted)',
               fontSize: '14px',
             }}
@@ -250,11 +252,11 @@ export default function AccountPage() {
                   <span
                     style={{
                       whiteSpace: 'nowrap',
-                      background: granted ? '#dff7eb' : '#fff',
-                      border: `1px solid ${granted ? '#bcebd3' : '#e5e7e8'}`,
+                      background: granted ? 'linear-gradient(145deg, #ede5fc, #ded0f7)' : '#fff',
+                      border: `1px solid ${granted ? 'var(--border)' : 'var(--border)'}`,
                       borderRadius: '16px',
                       padding: '6px 12px',
-                      color: granted ? 'var(--master-green-dark)' : '#59616c',
+                      color: granted ? 'var(--brand-deep)' : '#59616c',
                       fontSize: '12px',
                       fontWeight: 800,
                     }}

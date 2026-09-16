@@ -468,10 +468,11 @@ export default function MentorLivePage() {
               <div
                 style={{
                   marginTop: '16px',
-                  background: '#ddf5e9',
+                  background: 'linear-gradient(145deg, #ede5fc, #ded0f7)',
+                  border: '1px solid var(--border-soft)',
                   borderRadius: '16px',
                   padding: '16px',
-                  color: 'var(--master-green-dark)',
+                  color: 'var(--brand-deep)',
                   fontSize: '17px',
                   fontWeight: 800,
                   lineHeight: 1.35,
