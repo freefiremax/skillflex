@@ -119,6 +119,20 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'mascot.profile_line': 'Students read this before they pick you.',
     'mascot.lessons_line': 'Lectures, module by module. Watch one all the way through.',
     'mascot.live_line': 'Lectures happen at a time. Join live or catch the recording.',
+
+    // Plan Page
+    'plan.title': "This week's plan",
+    'plan.subtitle_1': 'Built from what your mentor actually wrote.',
+    'plan.subtitle_2': 'Every line traces back to real feedback.',
+    'plan.no_plan': 'No plan yet',
+    'plan.no_plan_sub': 'Your plan appears once a mentor reviews your work.',
+    'plan.how_made_title': 'HOW THIS WAS MADE',
+    'plan.how_made_desc_1': "Restructured from 1 piece of your mentor's feedback. No AI watched or scored your videos — it only reorganised what a human already told you.",
+    'plan.how_made_desc_plural': "Restructured from {count} pieces of your mentor's feedback. No AI watched or scored your videos — it only reorganised what a human already told you.",
+    'plan.week_of': 'WEEK OF {date}',
+    'plan.done_count': '{done}/{total} done',
+    'plan.motivation_title': 'Small steps. Big progress.',
+    'plan.motivation_sub': 'Keep showing up!',
   },
 
   hi: {
@@ -234,6 +248,20 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'mascot.profile_line': 'छात्र आपको चुनने से पहले यह प्रोफ़ाइल पढ़ते हैं।',
     'mascot.lessons_line': 'व्याख्यान, मॉड्यूल दर मॉड्यूल। पूरा ध्यान से देखें।',
     'mascot.live_line': 'लाइव सत्र समय पर होते हैं। सीधे जुड़ें या रिकॉर्डिंग देखें।',
+
+    // Plan Page
+    'plan.title': 'इस सप्ताह की योजना',
+    'plan.subtitle_1': 'आपके मेंटर के वास्तविक फीडबैक से निर्मित।',
+    'plan.subtitle_2': 'हर पंक्ति वास्तविक फीडबैक से जुड़ी है।',
+    'plan.no_plan': 'अभी कोई योजना नहीं है',
+    'plan.no_plan_sub': 'जब मेंटर आपके कार्य की समीक्षा करेंगे, तो आपकी योजना यहाँ दिखेगी।',
+    'plan.how_made_title': 'यह कैसे बनाया गया',
+    'plan.how_made_desc_1': 'आपके मेंटर के 1 फीडबैक के आधार पर संकलित। किसी एआई ने आपके वीडियो का मूल्यांकन नहीं किया — इसने केवल वही व्यवस्थित किया है जो आपके मेंटर ने कहा था।',
+    'plan.how_made_desc_plural': 'आपके मेंटर के {count} फीडबैक के आधार पर संकलित। किसी एआई ने आपके वीडियो का मूल्यांकन नहीं किया — इसने केवल वही व्यवस्थित किया है जो आपके मेंटर ने कहा था।',
+    'plan.week_of': 'सप्ताह: {date}',
+    'plan.done_count': '{done}/{total} पूर्ण',
+    'plan.motivation_title': 'छोटे कदम। बड़ी प्रगति।',
+    'plan.motivation_sub': 'प्रयास जारी रखें!',
   },
 
   mr: {
@@ -349,6 +377,20 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'mascot.profile_line': 'विद्यार्थी तुम्हाला निवडण्यापूर्वी ही माहिती वाचतात.',
     'mascot.lessons_line': 'व्याख्याने, मॉड्यूलनुसार. पूर्ण लक्षपूर्वक पहा.',
     'mascot.live_line': 'थेट वर्ग वेळेवर होतात. थेट सहभागी व्हा किंवा रेकॉर्डिंग पहा.',
+
+    // Plan Page
+    'plan.title': 'या आठवड्याची योजना',
+    'plan.subtitle_1': 'तुमच्या मार्गदर्शकांनी लिहिलेल्या प्रत्यक्ष अभिप्रायावर आधारित.',
+    'plan.subtitle_2': 'प्रत्येक बाब थेट खऱ्या अभिप्रायाशी जोडलेली आहे.',
+    'plan.no_plan': 'अद्याप कोणतीही योजना नाही',
+    'plan.no_plan_sub': 'मार्गदर्शकांनी तुमच्या कामाचे परीक्षण केल्यावर तुमची योजना येथे दिसेल.',
+    'plan.how_made_title': 'हे कसे तयार केले गेले',
+    'plan.how_made_desc_1': 'तुमच्या मार्गदर्शकांच्या १ अभिप्रायावरून पुनर्रचित. कोणत्याही AI ने तुमचे व्हिडिओ तपासले नाहीत — मानवी मार्गदर्शकाने सांगितलेल्या गोष्टींची ही केवळ मांडणी आहे.',
+    'plan.how_made_desc_plural': 'तुमच्या मार्गदर्शकांच्या {count} अभिप्रायांवरून पुनर्रचित. कोणत्याही AI ने तुमचे व्हिडिओ तपासले नाहीत — मानवी मार्गदर्शकाने सांगितलेल्या गोष्टींची ही केवळ मांडणी आहे.',
+    'plan.week_of': 'आठवडा: {date}',
+    'plan.done_count': '{done}/{total} पूर्ण',
+    'plan.motivation_title': 'लहान पावले. मोठी प्रगती.',
+    'plan.motivation_sub': 'सातत्य ठेवा!',
   },
 }
 
@@ -373,4 +415,89 @@ export function useTranslation() {
     setLanguage,
     t: (key: string) => t(key, language),
   }
+}
+
+const SKILL_TRANSLATIONS: Record<string, { hi: string; mr: string }> = {
+  'active listening': { hi: 'सक्रिय श्रवण', mr: 'लक्षपूर्वक ऐकणे' },
+  'structure': { hi: 'संरचना', mr: 'मांडणी' },
+  'clarity': { hi: 'स्पष्टता', mr: 'स्पष्टता' },
+  'vocabulary': { hi: 'शब्दसंग्रह', mr: 'शब्दभांडार' },
+  'confidence': { hi: 'आत्मविश्वास', mr: 'आत्मविश्वास' },
+  'eye contact': { hi: 'दृष्टि संपर्क', mr: 'नजरेचा संपर्क' },
+  'body language': { hi: 'शारीरिक हावभाव', mr: 'देहबोली' },
+}
+
+const TASK_TRANSLATIONS: Record<string, { hi: string; mr: string }> = {
+  'make your gd opening': { hi: 'अपना जीडी आरंभ प्रस्तुत करें', mr: 'तुमची जीडी सुरुवात सादर करा' },
+  'record your self-introduction': { hi: 'अपना आत्म-परिचय रिकॉर्ड करें', mr: 'तुमची स्वतःची ओळख रेकॉर्ड करा' },
+  'explain a technical concept simply': { hi: 'तकनीकी अवधारणा सरलता से समझाएं', mr: 'तांत्रिक संकल्पना सोप्या भाषेत सांगा' },
+  'answer: "tell me about yourself"': { hi: 'उत्तर दें: "अपने बारे में बताएं"', mr: 'उत्तर द्या: "तुमच्याबद्दल सांगा"' },
+}
+
+const NEXT_STEP_TRANSLATIONS: Record<string, { hi: string; mr: string }> = {
+  'ok': { hi: 'ठीक है', mr: 'ठीक आहे' },
+  'rerecord using a fixed 3-part structure: 1 line intro, 1 line strength, 1 line goal.': {
+    hi: 'निश्चित 3-भाग संरचना का उपयोग करके पुनः रिकॉर्ड करें: 1 पंक्ति परिचय, 1 पंक्ति क्षमता, 1 पंक्ति लक्ष्य।',
+    mr: 'निश्चित ३-भाग मांडणी वापरून पुन्हा रेकॉर्ड करा: १ ओळ परिचय, १ ओळ बलस्थान, १ ओळ ध्येय.',
+  },
+}
+
+export function translatePlanTitle(title: string, lang: Language = 'en'): string {
+  if (lang === 'en') return title
+  const trimmedLower = title.trim().toLowerCase()
+  if (NEXT_STEP_TRANSLATIONS[trimmedLower]) {
+    return NEXT_STEP_TRANSLATIONS[trimmedLower][lang] || title
+  }
+
+  // Match pattern: "Practise {skill} — record one 60-second take this week"
+  const match = title.match(/^Practise\s+(.+?)\s+—\s+record one 60-second take this week$/i)
+  if (match && match[1]) {
+    const rawSkill = match[1]
+    const skillKey = rawSkill.trim().toLowerCase()
+    const skillLocalized = SKILL_TRANSLATIONS[skillKey]?.[lang] || rawSkill
+    if (lang === 'hi') {
+      return `${skillLocalized} का अभ्यास करें — इस सप्ताह एक 60-सेकंड का टेक रिकॉर्ड करें`
+    }
+    if (lang === 'mr') {
+      return `${skillLocalized} चा सराव करा — या आठवड्यात ६० सेकंदांचा एक टेक रेकॉर्ड करा`
+    }
+  }
+  return title
+}
+
+export function translatePlanWhy(why: string, lang: Language = 'en'): string {
+  if (lang === 'en') return why
+
+  // Pattern 1: "{mentor} set this as your next step on \"{task}\""
+  const nextStepMatch = why.match(/^(.+?)\s+set this as your next step on\s+"([^"]+)"$/i)
+  if (nextStepMatch && nextStepMatch[1] && nextStepMatch[2]) {
+    const mentor = nextStepMatch[1]
+    const rawTask = nextStepMatch[2]
+    const taskLocalized = TASK_TRANSLATIONS[rawTask.toLowerCase()]?.[lang] || rawTask
+    if (lang === 'hi') {
+      return `${mentor} ने "${taskLocalized}" पर इसे आपके अगले कदम के रूप में निर्धारित किया`
+    }
+    if (lang === 'mr') {
+      return `${mentor} यांनी "${taskLocalized}" वर हे तुमचे पुढील पाऊल म्हणून सुचवले`
+    }
+  }
+
+  // Pattern 2: "{mentor} scored you {score}/{max} on {skill} in \"{task}\""
+  const scoreMatch = why.match(/^(.+?)\s+scored you\s+(\d+\/\d+)\s+on\s+(.+?)\s+in\s+"([^"]+)"$/i)
+  if (scoreMatch && scoreMatch[1] && scoreMatch[2] && scoreMatch[3] && scoreMatch[4]) {
+    const mentor = scoreMatch[1]
+    const score = scoreMatch[2]
+    const rawSkill = scoreMatch[3]
+    const rawTask = scoreMatch[4]
+    const skillLocalized = SKILL_TRANSLATIONS[rawSkill.toLowerCase()]?.[lang] || rawSkill
+    const taskLocalized = TASK_TRANSLATIONS[rawTask.toLowerCase()]?.[lang] || rawTask
+    if (lang === 'hi') {
+      return `${mentor} ने "${taskLocalized}" में ${skillLocalized} पर आपको ${score} अंक दिए`
+    }
+    if (lang === 'mr') {
+      return `${mentor} यांनी "${taskLocalized}" मधील ${skillLocalized} साठी तुम्हाला ${score} गुण दिले`
+    }
+  }
+
+  return why
 }

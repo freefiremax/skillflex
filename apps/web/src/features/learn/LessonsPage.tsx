@@ -211,8 +211,9 @@ export default function LessonsPage() {
           overflow: 'hidden',
           display: 'grid',
           gridTemplateColumns: '1.1fr 0.9fr',
-          background: 'linear-gradient(145deg, #ede5fc, #ded0f7)',
-          border: '1px solid var(--border-soft)',
+          background: 'linear-gradient(135deg, #ffffff 0%, #faf7fe 45%, #f2eafc 100%)',
+          border: '1px solid rgba(139, 92, 246, 0.18)',
+          boxShadow: '0 4px 20px rgba(124, 58, 237, 0.05), 0 1px 3px rgba(0, 0, 0, 0.03)',
           marginTop: '32px',
         }}
       >

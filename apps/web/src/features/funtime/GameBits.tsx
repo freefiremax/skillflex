@@ -56,32 +56,78 @@ export function react(kind: 'correct' | 'wrong' | 'round', avoid?: string) {
 /** Title, one line of scope, and the way back. No game is a dead end. */
 export function GameHeader({ title, blurb }: { title: string; blurb: string }) {
   return (
-    <div>
-      <Link to="/fun-time" className="back-link">
-        ← Fun Time
+    <div className="funtime-header">
+      <Link to="/fun-time" className="funtime-back-link">
+        ← Back to Fun Time
       </Link>
-      <h1>{title}</h1>
-      <p className="small">{blurb}</p>
+      <div>
+        <h1 className="funtime-title" style={{ fontSize: 'clamp(30px, 4vw, 42px)' }}>
+          {title}
+        </h1>
+        <p className="funtime-sub">{blurb}</p>
+      </div>
     </div>
   )
 }
 
 export function RoundHeader({ mode, index, total }: { mode: string; index: number; total: number }) {
+  const pct = Math.round(((index) / total) * 100)
   return (
-    <div className="row-between" style={{ marginBottom: '0.6rem' }}>
-      <span className="tiny faint">
-        {mode.toUpperCase()} · ROUND {index + 1} OF {total}
-      </span>
-      <span className="tiny faint mono">{(index / total) * 100}%</span>
+    <div className="game-progress-header">
+      <div className="row-between" style={{ alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span
+            style={{
+              padding: '4px 10px',
+              borderRadius: '99px',
+              fontSize: '11px',
+              fontWeight: 800,
+              letterSpacing: '0.05em',
+              textTransform: 'uppercase',
+              color: '#6028c7',
+              background: 'rgba(112, 68, 214, 0.1)',
+              border: '1px solid rgba(112, 68, 214, 0.15)',
+            }}
+          >
+            {mode}
+          </span>
+          <span style={{ fontSize: '13px', fontWeight: 700, color: '#475569' }}>
+            Round {index + 1} of {total}
+          </span>
+        </div>
+        <span style={{ fontSize: '13px', fontWeight: 750, color: 'var(--brand-deep)', fontFamily: 'monospace' }}>
+          {pct}%
+        </span>
+      </div>
+      <div className="game-progress-bar-bg">
+        <div className="game-progress-bar-fill" style={{ width: `${Math.max(pct, 5)}%` }} />
+      </div>
     </div>
   )
 }
 
 export function VerdictChip({ verdict }: { verdict: Verdict }) {
   return (
-    <Pill tone={verdict === 'correct' ? 'ok' : 'warn'}>
-      {verdict === 'correct' ? 'Right!' : 'Not quite'}
-    </Pill>
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '6px',
+        padding: '6px 14px',
+        borderRadius: '99px',
+        fontSize: '13px',
+        fontWeight: 800,
+        background:
+          verdict === 'correct'
+            ? 'linear-gradient(135deg, #dcfce7, #bbf7d0)'
+            : 'linear-gradient(135deg, #fee2e2, #fecaca)',
+        color: verdict === 'correct' ? '#047857' : '#b91c1c',
+        border: `1px solid ${verdict === 'correct' ? '#86efac' : '#fca5a5'}`,
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+      }}
+    >
+      {verdict === 'correct' ? '✓ Right!' : '✕ Not quite'}
+    </span>
   )
 }
 
@@ -102,23 +148,76 @@ export function RoundDone({
 }) {
   const perfect = score === total
   return (
-    <Card>
-      <div className="row-between" style={{ marginBottom: '0.4rem' }}>
-        <div className="strong">
-          Round done — {score}/{total}
-        </div>
-        <Pill tone={perfect ? 'ok' : 'default'}>{perfect ? 'Perfect' : 'Nice go'}</Pill>
+    <div className="game-glass-deck game-done-card">
+      <div className="game-done-trophy">
+        {perfect ? '🏆' : score > 0 ? '⭐' : '🌱'}
       </div>
-      <div className="small" style={{ marginBottom: '0.6rem' }}>
+
+      <h2 style={{ fontSize: '26px', fontWeight: 850, margin: '0 0 6px', color: '#1e1433' }}>
+        {perfect ? 'Perfect Round!' : 'Round Completed!'}
+      </h2>
+
+      <div
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '8px',
+          padding: '6px 16px',
+          borderRadius: '99px',
+          background: perfect ? 'rgba(16, 185, 129, 0.12)' : 'rgba(112, 68, 214, 0.1)',
+          border: `1px solid ${perfect ? 'rgba(16, 185, 129, 0.25)' : 'rgba(112, 68, 214, 0.2)'}`,
+          margin: '0 auto 16px',
+        }}
+      >
+        <span style={{ fontSize: '18px', fontWeight: 900, color: perfect ? '#059669' : 'var(--brand-deep)' }}>
+          {score} / {total} correct
+        </span>
+      </div>
+
+      <div style={{ fontSize: '15px', lineHeight: 1.5, color: '#526173', maxWidth: '480px', margin: '0 auto 24px' }}>
         {children}
       </div>
-      <button className="btn btn-block" type="button" onClick={onRestart}>
-        Play again
-      </button>
-      <Link to="/fun-time" className="btn btn-ghost btn-block" style={{ marginTop: '0.5rem' }}>
-        Pick another game
-      </Link>
-    </Card>
+
+      <div style={{ display: 'grid', gap: '10px', maxWidth: '320px', margin: '0 auto' }}>
+        <button
+          type="button"
+          onClick={onRestart}
+          style={{
+            padding: '14px 20px',
+            borderRadius: '16px',
+            fontWeight: 800,
+            fontSize: '15px',
+            color: '#fff',
+            background: 'linear-gradient(135deg, #8e65f3 0%, #683cd4 100%)',
+            border: '1px solid rgba(255, 255, 255, 0.3)',
+            boxShadow: '0 6px 20px rgba(104, 60, 212, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.4)',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+          }}
+        >
+          Play Again
+        </button>
+        <Link
+          to="/fun-time"
+          style={{
+            padding: '12px 20px',
+            borderRadius: '16px',
+            fontWeight: 700,
+            fontSize: '14px',
+            color: 'var(--brand-deep)',
+            background: 'rgba(255, 255, 255, 0.8)',
+            border: '1px solid rgba(112, 68, 214, 0.15)',
+            textDecoration: 'none',
+            display: 'block',
+            textAlign: 'center',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)',
+            transition: 'all 0.2s ease',
+          }}
+        >
+          Pick Another Game
+        </Link>
+      </div>
+    </div>
   )
 }
 
@@ -143,19 +242,29 @@ export function BattleSummaryStats() {
   const s = summary.data?.summary
   if (!s) return null
   return (
-    <div className="practice-stats">
-      <div className="practice-stat">
-        <b className="mono">{s.rounds}</b>
-        <span className="tiny faint">rounds played</span>
+    <div className="funtime-stats-deck">
+      <div className="funtime-stat-glass">
+        <div className="funtime-stat-icon">🎮</div>
+        <div className="funtime-stat-info">
+          <span className="funtime-stat-num">{s.rounds}</span>
+          <span className="funtime-stat-label">Rounds Played</span>
+        </div>
       </div>
-      <div className="practice-stat">
-        <b className="mono">{s.wins}</b>
-        <span className="tiny faint">perfect rounds</span>
+      <div className="funtime-stat-glass">
+        <div className="funtime-stat-icon">🏆</div>
+        <div className="funtime-stat-info">
+          <span className="funtime-stat-num">{s.wins}</span>
+          <span className="funtime-stat-label">Perfect Rounds</span>
+        </div>
       </div>
-      <div className="practice-stat">
-        <b className="mono">{s.best}</b>
-        <span className="tiny faint">best score</span>
+      <div className="funtime-stat-glass">
+        <div className="funtime-stat-icon">⚡</div>
+        <div className="funtime-stat-info">
+          <span className="funtime-stat-num">{s.best}</span>
+          <span className="funtime-stat-label">Best Score</span>
+        </div>
       </div>
     </div>
   )
 }
+

@@ -220,9 +220,10 @@ export function formatDuration(seconds: number): string {
   return `${m}:${String(s).padStart(2, '0')}`
 }
 
-export function formatDate(value: string | Date | null): string {
+export function formatDate(value: string | Date | null, lang: string = 'en'): string {
   if (!value) return '—'
-  return new Date(value).toLocaleDateString('en-IN', {
+  const locale = lang === 'hi' ? 'hi-IN' : lang === 'mr' ? 'mr-IN' : 'en-IN'
+  return new Date(value).toLocaleDateString(locale, {
     day: 'numeric',
     month: 'short',
     year: 'numeric',

@@ -53,10 +53,10 @@ export default function QuizGamePage() {
   }
 
   return (
-    <div className="stack">
+    <div className="funtime-container">
       <GameHeader
         title="Soft Skills Quiz"
-        blurb="Interview and group-discussion situations. Every option sounds reasonable — one works better than the rest."
+        blurb="Interview & group-discussion situations. Every option sounds reasonable — one works better than the rest."
       />
 
       {finished ? (
@@ -64,50 +64,111 @@ export default function QuizGamePage() {
           These are the soft skills interviews and group discussions actually test.
         </RoundDone>
       ) : (
-        <Card>
-          <RoundHeader mode="Soft skills" index={index} total={total} />
+        <div className="game-glass-deck">
+          <RoundHeader mode="Soft Skills" index={index} total={total} />
 
-          <div className="small strong" style={{ marginBottom: '0.7rem' }}>
-            {q.prompt}
+          <div className="game-clue-plate" style={{ textAlign: 'left', padding: '24px' }}>
+            <span
+              style={{
+                display: 'inline-block',
+                fontSize: '12px',
+                fontWeight: 800,
+                textTransform: 'uppercase',
+                color: '#b45309',
+                letterSpacing: '0.06em',
+                marginBottom: '8px',
+              }}
+            >
+              💡 Real Scenario
+            </span>
+            <div style={{ fontSize: '18px', fontWeight: 750, color: '#1e1433', lineHeight: 1.5 }}>
+              {q.prompt}
+            </div>
           </div>
 
-          <div className="stack-sm">
+          <div style={{ display: 'grid', gap: '8px' }}>
             {q.options.map((opt, i) => {
               const isAnswer = i === q.answerIndex
               const chosenThis = chosen === i
-              let cls = 'btn btn-block btn-ghost'
+              let stateClass = ''
               if (chosen !== null) {
-                if (isAnswer) cls = 'btn btn-block btn-primary'
-                else if (chosenThis) cls = 'btn btn-block'
+                if (isAnswer) stateClass = 'opt-correct'
+                else if (chosenThis) stateClass = 'opt-wrong'
               }
+              const letter = String.fromCharCode(65 + i)
               return (
                 <button
                   key={opt}
                   type="button"
-                  className={cls}
+                  className={`game-option-btn ${stateClass}`}
                   onClick={() => choose(i)}
                   disabled={chosen !== null}
                 >
-                  {opt}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <span
+                      style={{
+                        width: '28px',
+                        height: '28px',
+                        borderRadius: '50%',
+                        display: 'grid',
+                        placeItems: 'center',
+                        fontSize: '13px',
+                        fontWeight: 800,
+                        background: 'rgba(245, 158, 11, 0.12)',
+                        color: isAnswer && chosen !== null ? '#047857' : chosenThis ? '#b91c1c' : '#b45309',
+                      }}
+                    >
+                      {letter}
+                    </span>
+                    <span>{opt}</span>
+                  </div>
+                  {chosen !== null && (
+                    <span style={{ fontWeight: 800, fontSize: '16px' }}>
+                      {isAnswer ? '✓' : chosenThis ? '✕' : ''}
+                    </span>
+                  )}
                 </button>
               )
             })}
           </div>
 
           {chosen !== null && (
-            <div className="row-between" style={{ marginTop: '0.7rem' }}>
-              <div className="tiny faint" style={{ maxWidth: '70%' }}>
-                {chosen === q.answerIndex
-                  ? q.why
-                  : `The better pick is “${q.options[q.answerIndex]}”. ${q.why}`}
+            <div className="game-why-box">
+              <div style={{ fontSize: '14px', lineHeight: 1.45, color: '#334155', flex: 1 }}>
+                {chosen === q.answerIndex ? (
+                  <span>
+                    <strong style={{ color: '#047857' }}>Great choice! </strong>
+                    {q.why}
+                  </span>
+                ) : (
+                  <span>
+                    <strong style={{ color: '#b91c1c' }}>Better approach: </strong>
+                    “{q.options[q.answerIndex]}”. {q.why}
+                  </span>
+                )}
               </div>
-              <button className="btn btn-ghost btn-sm" type="button" onClick={next}>
+              <button
+                type="button"
+                onClick={next}
+                style={{
+                  padding: '11px 22px',
+                  borderRadius: '14px',
+                  fontWeight: 800,
+                  fontSize: '14px',
+                  color: '#fff',
+                  background: 'linear-gradient(135deg, #8e65f3, #683cd4)',
+                  border: 'none',
+                  boxShadow: '0 4px 14px rgba(104, 60, 212, 0.25)',
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                }}
+              >
                 {index + 1 >= total ? 'Finish round →' : 'Next →'}
               </button>
             </div>
           )}
           <ErrorNote error={log.error} />
-        </Card>
+        </div>
       )}
     </div>
   )

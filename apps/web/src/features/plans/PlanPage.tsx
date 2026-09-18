@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../../lib/api'
 import { Empty, ErrorNote, Loading, formatDate } from '../../components/ui'
+import { useTranslation, translatePlanTitle, translatePlanWhy } from '../../lib/i18n'
 
 interface PlanItem {
   title: string
@@ -23,6 +24,7 @@ interface PlanResponse {
 
 export default function PlanPage() {
   const queryClient = useQueryClient()
+  const { language, t } = useTranslation()
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['plan-current'],
@@ -49,33 +51,34 @@ export default function PlanPage() {
       {/* Title & Subtitle from SkillFlex_Master */}
       <div className="master-header">
         <h1 style={{ fontSize: 'clamp(36px, 4.5vw, 52px)', letterSpacing: '-2px', margin: '0 0 10px', fontWeight: 850 }}>
-          This week's plan
+          {t('plan.title')}
         </h1>
         <p className="master-lead" style={{ fontSize: '17px', color: '#59677b' }}>
-          Built from what your mentor actually wrote.<br />
-          Every line traces back to real feedback.
+          {t('plan.subtitle_1')}<br />
+          {t('plan.subtitle_2')}
         </p>
       </div>
 
       {!plan ? (
         <Empty
           icon="✓"
-          title="No plan yet"
-          body={data?.message ?? 'Your plan appears once a mentor reviews your work.'}
+          title={t('plan.no_plan')}
+          body={data?.message ?? t('plan.no_plan_sub')}
         />
       ) : (
         <>
-          {/* How this was made box from SkillFlex_Master */}
+          {/* How this was made box - less lavender, more white mixed pattern */}
           <section
             style={{
-              background: 'linear-gradient(145deg, #ede5fc, #ded0f7)',
-              border: '1px solid var(--border-soft)',
+              background: 'linear-gradient(135deg, #ffffff 0%, #faf7fe 45%, #f2eafc 100%)',
+              border: '1px solid rgba(139, 92, 246, 0.18)',
               borderRadius: '22px',
               padding: '18px 20px',
               display: 'flex',
               gap: '14px',
               alignItems: 'flex-start',
               marginBottom: '24px',
+              boxShadow: '0 4px 20px rgba(124, 58, 237, 0.05), 0 1px 3px rgba(0, 0, 0, 0.03)',
             }}
           >
             <div
@@ -83,23 +86,25 @@ export default function PlanPage() {
                 width: '42px',
                 height: '42px',
                 borderRadius: '50%',
-                background: '#fff',
+                background: 'linear-gradient(135deg, #ffffff, #f7f3ff)',
+                border: '1px solid rgba(139, 92, 246, 0.14)',
                 display: 'grid',
                 placeItems: 'center',
                 fontSize: '22px',
                 flexShrink: 0,
-                boxShadow: 'var(--shadow)',
+                boxShadow: '0 2px 8px rgba(124, 58, 237, 0.08)',
               }}
             >
               💡
             </div>
             <div>
               <b style={{ display: 'block', color: 'var(--brand-deep)', fontSize: '15px', marginBottom: '4px', fontWeight: 800 }}>
-                HOW THIS WAS MADE
+                {t('plan.how_made_title')}
               </b>
               <span style={{ display: 'block', color: '#4f6075', fontSize: '14px', lineHeight: 1.45 }}>
-                Restructured from {plan.sourceFeedbackIds.length} piece
-                {plan.sourceFeedbackIds.length === 1 ? '' : 's'} of your mentor's feedback. No AI watched or scored your videos — it only reorganised what a human already told you.
+                {plan.sourceFeedbackIds.length === 1
+                  ? t('plan.how_made_desc_1')
+                  : t('plan.how_made_desc_plural').replace('{count}', String(plan.sourceFeedbackIds.length))}
               </span>
             </div>
           </section>
@@ -115,8 +120,12 @@ export default function PlanPage() {
               margin: '0 2px 8px',
             }}
           >
-            <span>WEEK OF {formatDate(plan.weekOf).toUpperCase()}</span>
-            <span>{doneCount}/{totalCount} done</span>
+            <span>
+              {t('plan.week_of').replace('{date}', formatDate(plan.weekOf, language).toUpperCase())}
+            </span>
+            <span>
+              {t('plan.done_count').replace('{done}', String(doneCount)).replace('{total}', String(totalCount))}
+            </span>
           </div>
 
           <div
@@ -191,10 +200,10 @@ export default function PlanPage() {
                       textDecoration: item.done ? 'line-through' : 'none',
                     }}
                   >
-                    {item.title}
+                    {translatePlanTitle(item.title, language)}
                   </h3>
                   <p style={{ fontSize: '13px', lineHeight: 1.4, color: 'var(--master-muted)', margin: 0 }}>
-                    {item.why}
+                    {translatePlanWhy(item.why, language)}
                   </p>
                 </div>
 
@@ -205,24 +214,24 @@ export default function PlanPage() {
             ))}
           </section>
 
-          {/* Motivation banner from SkillFlex_Master */}
+          {/* Motivation banner from SkillFlex_Master - less lavender, more white mixed pattern */}
           <div
             style={{
-              background: 'linear-gradient(145deg, #ede5fc, #ded0f7)',
-              border: '1px solid var(--border-soft)',
+              background: 'linear-gradient(135deg, #ffffff 0%, #faf7fe 45%, #f2eafc 100%)',
+              border: '1px solid rgba(139, 92, 246, 0.18)',
               borderRadius: '20px',
               padding: '18px 20px',
               display: 'flex',
               alignItems: 'center',
               gap: '14px',
-              boxShadow: 'var(--shadow)',
+              boxShadow: '0 4px 20px rgba(124, 58, 237, 0.05), 0 1px 3px rgba(0, 0, 0, 0.03)',
             }}
           >
             <div style={{ fontSize: '32px' }}>🌱</div>
             <div>
-              <b style={{ color: 'var(--brand-deep)', fontSize: '16px' }}>Small steps. Big progress.</b>
+              <b style={{ color: 'var(--brand-deep)', fontSize: '16px' }}>{t('plan.motivation_title')}</b>
               <span style={{ display: 'block', color: '#617084', fontSize: '14px', marginTop: '2px' }}>
-                Keep showing up!
+                {t('plan.motivation_sub')}
               </span>
             </div>
           </div>

@@ -107,7 +107,7 @@ export default function SpeakGamePage() {
   }
 
   return (
-    <div className="stack">
+    <div className="funtime-container">
       <GameHeader
         title="Pronunciation Check"
         blurb="Say the word out loud. You'll see which syllable slipped — “recognisable or not”, never a score."
@@ -119,27 +119,72 @@ export default function SpeakGamePage() {
           a human ear is still what grades real work.
         </RoundDone>
       ) : (
-        <Card>
-          <RoundHeader mode="Say it" index={index} total={total} />
+        <div className="game-glass-deck">
+          <RoundHeader mode="Pronunciation" index={index} total={total} />
 
-          <div className="word-plate">
-            {word.spellingSyllables.map((syl, i) => (
-              <span
-                key={`${word.id}-${i}`}
-                className={
-                  verdict && 'syllableIndex' in verdict && verdict.syllableIndex === i
-                    ? 'syl syl-bad'
-                    : 'syl'
-                }
+          <div className="game-clue-plate" style={{ padding: '28px 20px' }}>
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                justifyContent: 'center',
+                alignItems: 'baseline',
+                gap: '4px',
+                fontSize: 'clamp(28px, 6vw, 42px)',
+                fontWeight: 850,
+                letterSpacing: '0.02em',
+                color: '#1e1433',
+                marginBottom: '14px',
+              }}
+            >
+              {word.spellingSyllables.map((syl, i) => (
+                <span
+                  key={`${word.id}-${i}`}
+                  style={{
+                    padding: '2px 8px',
+                    borderRadius: '8px',
+                    background:
+                      verdict && 'syllableIndex' in verdict && verdict.syllableIndex === i
+                        ? 'rgba(239, 68, 68, 0.15)'
+                        : 'transparent',
+                    color:
+                      verdict && 'syllableIndex' in verdict && verdict.syllableIndex === i
+                        ? '#dc2626'
+                        : 'inherit',
+                    textDecoration:
+                      verdict && 'syllableIndex' in verdict && verdict.syllableIndex === i
+                        ? 'underline wavy #dc2626'
+                        : 'none',
+                    textUnderlineOffset: '6px',
+                  }}
+                >
+                  {syl}
+                </span>
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <button
+                type="button"
+                onClick={() => speakWord(word.word)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '8px 18px',
+                  borderRadius: '99px',
+                  background: 'rgba(255, 255, 255, 0.85)',
+                  border: '1px solid rgba(14, 165, 233, 0.25)',
+                  color: '#0369a1',
+                  fontWeight: 750,
+                  fontSize: '13px',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+                  cursor: 'pointer',
+                }}
               >
-                {syl}
-              </span>
-            ))}
-          </div>
-          <div className="word-say">
-            <button className="btn btn-ghost btn-sm" type="button" onClick={() => speakWord(word.word)}>
-              ♪ Hear it
-            </button>
+                🔊 Hear correct pronunciation
+              </button>
+            </div>
           </div>
 
           {listen.state === 'unsupported' ? (
@@ -148,18 +193,40 @@ export default function SpeakGamePage() {
             </Alert>
           ) : (
             <button
-              className={`btn btn-block mic-btn ${listen.state === 'listening' ? 'btn-ghost' : 'btn-primary'}`}
               type="button"
               onClick={listen.state === 'listening' ? listen.stop : beginListening}
+              style={{
+                width: '100%',
+                padding: '18px 24px',
+                borderRadius: '20px',
+                fontWeight: 800,
+                fontSize: '16px',
+                color: listen.state === 'listening' ? 'var(--brand-deep)' : '#fff',
+                background:
+                  listen.state === 'listening'
+                    ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(243, 235, 254, 0.9))'
+                    : 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+                border: listen.state === 'listening' ? '2px solid #7044d6' : '1px solid rgba(255, 255, 255, 0.3)',
+                boxShadow:
+                  listen.state === 'listening'
+                    ? '0 0 0 6px rgba(112, 68, 214, 0.2), 0 8px 24px rgba(112, 68, 214, 0.25)'
+                    : '0 8px 24px rgba(2, 132, 199, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.4)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '10px',
+                transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+              }}
             >
               {listen.state === 'listening' ? (
                 <>
-                  <span className="rec-dot" /> Listening — say “{word.word}”
+                  <span className="rec-dot" /> Listening — Say “{word.word}” now
                 </>
               ) : verdict ? (
-                'Try again'
+                '🎙️ Tap to Try Again'
               ) : (
-                'Tap and say the word'
+                '🎙️ Tap and Say the Word'
               )}
             </button>
           )}
@@ -170,8 +237,8 @@ export default function SpeakGamePage() {
           {listen.state !== 'denied' && listen.error && <Alert tone="warn">{listen.error}</Alert>}
 
           {verdict && verdict.kind === 'no_speech' && (
-            <div style={{ marginTop: '0.7rem' }}>
-              <Alert tone="info">Didn’t catch anything — hold the phone closer and say it once.</Alert>
+            <div style={{ marginTop: '16px' }}>
+              <Alert tone="info">Didn’t catch anything — hold the microphone closer and speak clearly.</Alert>
               <button
                 className="btn btn-ghost btn-sm"
                 type="button"
@@ -182,16 +249,39 @@ export default function SpeakGamePage() {
               </button>
             </div>
           )}
+
           {verdict && verdict.kind !== 'no_speech' && (
-            <div className="row-between" style={{ marginTop: '0.7rem' }}>
-              <VerdictChip verdict={verdict.kind === 'clear' ? 'correct' : 'wrong'} />
-              <button className="btn btn-ghost btn-sm" type="button" onClick={next}>
+            <div className="game-why-box">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <VerdictChip verdict={verdict.kind === 'clear' ? 'correct' : 'wrong'} />
+                <span style={{ fontSize: '14px', color: '#475569' }}>
+                  {verdict.kind === 'clear'
+                    ? 'Clean pronunciation!'
+                    : 'A syllable drifted — check the red mark above.'}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={next}
+                style={{
+                  padding: '11px 22px',
+                  borderRadius: '14px',
+                  fontWeight: 800,
+                  fontSize: '14px',
+                  color: '#fff',
+                  background: 'linear-gradient(135deg, #8e65f3, #683cd4)',
+                  border: 'none',
+                  boxShadow: '0 4px 14px rgba(104, 60, 212, 0.25)',
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                }}
+              >
                 {index + 1 >= total ? 'Finish round →' : 'Next word →'}
               </button>
             </div>
           )}
           <ErrorNote error={log.error} />
-        </Card>
+        </div>
       )}
     </div>
   )
