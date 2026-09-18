@@ -2982,3 +2982,461 @@ a.pill:hover {
   transform: translateX(-22px);
 }
 
+/* ===========================================================================
+   Fun Time & Games — Enhanced Glassmorphic Design System
+   =========================================================================== */
+
+.funtime-container {
+  width: 100%;
+  max-width: 860px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.funtime-header {
+  margin-bottom: 4px;
+}
+
+.funtime-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 99px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--brand-deep);
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 12px rgba(112, 68, 214, 0.06);
+  text-decoration: none;
+  margin-bottom: 14px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.funtime-back-link:hover {
+  background: #ffffff;
+  transform: translateX(-3px);
+  box-shadow: 0 6px 16px rgba(112, 68, 214, 0.12);
+  color: var(--brand);
+}
+
+.funtime-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6028c7;
+  background: rgba(112, 68, 214, 0.08);
+  border: 1px solid rgba(112, 68, 214, 0.18);
+  margin-bottom: 12px;
+}
+
+.funtime-title {
+  font-size: clamp(34px, 4.5vw, 50px);
+  font-weight: 850;
+  letter-spacing: -1.5px;
+  line-height: 1.08;
+  margin: 0 0 10px;
+  color: #1e1433;
+}
+
+.funtime-sub {
+  font-size: 16px;
+  line-height: 1.5;
+  color: #556477;
+  margin: 0;
+  max-width: 620px;
+}
+
+/* Glass Stats Deck */
+.funtime-stats-deck {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+@media (max-width: 640px) {
+  .funtime-stats-deck {
+    grid-template-columns: 1fr;
+  }
+}
+
+.funtime-stat-glass {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.5) 100%);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.88);
+  border-radius: 22px;
+  padding: 18px 20px;
+  box-shadow: 0 8px 24px rgba(112, 68, 214, 0.06), inset 0 1px 1px rgba(255, 255, 255, 0.95);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.funtime-stat-glass:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(112, 68, 214, 0.1), inset 0 1px 1px #ffffff;
+}
+
+.funtime-stat-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 15px;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4px 14px rgba(112, 68, 214, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+}
+
+.funtime-stat-info {
+  display: flex;
+  flex-direction: column;
+}
+.funtime-stat-num {
+  font-size: 25px;
+  font-weight: 850;
+  color: #1e1433;
+  line-height: 1.1;
+}
+.funtime-stat-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+/* Glass Game Tiles Grid */
+.funtime-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+}
+@media (max-width: 640px) {
+  .funtime-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.funtime-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 26px;
+  padding: 24px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.78) 0%, rgba(255, 255, 255, 0.48) 100%);
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.88);
+  box-shadow: 0 12px 32px rgba(112, 68, 214, 0.07), inset 0 1px 1px rgba(255, 255, 255, 0.95);
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.funtime-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--card-accent, linear-gradient(90deg, #8e65f3, #683cd4));
+  opacity: 0.9;
+}
+.funtime-card::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at 50% 20%, var(--card-glow, rgba(142, 101, 243, 0.12)), transparent 70%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.funtime-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 42px rgba(112, 68, 214, 0.14), inset 0 1px 1px #ffffff;
+  border-color: rgba(255, 255, 255, 1);
+}
+.funtime-card:hover::after {
+  opacity: 1;
+}
+
+/* Card Themes */
+.funtime-card-spell {
+  --card-accent: linear-gradient(90deg, #9065f4, #6e3ad6);
+  --card-glow: rgba(142, 101, 243, 0.16);
+  --icon-bg: linear-gradient(135deg, #ede5fc, #dcd0f7);
+  --icon-color: #6b21a8;
+}
+.funtime-card-sentence {
+  --card-accent: linear-gradient(90deg, #10b981, #059669);
+  --card-glow: rgba(16, 185, 129, 0.16);
+  --icon-bg: linear-gradient(135deg, #dcfce7, #bbf7d0);
+  --icon-color: #047857;
+}
+.funtime-card-speak {
+  --card-accent: linear-gradient(90deg, #0284c7, #0369a1);
+  --card-glow: rgba(14, 165, 233, 0.16);
+  --icon-bg: linear-gradient(135deg, #e0f2fe, #bae6fd);
+  --icon-color: #0369a1;
+}
+.funtime-card-quiz {
+  --card-accent: linear-gradient(90deg, #f59e0b, #d97706);
+  --card-glow: rgba(245, 158, 11, 0.16);
+  --icon-bg: linear-gradient(135deg, #fef3c7, #fde68a);
+  --icon-color: #b45309;
+}
+
+.funtime-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.funtime-card-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  font-size: 26px;
+  background: var(--icon-bg, #ede5fc);
+  color: var(--icon-color, #6b21a8);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05), inset 0 1px 1px rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+}
+.funtime-card-badge {
+  font-size: 12px;
+  font-weight: 750;
+  padding: 5px 12px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  color: #64748b;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.funtime-card-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #1e1433;
+  margin: 0 0 8px;
+  letter-spacing: -0.5px;
+}
+.funtime-card-blurb {
+  font-size: 14px;
+  line-height: 1.45;
+  color: #556477;
+  margin: 0 0 20px;
+  flex: 1;
+}
+
+.funtime-card-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 14px;
+  border-top: 1px solid rgba(112, 68, 214, 0.08);
+  font-size: 14px;
+  font-weight: 750;
+  color: var(--brand-deep);
+}
+.funtime-card-cta-arrow {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 2px 8px rgba(112, 68, 214, 0.1);
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+.funtime-card:hover .funtime-card-cta-arrow {
+  transform: translateX(4px);
+  background: #ffffff;
+}
+
+/* Glass Notice Card */
+.funtime-notice {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.72) 0%, rgba(255, 255, 255, 0.45) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.88);
+  border-radius: 20px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 14px;
+  color: #64748b;
+  box-shadow: 0 6px 20px rgba(112, 68, 214, 0.04);
+}
+
+/* --- Gameplay Glass Deck --- */
+.game-glass-deck {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.52) 100%);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.88);
+  border-radius: 28px;
+  padding: 28px;
+  box-shadow: 0 16px 44px rgba(112, 68, 214, 0.09), inset 0 1px 1px #ffffff;
+  position: relative;
+  overflow: hidden;
+}
+@media (max-width: 600px) {
+  .game-glass-deck {
+    padding: 20px;
+    border-radius: 22px;
+  }
+}
+
+/* Glass Round Progress Header */
+.game-progress-header {
+  margin-bottom: 22px;
+}
+.game-progress-bar-bg {
+  width: 100%;
+  height: 8px;
+  border-radius: 99px;
+  background: rgba(112, 68, 214, 0.1);
+  overflow: hidden;
+  margin-top: 10px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+.game-progress-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #8e65f3, #683cd4);
+  transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 6px rgba(104, 60, 212, 0.35);
+}
+
+/* Glass Word Plate & Clue Blocks */
+.game-clue-plate {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(247, 243, 254, 0.85) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(139, 92, 246, 0.18);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 6px 20px rgba(112, 68, 214, 0.05), inset 0 1px 1px #ffffff;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.game-input-glass {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1.5px solid rgba(139, 92, 246, 0.25);
+  border-radius: 16px;
+  padding: 14px 18px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e1433;
+  width: 100%;
+  box-shadow: inset 0 2px 4px rgba(112, 68, 214, 0.06), 0 2px 8px rgba(0, 0, 0, 0.02);
+  outline: none;
+  transition: all 0.2s ease;
+}
+.game-input-glass:focus {
+  border-color: #7044d6;
+  box-shadow: inset 0 2px 4px rgba(112, 68, 214, 0.06), 0 0 0 3px rgba(112, 68, 214, 0.18);
+}
+
+/* Glass Option Buttons */
+.game-option-btn {
+  width: 100%;
+  text-align: left;
+  padding: 16px 20px;
+  border-radius: 18px;
+  font-size: 15px;
+  font-weight: 650;
+  color: #1e1433;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.65) 100%);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1.5px solid rgba(112, 68, 214, 0.12);
+  box-shadow: 0 4px 14px rgba(112, 68, 214, 0.05), inset 0 1px 0 #ffffff;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.game-option-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background: #ffffff;
+  border-color: rgba(112, 68, 214, 0.35);
+  box-shadow: 0 8px 22px rgba(112, 68, 214, 0.12), inset 0 1px 0 #ffffff;
+}
+.game-option-btn.opt-correct {
+  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+  border-color: #10b981;
+  color: #065f46;
+  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.2), inset 0 1px 0 #ffffff;
+}
+.game-option-btn.opt-wrong {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  border-color: #ef4444;
+  color: #991b1b;
+  box-shadow: 0 6px 18px rgba(239, 68, 68, 0.15), inset 0 1px 0 #ffffff;
+}
+
+/* Glass Debrief / Why Box */
+.game-why-box {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(246, 240, 254, 0.92) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 18px;
+  padding: 16px 20px;
+  box-shadow: 0 6px 20px rgba(112, 68, 214, 0.06), inset 0 1px 0 #ffffff;
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+@media (max-width: 600px) {
+  .game-why-box {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* Glass Round Done Deck */
+.game-done-card {
+  text-align: center;
+  padding: 36px 28px;
+}
+.game-done-trophy {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(243, 235, 254, 0.9));
+  border: 2px solid rgba(139, 92, 246, 0.25);
+  box-shadow: 0 12px 28px rgba(112, 68, 214, 0.15), inset 0 2px 2px #ffffff;
+  display: grid;
+  place-items: center;
+  font-size: 40px;
+  margin: 0 auto 18px;
+}
+
+

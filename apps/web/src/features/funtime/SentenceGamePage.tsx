@@ -57,10 +57,10 @@ export default function SentenceGamePage() {
   }
 
   return (
-    <div className="stack">
+    <div className="funtime-container">
       <GameHeader
         title="Sentence Quiz"
-        blurb="One word is missing. More than one option fits the gap — only one fits the sentence."
+        blurb="One word is missing. More than one option fits the gap — only one fits the full sentence."
       />
 
       {finished ? (
@@ -68,48 +68,111 @@ export default function SentenceGamePage() {
           Sentences are about choosing the word the whole sentence needs, not just a word that fits.
         </RoundDone>
       ) : (
-        <Card>
+        <div className="game-glass-deck">
           <RoundHeader mode="Sentences" index={index} total={total} />
 
-          <div className="small strong" style={{ marginBottom: '0.7rem' }}>
-            {q.sentence}
+          <div className="game-clue-plate" style={{ textAlign: 'left', padding: '24px' }}>
+            <span
+              style={{
+                display: 'inline-block',
+                fontSize: '12px',
+                fontWeight: 800,
+                textTransform: 'uppercase',
+                color: '#047857',
+                letterSpacing: '0.06em',
+                marginBottom: '8px',
+              }}
+            >
+              ✍️ Complete the Sentence
+            </span>
+            <div style={{ fontSize: '19px', fontWeight: 750, color: '#1e1433', lineHeight: 1.5 }}>
+              {q.sentence}
+            </div>
           </div>
 
-          <div className="stack-sm">
-            {options.map((opt) => {
+          <div style={{ display: 'grid', gap: '8px' }}>
+            {options.map((opt, i) => {
               const isAnswer = opt === q.answer
               const chosenThis = chosen === opt
-              let cls = 'btn btn-block btn-ghost'
+              let stateClass = ''
               if (chosen !== null) {
-                if (isAnswer) cls = 'btn btn-block btn-primary'
-                else if (chosenThis) cls = 'btn btn-block'
+                if (isAnswer) stateClass = 'opt-correct'
+                else if (chosenThis) stateClass = 'opt-wrong'
               }
+              const letter = String.fromCharCode(65 + i)
               return (
                 <button
                   key={opt}
                   type="button"
-                  className={cls}
+                  className={`game-option-btn ${stateClass}`}
                   onClick={() => choose(opt)}
                   disabled={chosen !== null}
                 >
-                  {opt}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <span
+                      style={{
+                        width: '28px',
+                        height: '28px',
+                        borderRadius: '50%',
+                        display: 'grid',
+                        placeItems: 'center',
+                        fontSize: '13px',
+                        fontWeight: 800,
+                        background: 'rgba(112, 68, 214, 0.08)',
+                        color: isAnswer && chosen !== null ? '#047857' : chosenThis ? '#b91c1c' : '#6b21a8',
+                      }}
+                    >
+                      {letter}
+                    </span>
+                    <span>{opt}</span>
+                  </div>
+                  {chosen !== null && (
+                    <span style={{ fontWeight: 800, fontSize: '16px' }}>
+                      {isAnswer ? '✓' : chosenThis ? '✕' : ''}
+                    </span>
+                  )}
                 </button>
               )
             })}
           </div>
 
           {chosen !== null && (
-            <div className="row-between" style={{ marginTop: '0.7rem' }}>
-              <div className="tiny faint" style={{ maxWidth: '70%' }}>
-                {chosen === q.answer ? q.why : `The answer is “${q.answer}”. ${q.why}`}
+            <div className="game-why-box">
+              <div style={{ fontSize: '14px', lineHeight: 1.45, color: '#334155', flex: 1 }}>
+                {chosen === q.answer ? (
+                  <span>
+                    <strong style={{ color: '#047857' }}>Spot on! </strong>
+                    {q.why}
+                  </span>
+                ) : (
+                  <span>
+                    <strong style={{ color: '#b91c1c' }}>Not quite. </strong>
+                    The answer is “{q.answer}”. {q.why}
+                  </span>
+                )}
               </div>
-              <button className="btn btn-ghost btn-sm" type="button" onClick={next}>
+              <button
+                type="button"
+                onClick={next}
+                style={{
+                  padding: '11px 22px',
+                  borderRadius: '14px',
+                  fontWeight: 800,
+                  fontSize: '14px',
+                  color: '#fff',
+                  background: 'linear-gradient(135deg, #8e65f3, #683cd4)',
+                  border: 'none',
+                  boxShadow: '0 4px 14px rgba(104, 60, 212, 0.25)',
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                }}
+              >
                 {index + 1 >= total ? 'Finish round →' : 'Next →'}
               </button>
             </div>
           )}
           <ErrorNote error={log.error} />
-        </Card>
+        </div>
       )}
     </div>
   )
