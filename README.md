@@ -1,53 +1,52 @@
 # SkillFlex
 
 <p align="center">
-  <strong>Human mentorship. Real practice. Measurable growth.</strong>
+  <strong>Learn. Practice. Get Human Feedback. Improve.</strong>
 </p>
 
 <p align="center">
-  A multilingual soft-skills mentorship platform for Indian engineering students — built around one simple idea:
-  <strong>students are assessed by people, not by AI.</strong>
+  A multilingual, human-first soft-skills mentorship platform built for college students.
 </p>
 
 <p align="center">
-  <a href="https://skillflex-avcoe.vercel.app">Live Demo</a>
+  <a href="https://skillflex-avcoe.vercel.app">🚀 Live Demo</a>
   ·
-  <a href="https://github.com/freefiremax/skillflex/issues">Issues</a>
+  <a href="https://github.com/freefiremax/skillflex">💻 Repository</a>
   ·
-  <a href="PROJECT_OVERVIEW.md">Project Overview</a>
-  ·
-  <a href="docs/data-model.md">Architecture</a>
+  <a href="PROJECT_OVERVIEW.md">📋 Project Overview</a>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Node.js-20%2B-339933?logo=node.js&logoColor=white" alt="Node.js">
-  <img src="https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=111" alt="React">
+  <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=111" alt="React 19">
   <img src="https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white" alt="TypeScript">
+  <img src="https://img.shields.io/badge/Vite-6-646CFF?logo=vite&logoColor=white" alt="Vite">
+  <img src="https://img.shields.io/badge/Node.js-20%2B-339933?logo=node.js&logoColor=white" alt="Node.js">
   <img src="https://img.shields.io/badge/Fastify-5-000000?logo=fastify&logoColor=white" alt="Fastify">
   <img src="https://img.shields.io/badge/Prisma-6-2D3748?logo=prisma&logoColor=white" alt="Prisma">
-  <img src="https://img.shields.io/badge/PostgreSQL-Supabase-3FCF8E?logo=postgresql&logoColor=white" alt="PostgreSQL">
-  <img src="https://img.shields.io/badge/Vercel-ready-000000?logo=vercel&logoColor=white" alt="Vercel">
+  <img src="https://img.shields.io/badge/PostgreSQL-3FCF8E?logo=postgresql&logoColor=white" alt="PostgreSQL">
 </p>
 
 ---
 
-## 🚀 What is SkillFlex?
+## 🎯 The Problem
 
-**SkillFlex** is a B2B2C soft-skills mentorship platform designed for college students.
+College students are often given soft-skills content, workshops, and generic assessments — but **learning content alone does not build communication skills**.
 
-It combines:
+A student may watch a lesson on interviews or presentations, but still have no practical way to:
 
-* multilingual learning
-* practical weekly assignments
-* browser-based video recording
-* human mentor assessment
-* personalized improvement plans
-* mentor switching
-* live lectures
-* pronunciation practice
-* college-level progress reporting
+* practise the skill repeatedly
+* receive individual feedback
+* understand exactly what to improve
+* work with a mentor who fits their language or learning style
+* track improvement through actual practice
 
-The core learning loop is:
+At the same time, automated AI scoring can turn complex human communication into a number without giving students meaningful human guidance.
+
+---
+
+# 💡 Our Solution — SkillFlex
+
+**SkillFlex turns soft-skills learning into a continuous practice and mentorship loop.**
 
 ```text
 Learn
@@ -58,182 +57,273 @@ Record
   ↓
 Submit
   ↓
-Human Feedback
+Human Mentor Review
   ↓
-Personalized Plan
+Structured Feedback
   ↓
-Improve
+Personalized Improvement Plan
   ↓
-Switch Mentor when needed
+Practice Again
 ```
 
-> **AI can organize feedback. It does not judge the student.**
+The core principle is simple:
+
+> **Students are assessed by people, not by AI.**
+
+AI can assist with product support and organize feedback-derived information, but it does **not** decide whether a student's communication performance is good or bad.
 
 ---
 
-## ✨ What makes SkillFlex different?
+# 🚀 Why SkillFlex?
 
-| Feature                   | SkillFlex                                                |
-| ------------------------- | -------------------------------------------------------- |
-| 👤 Human assessment       | Mentors review student submissions and provide feedback  |
-| 🌐 Multilingual           | English, Hindi and Marathi learning support              |
-| 🎥 Video practice         | Students record assignments directly in the browser      |
-| 🔁 Mentor switching       | Students can switch mentors without losing their history |
-| 🧠 Personalized plans     | Improvement plans are derived from human mentor feedback |
-| 🎤 Pronunciation practice | Browser-based syllable-level practice without scoring    |
-| 🏫 College-first model    | Colleges subscribe for student seats                     |
-| 🔒 Privacy-focused        | Student recordings remain private                        |
-
----
-
-## 🎬 Product Demo
-
-### Full Demo Video
-
-> **Replace the link below with your final demo video URL.**
-
-<p align="center">
-
-<a href="VIDEO_LINK_HERE">
-
-<img src="https://raw.githubusercontent.com/freefiremax/skillflex/main/apps/web/public/assets/master/lessons/hero-student.png" width="850" alt="Watch SkillFlex Demo">
-
-</a>
-
-</p>
-
-<p align="center">
-  <strong>▶ Watch the SkillFlex Demo</strong>
-</p>
+| Challenge                       | SkillFlex Approach                          |
+| ------------------------------- | ------------------------------------------- |
+| Passive video learning          | Converts lessons into practical assignments |
+| No individual feedback          | Human mentors review submissions            |
+| One mentor may not fit everyone | Students can switch mentors                 |
+| Language barriers               | English, Hindi & Marathi support            |
+| Generic improvement advice      | Feedback-derived weekly improvement plans   |
+| Difficult to practise speaking  | Browser-based recording                     |
+| Privacy concerns                | Student recordings remain private           |
+| Colleges lack visibility        | Aggregate cohort-level reporting            |
 
 ---
 
-## 🖥️ Product Preview
+# ✨ Key Features
 
-### Student Experience
+## 👨‍🎓 Student Experience
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/freefiremax/skillflex/main/apps/web/public/assets/master/lessons/hero-student.png" width="92%" alt="SkillFlex student experience">
-</p>
+### 📚 Multilingual Learning
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/freefiremax/skillflex/main/apps/web/public/assets/master/feedback/feedback-hero.png" width="45%" alt="SkillFlex mentor feedback">
-  <img src="https://raw.githubusercontent.com/freefiremax/skillflex/main/apps/web/public/assets/master/plan/plan-hero.png" width="45%" alt="SkillFlex personalized plan">
-</p>
+Students can access learning content in:
 
-### Mentor Experience
+* English
+* Hindi
+* Marathi
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/freefiremax/skillflex/main/apps/web/public/assets/master/mentor-queue/queue-hero.png" width="45%" alt="SkillFlex mentor queue">
-  <img src="https://raw.githubusercontent.com/freefiremax/skillflex/main/apps/web/public/assets/master/mentor-profile/mentor-profile.png" width="45%" alt="SkillFlex mentor profile">
-</p>
+The platform is designed around the learner's language preference rather than treating language as an afterthought.
 
-### Live Learning
+### 🎥 Practical Assignments
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/freefiremax/skillflex/main/apps/web/public/assets/master/live/live-hero.png" width="92%" alt="SkillFlex live learning">
-</p>
+Instead of only watching lessons, students complete practical assignments.
 
----
-
-# 🎯 Core Features
-
-## For Students
-
-* 📚 Multilingual lessons
-* 📝 Weekly task-based assignments
-* 🎥 Browser camera recording
-* 🔐 Private video submissions
-* 👤 Human mentor review
-* 💬 Detailed mentor feedback
-* 🧠 Personalized weekly plans
-* 🔄 Mentor discovery and switching
-* 🎥 Live lectures
-* ▶️ On-demand lecture recordings
-* 🎤 Pronunciation practice
-* 🤖 AI-powered product support
-
-## For Mentors
-
-* 📥 Review queue
-* 🎥 Student submission playback
-* 📊 Rubric-based assessment
-* 💬 Written feedback
-* 👤 Mentor profiles
-* 📅 Scheduling
-* 🔴 Live lecture management
-* 🧾 Student history
-
-## For Colleges
-
-* 🏫 College administration
-* 📊 Cohort-level reporting
-* 📈 Progress visibility
-* 👥 Student management
-* 🔒 Privacy-aware analytics
-* 🎯 Institutional skill-development tracking
-
----
-
-# 🧠 Human-First Assessment
-
-SkillFlex is intentionally designed so that **AI is not the evaluator**.
-
-A student's improvement plan is generated from actual mentor feedback.
+For example:
 
 ```text
-Student Submission
+Lesson:
+"How to introduce yourself"
+
         ↓
-Human Mentor Review
+
+Assignment:
+"Record your 60-second self-introduction"
+
         ↓
-Structured Feedback
+
+Human Mentor:
+Reviews the submission
+
         ↓
-Weekly Improvement Plan
+
+Student:
+Receives actionable feedback
 ```
 
-There is no AI-generated student score in this flow.
+### 🎬 Browser-Based Recording
 
-The pronunciation feature is also isolated from assessment:
+Students can record assignments directly from the browser using their device camera and microphone.
 
-* no score
-* no accuracy percentage
-* no mentor feedback creation
-* no influence on weekly plans
+No separate recording application is required.
 
-This keeps practice assistance separate from human assessment.
+### 👤 Human Mentor Assessment
+
+Mentors review student submissions using structured rubrics.
+
+Feedback can include:
+
+* rubric scores
+* strengths
+* written feedback
+* one recommended next step
+
+### 🔄 Mentor Switching
+
+Students are not permanently locked to one mentor.
+
+They can discover mentors based on:
+
+* language
+* skill focus
+* teaching preference
+
+If the relationship is not working, the student can switch mentors while retaining their learning history.
+
+### 🧠 Personalized Improvement Plans
+
+Weekly improvement plans are derived from **actual mentor feedback**.
+
+```text
+Human Feedback
+      ↓
+Identify Improvement Areas
+      ↓
+Generate Practice Tasks
+      ↓
+Student Practices
+```
+
+The system does not invent an AI assessment of the student.
+
+### 🎤 Pronunciation Practice
+
+SkillFlex also provides lightweight pronunciation practice using browser speech capabilities.
+
+This is intentionally separated from formal assessment.
+
+It does not:
+
+* generate student grades
+* create mentor feedback
+* influence mentor evaluations
+* affect institutional reporting
+
+### 🎥 Live Learning
+
+Mentors can conduct one-to-many live lectures.
+
+Students can:
+
+* discover lectures
+* register
+* attend
+* access recordings
+* resume recorded sessions
 
 ---
 
-# 🏗️ Architecture
+# 🏫 For Colleges
+
+SkillFlex follows a **B2B2C model**.
+
+```text
+              COLLEGE
+                 │
+          Provides access
+                 │
+                 ▼
+             STUDENTS
+                 │
+                 ▼
+        SkillFlex Platform
+                 │
+                 ▼
+             MENTORS
+```
+
+Colleges can use SkillFlex to support structured soft-skills development while students remain the primary users of the learning experience.
+
+### College capabilities
+
+* Student management
+* Cohort-level reporting
+* Participation visibility
+* Skill-development tracking
+* Lecture management
+* Aggregate progress insights
+
+Student recordings and private practice data are not exposed as ordinary college dashboard content.
+
+---
+
+# 🧑‍🏫 Mentor Experience
+
+Mentors receive a dedicated workflow for reviewing student work.
+
+```text
+Submission Queue
+       ↓
+Open Recording
+       ↓
+Evaluate Rubric
+       ↓
+Write Feedback
+       ↓
+Recommend Next Step
+```
+
+Mentors can manage their profile and coaching languages and participate in live learning sessions.
+
+---
+
+# 🏗️ System Architecture
 
 SkillFlex is built as a TypeScript monorepo.
 
 ```text
-                 ┌──────────────────────┐
-                 │    React + Vite      │
-                 │    Mobile-first PWA  │
-                 └──────────┬───────────┘
-                            │
-                            │ API
-                            ▼
-                 ┌──────────────────────┐
-                 │   Fastify API        │
-                 │   Node.js + TS       │
-                 └──────────┬───────────┘
-                            │
-                            ▼
-                 ┌──────────────────────┐
-                 │ Prisma ORM           │
-                 │ PostgreSQL           │
-                 │ Supabase             │
-                 └──────────┬───────────┘
-                            │
-                            ▼
-                 ┌──────────────────────┐
-                 │ Private Media Storage│
-                 │ Supabase Storage     │
-                 └──────────────────────┘
+┌──────────────────────────────┐
+│       React 19 + Vite        │
+│       Mobile-first PWA       │
+└──────────────┬───────────────┘
+               │
+               │ REST API
+               ▼
+┌──────────────────────────────┐
+│       Fastify API            │
+│       Node.js + TypeScript   │
+│       Zod + JWT              │
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│       Prisma ORM             │
+│       PostgreSQL              │
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│       Private Media Storage  │
+│       Signed Access          │
+└──────────────────────────────┘
 ```
+
+---
+
+# 🛠️ Technology Stack
+
+## Frontend
+
+* **React 19**
+* **Vite 6**
+* **TypeScript**
+* **React Router**
+* **TanStack Query**
+* **CSS**
+* Progressive Web App architecture
+
+## Backend
+
+* **Node.js 20+**
+* **Fastify 5**
+* **TypeScript**
+* **Zod**
+* **JWT**
+* **esbuild**
+
+## Database
+
+* **PostgreSQL**
+* **Prisma 6**
+* Supabase-compatible deployment
+
+## Media
+
+* Browser `MediaRecorder`
+* Private media storage
+* Signed upload/playback access
+
+## Deployment
+
+* Vercel
 
 ---
 
@@ -242,22 +332,22 @@ SkillFlex is built as a TypeScript monorepo.
 ```text
 skillflex/
 │
-├── api/
-│   └── server.mjs
-│
 ├── apps/
 │   ├── api/
 │   │   └── Fastify backend
 │   │
 │   └── web/
-│       └── React PWA
+│       └── React 19 frontend
 │
 ├── packages/
 │   ├── db/
 │   │   └── Prisma + database utilities
 │   │
 │   └── shared/
-│       └── Shared types + validation contracts
+│       └── Shared types + validation
+│
+├── api/
+│   └── Vercel API entry
 │
 ├── docs/
 │   ├── adr/
@@ -267,47 +357,121 @@ skillflex/
 ├── PROJECT_OVERVIEW.md
 ├── OVERALL_PROJECT_DETAILS.md
 ├── package.json
+├── package-lock.json
 └── vercel.json
 ```
 
 ---
 
-# 🛠️ Tech Stack
+# 🔐 Privacy by Design
 
-### Frontend
+Student recordings are treated as private learning data.
 
-* React 18
-* Vite 6
-* TypeScript
-* TanStack Query
-* React Router
-* CSS
-* Progressive Web App architecture
+The intended production media flow is:
 
-### Backend
+```text
+Student Browser
+      ↓
+Signed Upload
+      ↓
+Private Storage
+      ↓
+Protected Media
+      ↓
+Authorized Playback
+```
 
-* Node.js 20+
-* Fastify 5
-* TypeScript
-* Zod
-* JWT
-* esbuild
+Access to submission recordings is controlled around the student and assigned mentor relationship.
 
-### Database
+SkillFlex also includes consent and data-export functionality.
 
-* Prisma 6
-* PostgreSQL
-* Supabase
+---
 
-### Storage
+# 🧩 Core Product Workflow
 
-* Supabase Storage
-* Browser MediaRecorder
-* Signed upload / playback flow
+The main SkillFlex experience can be demonstrated in one continuous flow:
 
-### Deployment
+```text
+STUDENT
+   │
+   ▼
+Choose Lesson
+   │
+   ▼
+Watch Learning Content
+   │
+   ▼
+Open Assignment
+   │
+   ▼
+Record Response
+   │
+   ▼
+Submit
+   │
+   ▼
+MENTOR
+   │
+   ▼
+Review Recording
+   │
+   ▼
+Give Structured Feedback
+   │
+   ▼
+STUDENT
+   │
+   ▼
+View Feedback
+   │
+   ▼
+Follow Improvement Plan
+   │
+   ▼
+Practise Again
+```
 
-* Vercel
+This is the core vertical slice of the platform.
+
+---
+
+# 🧪 Demo Flow
+
+For a hackathon demonstration, the recommended journey is:
+
+### 1. Student
+
+Open a lesson and understand the task.
+
+### 2. Assignment
+
+Record a practical response directly in the browser.
+
+### 3. Submission
+
+Submit the recording for review.
+
+### 4. Mentor
+
+Open the submission from the mentor review queue.
+
+### 5. Human Evaluation
+
+Provide rubric-based feedback, strengths, and a next step.
+
+### 6. Student
+
+Return to the student dashboard and view the feedback.
+
+### 7. Improvement
+
+View the resulting improvement plan.
+
+### 8. Mentor Switching
+
+Explore the mentor directory and switch mentor if required.
+
+This demonstrates the **complete learning-feedback-improvement loop** instead of showing isolated screens.
 
 ---
 
@@ -315,97 +479,55 @@ skillflex/
 
 ## Requirements
 
-Make sure you have:
+Install:
 
 * Node.js 20+
+* npm 10+
 * PostgreSQL / Supabase
 * Git
 
-## 1. Clone the repository
+## Clone
 
 ```bash
 git clone https://github.com/freefiremax/skillflex.git
 cd skillflex
 ```
 
-## 2. Configure environment variables
+## Install dependencies
 
-Create your `.env` using the provided example:
+```bash
+npm install
+```
+
+## Configure environment
+
+Create your environment file using:
 
 ```bash
 cp .env.example .env
 ```
 
-Add your PostgreSQL connection string and required environment variables.
+Configure the required database, authentication, media, and application variables.
 
-## 3. Run setup
+## Database
 
 ```bash
-npm run setup
+npm run db:generate
+npm run db:push
+npm run db:seed
 ```
 
-This will:
-
-* install dependencies
-* create the environment file
-* generate Prisma Client
-* push the database schema
-* seed demo data
-
-## 4. Start the development server
+## Start development
 
 ```bash
 npm run dev
 ```
 
-Open:
+The development environment runs:
 
 ```text
-Web  → http://localhost:5173
-API  → http://localhost:4000
-Health → http://localhost:4000/api/health
-```
-
----
-
-# 🔑 Demo Accounts
-
-All seeded accounts use:
-
-```text
-password123
-```
-
-| Role           | Email                    | Purpose                     |
-| -------------- | ------------------------ | --------------------------- |
-| Student        | `rahul@student.avcoe.in` | Feedback + improvement plan |
-| Student        | `priya@student.avcoe.in` | Assignment recording flow   |
-| Mentor         | `anjali@skillflex.in`    | Mentor review queue         |
-| College Admin  | `tpo@avcoe.in`           | College dashboard           |
-| Platform Admin | `admin@skillflex.in`     | Platform provisioning       |
-
-### Recommended Demo Flow
-
-```text
-Priya
- ↓
-Record Assignment
- ↓
-Submit Video
- ↓
-Anjali — Mentor
- ↓
-Review Submission
- ↓
-Write Feedback
- ↓
-Priya
- ↓
-View Feedback
- ↓
-View Improvement Plan
- ↓
-Switch Mentor
+Frontend → http://localhost:5173
+API      → http://localhost:4000
 ```
 
 ---
@@ -416,13 +538,13 @@ Switch Mentor
 npm run dev
 ```
 
-Run frontend and backend together.
+Start frontend and backend together.
 
 ```bash
 npm run build
 ```
 
-Run typecheck and production builds.
+Typecheck and build the project.
 
 ```bash
 npm run typecheck
@@ -446,7 +568,7 @@ Apply the Prisma schema.
 npm run db:seed
 ```
 
-Seed demo data.
+Seed development/demo data.
 
 ```bash
 npm run db:studio
@@ -458,230 +580,136 @@ Open Prisma Studio.
 npm run db:reset
 ```
 
-Reset and reseed the local database.
-
-```bash
-npm run vercel-build
-```
-
-Build for Vercel deployment.
+Reset and reseed the database.
 
 ---
 
-# 🔐 Privacy & Data Design
+# 🌐 Live Demo
 
-SkillFlex treats student recordings as private data.
+**SkillFlex is available as a deployed web prototype:**
 
-### Student video
+👉 https://skillflex-avcoe.vercel.app
 
-In production, video does not need to travel through the main API server.
-
-```text
-Browser
-   ↓
-Signed Upload Ticket
-   ↓
-Supabase Storage
-   ↓
-Private Video
-   ↓
-Signed Playback
-```
-
-### College reporting
-
-College dashboards are designed around **aggregate information** rather than exposing student recordings.
-
-### Consent
-
-Video consent is versioned and withdrawal triggers retention handling.
-
-More details:
-
-📄 [DPDP Compliance Notes](docs/dpdp-compliance.md)
-
----
-
-# 🎤 Pronunciation Practice
-
-SkillFlex includes a lightweight browser pronunciation drill.
-
-The feature:
-
-* uses the browser speech engine
-* checks likely word/syllable issues
-* provides practice guidance
-* does not assign scores
-* does not create mentor feedback
-* does not influence improvement plans
-
-The current implementation is intentionally syllable-level rather than phoneme-level.
-
----
-
-# 🔄 Mentor Switching
-
-Mentorship is not meant to become a permanent lock-in.
-
-When a student changes mentors:
-
-```text
-Current Mentor
-      ↓
-Assignment Closed
-      ↓
-Switch Reason Recorded
-      ↓
-New Mentor Assigned
-      ↓
-Learning History Preserved
-```
-
-The previous mentorship relationship is retained rather than overwritten.
-
----
-
-# 🎥 Video Architecture
-
-Student assignments use the browser's native:
-
-```text
-MediaRecorder
-getUserMedia
-```
-
-Production uploads use private storage and signed access.
-
-This keeps large video payloads away from the main server request path and makes the system more practical for mobile users.
-
----
-
-# ☁️ Deployment
-
-SkillFlex is configured for deployment on **Vercel**.
-
-The production setup can combine:
-
-```text
-React SPA
-+
-Fastify API
-+
-Prisma
-+
-Supabase PostgreSQL
-+
-Supabase Storage
-```
-
-Important production variables include:
-
-```env
-MEDIA_PROVIDER=supabase
-NODE_ENV=production
-JWT_SECRET=your-secret
-SUPABASE_SERVICE_ROLE_KEY=server-only
-```
-
-Never expose the Supabase service-role key to the browser.
-
----
-
-# 🗺️ Current Status
-
-## P1 Vertical Slice
-
-```text
-Watch
-  ↓
-Record
-  ↓
-Human Feedback
-  ↓
-Derived Plan
-  ↓
-Switch Mentor
-```
-
-Current implementation includes:
-
-✅ Student experience
-✅ Mentor experience
-✅ College dashboard
-✅ Multilingual support
-✅ Assignment recording
-✅ Human feedback
-✅ Personalized plans
-✅ Mentor switching
-✅ Live lectures
-✅ Private media flow
-✅ Pronunciation practice
-✅ AI support surface
-✅ Consent & retention surface
-
----
-
-# 🚧 Planned Improvements
-
-* 1:1 mentoring sessions
-* Integrated video conferencing
-* Payments & invoicing
-* Email / push notifications
-* Automated testing
-* Curriculum authoring dashboard
-* More advanced pronunciation analysis
-* Human support ticketing
-* Additional media/CDN providers
+For the hackathon presentation, use the live deployment together with the repository to demonstrate both the **working product** and its **technical implementation**.
 
 ---
 
 # 📚 Documentation
 
-| Document                                              | Description                      |
-| ----------------------------------------------------- | -------------------------------- |
-| [Project Overview](PROJECT_OVERVIEW.md)               | Product and technical overview   |
-| [Overall Project Details](OVERALL_PROJECT_DETAILS.md) | Detailed project context         |
-| [Data Model](docs/data-model.md)                      | Database and product constraints |
-| [DPDP Notes](docs/dpdp-compliance.md)                 | Consent and retention design     |
-| [ADR 0001](docs/adr/0001-sqlite-dev-postgres-prod.md) | Database architecture decision   |
+| Document                                              | Purpose                                           |
+| ----------------------------------------------------- | ------------------------------------------------- |
+| [Project Overview](PROJECT_OVERVIEW.md)               | Product, architecture and implementation overview |
+| [Overall Project Details](OVERALL_PROJECT_DETAILS.md) | Detailed technical and product documentation      |
+| [Data Model](docs/data-model.md)                      | Database structure and relationships              |
+| [DPDP Notes](docs/dpdp-compliance.md)                 | Consent, privacy and retention design             |
+| [ADR](docs/adr/)                                      | Architecture decisions                            |
 
 ---
 
-# 🤝 Contributing
+# 🏆 Hackathon Highlights
 
-Contributions, issues and product feedback are welcome.
+### Problem
 
-Before submitting a pull request:
+Students need more than passive soft-skills content.
 
-```bash
-npm run typecheck
-npm run build
-```
+### Innovation
 
-For major product or architectural changes, opening an issue first is recommended.
+SkillFlex combines:
+
+**learning + practical recording + human mentorship + mentor switching + feedback-derived improvement.**
+
+### Technical Implementation
+
+A full-stack TypeScript monorepo with:
+
+* React 19
+* Vite
+* Fastify
+* Prisma
+* PostgreSQL
+* JWT authentication
+* Zod validation
+* private media handling
+* role-based experiences
+* multilingual learning
+* live lectures
+* PWA architecture
+
+### Human-Centered Design
+
+The platform deliberately keeps **human mentors at the center of assessment**.
+
+### Scalability Direction
+
+The architecture separates:
+
+* frontend
+* API
+* shared domain logic
+* database
+* media infrastructure
+
+This allows individual components to evolve independently as the platform grows.
 
 ---
 
-# 🌐 Live Project
+# 👥 Team
+
+**SkillFlex — Team**
+
+| Member                 | Role                                 |
+| ---------------------- | ------------------------------------ |
+| **Mohan Kakani**       | Developer / Product & Technical Lead |
+| **Vaishnavi Arote**    | UI/UX & Presentation                 |
+| **Ishpreetkaur Batra** | Speaker / Communication              |
+| **Kshitij Kalasane**   | Co-Developer                         |
+
+---
+
+# 🔮 Future Scope
+
+Potential next-stage development includes:
+
+* 1:1 mentor sessions
+* integrated video conferencing
+* payments and invoicing
+* notifications
+* curriculum authoring
+* expanded pronunciation analysis
+* automated testing
+* additional media providers
+* institutional integrations
+
+---
+
+# 📌 Project Status
+
+SkillFlex currently demonstrates a working end-to-end product direction covering:
+
+* ✅ Student experience
+* ✅ Mentor experience
+* ✅ College experience
+* ✅ Multilingual learning
+* ✅ Assignment recording
+* ✅ Human mentor feedback
+* ✅ Improvement plans
+* ✅ Mentor switching
+* ✅ Live lectures
+* ✅ Private media flow
+* ✅ Practice modules
+* ✅ Support assistant
+* ✅ Consent and data-export surfaces
+
+---
 
 <p align="center">
-
-### 🚀 SkillFlex
-
-**Human mentorship for real-world skills.**
-
-<a href="https://skillflex-avcoe.vercel.app">
-  <strong>Visit SkillFlex →</strong>
-</a>
-
+  <strong>SkillFlex</strong>
 </p>
 
----
-
 <p align="center">
-  Built to make soft-skills development more human, accessible and practical for students.
+  Human mentorship for real-world skills.
 </p>
 
 <p align="center">
-  <strong>Learn. Practice. Get human feedback. Improve.</strong>
+  <strong>Learn → Practice → Get Human Feedback → Improve</strong>
 </p>
