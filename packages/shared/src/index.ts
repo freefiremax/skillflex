@@ -1,4 +1,5 @@
 export * from './enums.js'
+export * from './mentor-health.js'
 export * from './contracts/index.js'
 export * from './pronunciation.js'
 export * from './levels.js'
