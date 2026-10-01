@@ -1,5 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
-import { LANGUAGE_LABELS, SWITCH_REASON_LABELS, type Language } from '@skillflex/shared'
+import {
+  LANGUAGE_LABELS,
+  MENTOR_HEALTH_LABELS,
+  SWITCH_REASON_LABELS,
+  type Language,
+  type MentorHealthStatus,
+} from '@skillflex/shared'
 import { api } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
 import { Alert, Card, Empty, ErrorNote, Loading, Meter, Pill } from '../../components/ui'
@@ -39,6 +45,40 @@ interface SubscriptionInfo {
   status: string
 }
 
+interface MentorHealthEntry {
+  mentorId: string
+  name: string
+  metrics: {
+    activeStudents: number
+    maxActiveStudents: number
+    pendingReviews: number
+    avgReviewDelayHours: number | null
+    oldestPendingHours: number | null
+  }
+  status: MentorHealthStatus
+  reasons: string[]
+  recommendation: string
+}
+
+interface MentorHealthResponse {
+  mentors: MentorHealthEntry[]
+  note: string
+}
+
+const STATUS_TONE: Record<MentorHealthStatus, 'ok' | 'warn' | 'danger'> = {
+  healthy: 'ok',
+  watch: 'warn',
+  overloaded: 'danger',
+}
+
+/** "—", "18h", "3 days". Mirrors the server-side formatter. */
+function fmtHours(hours: number | null): string {
+  if (hours == null) return '—'
+  const h = Math.round(hours)
+  if (h < 48) return `${h}h`
+  return `${Math.round(h / 24)} days`
+}
+
 export default function AdminPage() {
   const { me } = useAuth()
 
@@ -62,15 +102,117 @@ export default function AdminPage() {
     enabled: !isPlatform,
   })
 
+  const health = useQuery({
+    queryKey: ['mentor-health'],
+    queryFn: () => api.get<MentorHealthResponse>('/mentorship/health'),
+    enabled: isPlatform,
+  })
+
   if (isPlatform) {
+    const mentors = health.data?.mentors ?? []
+    const counts = {
+      overloaded: mentors.filter((m) => m.status === 'overloaded').length,
+      watch: mentors.filter((m) => m.status === 'watch').length,
+      healthy: mentors.filter((m) => m.status === 'healthy').length,
+    }
     return (
       <div className="stack">
-        <h1>Platform admin</h1>
+        <div>
+          <h1>Mentor load</h1>
+          <p className="small">
+            Who is stretched, and why — so you can step in before students feel it. Detection only:
+            nothing here changes an assignment on its own.
+          </p>
+        </div>
+
+        <ErrorNote error={health.error} />
+
+        {health.isLoading ? (
+          <Loading rows={3} />
+        ) : mentors.length === 0 ? (
+          <Empty
+            icon="☺"
+            title="No mentors yet"
+            body="Mentor load appears once mentors are onboarded."
+          />
+        ) : (
+          <>
+            <div className="row" style={{ gap: '0.5rem' }}>
+              <Card className="card-tight grow">
+                <div className="tiny faint">OVERLOADED</div>
+                <div className="strong mono" style={{ fontSize: '1.25rem' }}>
+                  {counts.overloaded}
+                </div>
+              </Card>
+              <Card className="card-tight grow">
+                <div className="tiny faint">WATCH</div>
+                <div className="strong mono" style={{ fontSize: '1.25rem' }}>{counts.watch}</div>
+              </Card>
+              <Card className="card-tight grow">
+                <div className="tiny faint">HEALTHY</div>
+                <div className="strong mono" style={{ fontSize: '1.25rem' }}>{counts.healthy}</div>
+              </Card>
+            </div>
+
+            <div className="stack-sm">
+              {mentors.map((m) => (
+                <Card key={m.mentorId} accent={m.status === 'overloaded'}>
+                  <div className="row-between">
+                    <div className="strong">{m.name}</div>
+                    <Pill tone={STATUS_TONE[m.status]}>{MENTOR_HEALTH_LABELS[m.status]}</Pill>
+                  </div>
+
+                  <div style={{ marginTop: '0.5rem' }}>
+                    <div className="row-between tiny" style={{ marginBottom: 3 }}>
+                      <span className="dim">Students</span>
+                      <span className="mono strong">
+                        {m.metrics.activeStudents} / {m.metrics.maxActiveStudents}
+                      </span>
+                    </div>
+                    <Meter value={m.metrics.activeStudents} max={m.metrics.maxActiveStudents} />
+                  </div>
+
+                  <div className="row" style={{ gap: '0.5rem', marginTop: '0.5rem' }}>
+                    <div className="grow">
+                      <div className="tiny faint">PENDING</div>
+                      <div className="mono strong">{m.metrics.pendingReviews}</div>
+                    </div>
+                    <div className="grow">
+                      <div className="tiny faint">AVG TURNAROUND</div>
+                      <div className="mono strong">{fmtHours(m.metrics.avgReviewDelayHours)}</div>
+                    </div>
+                    <div className="grow">
+                      <div className="tiny faint">OLDEST WAITING</div>
+                      <div className="mono strong">{fmtHours(m.metrics.oldestPendingHours)}</div>
+                    </div>
+                  </div>
+
+                  {m.reasons.length > 0 && (
+                    <ul className="small" style={{ margin: '0.5rem 0 0', paddingLeft: '1.1rem' }}>
+                      {m.reasons.map((reason, i) => (
+                        <li key={i}>{reason}</li>
+                      ))}
+                    </ul>
+                  )}
+
+                  {m.status !== 'healthy' && (
+                    <div className="tiny dim" style={{ marginTop: '0.5rem' }}>
+                      {m.recommendation}
+                    </div>
+                  )}
+                </Card>
+              ))}
+            </div>
+
+            {health.data?.note && <Alert tone="info">{health.data.note}</Alert>}
+          </>
+        )}
+
         <Alert tone="info">
-          Signed in as platform admin. Provisioning colleges and authoring curriculum runs through
-          the API (<span className="mono">POST /api/orgs</span>,{' '}
+          Provisioning colleges and authoring curriculum run through the API (
+          <span className="mono">POST /api/orgs</span>,{' '}
           <span className="mono">POST /api/curriculum/tracks</span>) — there's no console screen for
-          it in this build.
+          those in this build.
         </Alert>
       </div>
     )
