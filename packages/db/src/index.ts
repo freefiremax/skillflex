@@ -43,17 +43,16 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 function createClient() {
   const isCloudflare = Boolean(process.env.CLOUDFLARE || process.env.WORKER || process.env.CF_PAGES)
-  let options: ConstructorParameters<typeof PrismaClient>[0] = {
+  const options: Record<string, unknown> = {
     log: process.env.NODE_ENV === 'production' ? ['error'] : ['warn', 'error'],
   }
 
   if (isCloudflare && process.env.DATABASE_URL) {
     const pool = new Pool({ connectionString: process.env.DATABASE_URL })
-    const adapter = new PrismaPg(pool)
-    options = { ...options, adapter }
+    options.adapter = new PrismaPg(pool)
   }
 
-  return new PrismaClient(options).$extends({
+  return new PrismaClient(options as any).$extends({
     query: {
       /**
        * Retry operations that never made it to the database.
@@ -69,7 +68,7 @@ function createClient() {
        * the same schedule, which is how a thundering herd survives its own
        * retry.
        */
-      async $allOperations({ args, query }) {
+      async $allOperations({ args, query }: { args: any; query: (args: any) => Promise<any> }) {
         for (let attempt = 0; ; attempt += 1) {
           try {
             return await query(args)
