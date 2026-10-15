@@ -1,4 +1,6 @@
 import { PrismaClient } from '@prisma/client'
+import { Pool } from 'pg'
+import { PrismaPg } from '@prisma/adapter-pg'
 
 export * from '@prisma/client'
 
@@ -40,9 +42,18 @@ const BACKOFF_MS = [200, 700]
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 function createClient() {
-  return new PrismaClient({
+  const isCloudflare = Boolean(process.env.CLOUDFLARE || process.env.WORKER || process.env.CF_PAGES)
+  let options: ConstructorParameters<typeof PrismaClient>[0] = {
     log: process.env.NODE_ENV === 'production' ? ['error'] : ['warn', 'error'],
-  }).$extends({
+  }
+
+  if (isCloudflare && process.env.DATABASE_URL) {
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL })
+    const adapter = new PrismaPg(pool)
+    options = { ...options, adapter }
+  }
+
+  return new PrismaClient(options).$extends({
     query: {
       /**
        * Retry operations that never made it to the database.

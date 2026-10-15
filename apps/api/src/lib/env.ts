@@ -26,8 +26,8 @@ function findEnvFile(): string | undefined {
   return undefined
 }
 
-// On Vercel the platform injects env vars directly and there is no .env to find.
-if (!process.env.VERCEL) {
+// On Vercel or Cloudflare the platform injects env vars directly and there is no .env to find.
+if (!process.env.VERCEL && !process.env.CLOUDFLARE && !process.env.CF_PAGES && !process.env.WORKER) {
   const envFile = findEnvFile()
   if (envFile) dotenv.config({ path: envFile })
 }
@@ -74,7 +74,8 @@ const envSchema = z.object({
 function normaliseNodeEnv(raw: string | undefined): 'development' | 'test' | 'production' {
   if (raw === 'development' || raw === 'test' || raw === 'production') return raw
   // Being deployed is the strongest signal available about which way to guess.
-  const fallback = process.env.VERCEL ? 'production' : 'development'
+  const isCloud = process.env.VERCEL || process.env.CLOUDFLARE || process.env.CF_PAGES || process.env.WORKER
+  const fallback = isCloud ? 'production' : 'development'
   if (raw !== undefined) {
     console.warn(`[env] NODE_ENV="${raw}" is not a known value — treating it as "${fallback}".`)
   }
@@ -130,36 +131,60 @@ function scrubPlaceholders(source: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   return out
 }
 
-const parsed = envSchema
-  .superRefine((value, ctx) => {
-    // Fail at boot rather than on the first upload, which is where a missing
-    // key would otherwise surface — long after the deploy looked healthy.
-    if (value.MEDIA_PROVIDER !== 'supabase') return
-    for (const key of ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY'] as const) {
-      if (!value[key]) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: [key],
-          message: `${key} is required when MEDIA_PROVIDER=supabase`,
-        })
+let cachedEnv: z.infer<typeof envSchema> | undefined
+
+export function loadEnv(extra?: Record<string, unknown>): z.infer<typeof envSchema> {
+  if (extra) {
+    for (const [key, value] of Object.entries(extra)) {
+      if (typeof value === 'string' && value.length > 0) {
+        process.env[key] = value
       }
     }
-  })
-  .safeParse(scrubPlaceholders({ ...process.env, NODE_ENV: normaliseNodeEnv(process.env.NODE_ENV) }))
+  }
 
-if (!parsed.success) {
-  const detail = parsed.error.issues
-    .map((issue) => `   - ${issue.path.join('.')}: ${issue.message}`)
-    .join('\n')
-  // Throw, don't process.exit(1): on Vercel the exit code is swallowed and all
-  // you get is an opaque FUNCTION_INVOCATION_FAILED with no reason attached.
-  throw new Error(
-    `Invalid environment configuration:\n${detail}\n\nCopy .env.example to .env and fill it in.`,
-  )
+  const parsed = envSchema
+    .superRefine((value, ctx) => {
+      // Fail at boot rather than on the first upload, which is where a missing
+      // key would otherwise surface — long after the deploy looked healthy.
+      if (value.MEDIA_PROVIDER !== 'supabase') return
+      for (const key of ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY'] as const) {
+        if (!value[key]) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: [key],
+            message: `${key} is required when MEDIA_PROVIDER=supabase`,
+          })
+        }
+      }
+    })
+    .safeParse(scrubPlaceholders({ ...process.env, NODE_ENV: normaliseNodeEnv(process.env.NODE_ENV) }))
+
+  if (!parsed.success) {
+    const detail = parsed.error.issues
+      .map((issue) => `   - ${issue.path.join('.')}: ${issue.message}`)
+      .join('\n')
+    // Throw, don't process.exit(1): on Vercel/Cloudflare the exit code is swallowed
+    throw new Error(
+      `Invalid environment configuration:\n${detail}\n\nCopy .env.example to .env and fill it in.`,
+    )
+  }
+
+  cachedEnv = parsed.data
+  return cachedEnv
 }
 
-export const env = parsed.data
-export const isProd = env.NODE_ENV === 'production'
+export const env: z.infer<typeof envSchema> = new Proxy({} as z.infer<typeof envSchema>, {
+  get(_target, prop: string) {
+    if (!cachedEnv) {
+      loadEnv()
+    }
+    return (cachedEnv as any)[prop]
+  },
+})
 
-/** True inside a Vercel serverless function: read-only FS, no long-lived timers. */
-export const isServerless = Boolean(process.env.VERCEL)
+export const isProd = Boolean(process.env.NODE_ENV === 'production')
+
+/** True inside a Vercel or Cloudflare serverless function: read-only FS, no long-lived timers. */
+export const isServerless = Boolean(
+  process.env.VERCEL || process.env.CLOUDFLARE || process.env.CF_PAGES || process.env.WORKER,
+)

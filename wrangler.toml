@@ -1,0 +1,19 @@
+name = "skillflex"
+main = "apps/api/src/cloudflare.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "./apps/web/dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+
+[triggers]
+crons = ["0 3 * * *"]
+
+[vars]
+NODE_ENV = "production"
+MEDIA_PROVIDER = "supabase"
+SUPABASE_STORAGE_BUCKET = "submissions"
+SUPPORT_LLM_BASE_URL = "https://api.groq.com/openai/v1"
+SUPPORT_LLM_MODEL = "llama-3.3-70b-versatile"
