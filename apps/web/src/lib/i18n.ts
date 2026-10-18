@@ -101,6 +101,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'home.switch_mentor_desc': 'Not the right fit? Switch anytime at ₹0 cost. All history kept.',
     'home.switch_mentor_btn': 'Switch Mentor',
     'home.switch_mentor_choose': 'Pick a Mentor',
+    'home.switch_mentor_guarantee': '₹0 · 100% History Kept',
     'home.quote': 'Learn at your pace, in your language.',
 
     // Live Page
@@ -236,6 +237,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'home.switch_mentor_desc': 'सही तालमेल नहीं? ₹0 में कभी भी बदलें। सारा फीडबैक सुरक्षित रहेगा।',
     'home.switch_mentor_btn': 'मेंटर बदलें',
     'home.switch_mentor_choose': 'मेंटर चुनें',
+    'home.switch_mentor_guarantee': '₹0 · 100% इतिहास सुरक्षित',
     'home.quote': 'अपनी गति से सीखें, अपनी भाषा में।',
 
     // Live Page
@@ -371,6 +373,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'home.switch_mentor_desc': 'योग्य वाटत नाही? ₹० मध्ये कधीही बदला. सर्व अभिप्राय कायम राहील.',
     'home.switch_mentor_btn': 'मार्गदर्शक बदला',
     'home.switch_mentor_choose': 'मार्गदर्शक निवडा',
+    'home.switch_mentor_guarantee': '₹० · १००% इतिहास कायम',
     'home.quote': 'तुमच्या गतीने शिका, तुमच्या भाषेत.',
 
     // Live Page

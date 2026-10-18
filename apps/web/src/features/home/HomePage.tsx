@@ -141,65 +141,46 @@ export default function HomePage() {
         <div className="home-hero-body">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', minWidth: 0, width: '100%', alignSelf: 'stretch', justifyContent: 'space-between' }}>
             {/* The exact red box area: Switch Mentor Highlight Box */}
-            <div
-              style={{
-                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(239, 246, 255, 0.92) 100%)',
-                border: '1.5px solid #93c5fd',
-                borderRadius: '18px',
-                padding: '12px 16px',
-                boxShadow: '0 4px 16px rgba(37, 99, 235, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '8px',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ fontSize: '15px' }}>🔄</span>
-                  <span style={{ fontSize: '11px', fontWeight: 850, letterSpacing: '0.6px', color: '#1d4ed8', textTransform: 'uppercase' }}>
-                    {t('home.switch_mentor_badge')}
-                  </span>
+            <div className="home-switch-mentor-box">
+              <div className="home-switch-mentor-header">
+                <div className="home-switch-mentor-tag">
+                  <span aria-hidden>🔄</span>
+                  <span>{t('home.switch_mentor_badge')}</span>
                 </div>
-                <span style={{ fontSize: '11px', fontWeight: 800, background: '#dbeafe', color: '#1e40af', padding: '2px 8px', borderRadius: '999px' }}>
-                  ₹0 · 100% History
+                <span className="home-switch-mentor-guarantee">
+                  {t('home.switch_mentor_guarantee')}
                 </span>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
-                <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{ fontSize: '15px', fontWeight: 850, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <div className="home-switch-mentor-main">
+                <div className="home-switch-mentor-info">
+                  <div className="home-switch-mentor-name">
                     {myMentor.data?.mentor ? (
                       <>👨‍🏫 {myMentor.data.mentor.name}</>
                     ) : (
                       <>👨‍🏫 {t('home.switch_mentor_choose')}</>
                     )}
                   </div>
-                  <div style={{ fontSize: '12px', color: '#64748b', lineHeight: 1.35, marginTop: '2px' }}>
+                  <div className="home-switch-mentor-desc">
                     {t('home.switch_mentor_desc')}
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                <div className="home-switch-mentor-actions">
                   <button
                     type="button"
-                    className="btn btn-primary btn-sm"
-                    style={{
-                      padding: '8px 14px',
-                      fontSize: '13px',
-                      fontWeight: 800,
-                      background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
-                      boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)',
-                    }}
+                    className="home-switch-mentor-btn"
                     onClick={() => navigate('/mentor/browse')}
                   >
-                    🔄 {t('home.switch_mentor_btn')} →
+                    <span>🔄 {t('home.switch_mentor_btn')}</span>
+                    <span aria-hidden>→</span>
                   </button>
                   <button
                     type="button"
-                    className="btn btn-ghost btn-sm"
-                    style={{ padding: '8px 10px', fontSize: '13px' }}
+                    className="home-switch-mentor-info-btn"
                     onClick={() => navigate('/mentor')}
                     title="Mentor details"
+                    aria-label="Mentor details"
                   >
                     ℹ️
                   </button>

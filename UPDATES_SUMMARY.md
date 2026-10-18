@@ -125,6 +125,21 @@ This document provides a detailed breakdown of all updates, bug fixes, database 
 - **Changes**:
   - Added `.wrangler/` and `.wrangler-dryrun/` to prevent Cloudflare build cache artifacts from being tracked.
 
+#### 14. Student Home: Switch Mentor Hero Integration & Mobile Blending
+- **Files Modified**:
+  - [`apps/web/src/features/home/HomePage.tsx`](file:///c:/Users/Adwait/OneDrive/Desktop/claude%20wala/skillflex/apps/web/src/features/home/HomePage.tsx)
+  - [`apps/web/src/styles/global.css`](file:///c:/Users/Adwait/OneDrive/Desktop/claude%20wala/skillflex/apps/web/src/styles/global.css)
+  - [`apps/web/src/lib/i18n.ts`](file:///c:/Users/Adwait/OneDrive/Desktop/claude%20wala/skillflex/apps/web/src/lib/i18n.ts)
+- **UI & Mobile Improvements**:
+  - **Visual Integration**: Replaced generic blue colors with the app's signature dreamy lavender glassmorphism aesthetic (`rgba(148, 108, 245, 0.32)` borders, frosted violet radial glow, sleek purple pill button `linear-gradient(135deg, #7044d6, #582db5)`).
+  - **Hero Placement**: Occupies the previously empty gap between the greeting underline (`.home-rule`) and the quote box (`.home-quote`), balancing the layout with the right-hand mascot note.
+  - **Mobile Viewport Optimization (< 640px & < 540px)**:
+    - Automatically shifts `.home-hero-body` into a vertical column on screens below 640px, giving the Switch Mentor card 100% full width instead of being squeezed into a narrow strip.
+    - Card internals (`.home-switch-mentor-main`) cleanly stack on narrow devices (< 540px) with full-width finger-friendly buttons (`min-height: 40px`).
+    - Decorative mascot note and art adjust neatly on tablets and conceal on extra-narrow phones (< 480px) to give immediate prominence to learning actions.
+  - **Multilingual Localization**:
+    - Added guarantee pills (`₹0 · 100% History Kept` / `₹0 · 100% इतिहास सुरक्षित` / `₹० · १००% इतिहास कायम`) across English, Hindi, and Marathi.
+
 ---
 
 ## 3. Git Deployment Tracking
