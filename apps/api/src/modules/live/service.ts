@@ -7,7 +7,7 @@ import {
   type LiveClassStatus,
 } from '@skillflex/shared'
 import { HttpError } from '../../lib/auth.js'
-import { mediaProvider } from '../../lib/media.js'
+import { playableUrl } from '../../lib/media.js'
 
 /**
  * The subset of a LiveClass every serializer here needs. Written as a structural
@@ -97,30 +97,32 @@ export function joinability(cls: ClassRow): {
 /**
  * A playable URL for a published recording.
  *
- * Mirrors curriculum's pickAsset(): trust the stored playbackUrl first (it is
- * what /media/:id/complete wrote, already signed for private buckets), and fall
- * back to deriving one from externalId for the local dev provider.
+ * Same rule as curriculum's pickAsset() and submissions: ask playableUrl(),
+ * never trust the stored column. For providers that sign it is null by design.
  */
-function recordingUrl(media: {
+async function recordingUrl(media: {
+  provider: string
   status: string
   playbackUrl: string | null
   externalId: string | null
   deletedAt: Date | null
-} | null): string | null {
+  retentionUntil: Date | null
+} | null): Promise<string | null> {
   if (!media || media.deletedAt || media.status !== 'ready') return null
-  if (media.playbackUrl) return media.playbackUrl
-  return media.externalId ? mediaProvider.playbackUrlFor(media.externalId) : null
+  return playableUrl(media)
 }
 
 /** Shape sent to students for a lecture in a list or on its own page. */
-export function serializeClass(
+export async function serializeClass(
   cls: ClassRow & {
     mentor: MentorRow
     recordingMedia?: {
+      provider: string
       status: string
       playbackUrl: string | null
       externalId: string | null
       deletedAt: Date | null
+      retentionUntil: Date | null
       durationSeconds: number | null
     } | null
     _count?: { registrations: number }
@@ -143,7 +145,7 @@ export function serializeClass(
     cls.recordingPublishedAt && media && !media.deletedAt && media.status === 'ready',
   )
   /** And this is the second: null here means the player shows "unavailable". */
-  const recordingPlaybackUrl = hasRecording ? recordingUrl(media) : null
+  const recordingPlaybackUrl = hasRecording ? await recordingUrl(media) : null
 
   return {
     id: cls.id,

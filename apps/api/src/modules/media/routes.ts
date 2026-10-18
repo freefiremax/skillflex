@@ -3,7 +3,7 @@ import { prisma } from '@skillflex/db'
 import { z } from 'zod'
 import { MEDIA_KINDS, SUBMISSION_RETENTION_DAYS } from '@skillflex/shared'
 import { badRequest, currentUser, forbidden, notFound, requireAuth } from '../../lib/auth.js'
-import { mediaProvider } from '../../lib/media.js'
+import { mediaProvider, persistablePlaybackUrl, playableUrl } from '../../lib/media.js'
 
 /**
  * A student practice clip is capped at two minutes; a recorded lecture is hours.
@@ -28,25 +28,6 @@ const completeMediaSchema = z.object({
   durationSeconds: z.number().int().min(1).max(MAX_DURATION_SECONDS).optional(),
 })
 
-/** A signed link must never outlive the video it points at. */
-const MAX_PLAYBACK_TTL_SECONDS = 365 * 24 * 60 * 60
-
-function playbackTtlSeconds(retentionUntil: Date | null): number {
-  if (!retentionUntil) return MAX_PLAYBACK_TTL_SECONDS
-  const remaining = Math.floor((retentionUntil.getTime() - Date.now()) / 1000)
-  return Math.min(MAX_PLAYBACK_TTL_SECONDS, Math.max(60, remaining))
-}
-
-/**
- * A playable URL for an asset: signed when the provider keeps objects private
- * (Supabase), plain otherwise (local dev).
- */
-async function resolvePlaybackUrl(externalId: string, retentionUntil: Date | null): Promise<string> {
-  return mediaProvider.signedPlaybackUrl
-    ? mediaProvider.signedPlaybackUrl(externalId, playbackTtlSeconds(retentionUntil))
-    : mediaProvider.playbackUrlFor(externalId)
-}
-
 /**
  * Media lifecycle: reserve -> upload -> mark ready.
  *
@@ -54,6 +35,11 @@ async function resolvePlaybackUrl(externalId: string, retentionUntil: Date | nul
  * and PUTs straight to the storage provider, then calls /:id/complete. The
  * direct upload route below exists only because the local dev provider has
  * nowhere else to put the file.
+ *
+ * `playbackUrl` in every response is minted fresh by playableUrl(). What gets
+ * *stored* is a separate question: providers that sign persist null, because a
+ * signed URL outlives nothing and dies in a week. Reading these routes back
+ * calls playableUrl() again, so the client never notices.
  */
 export async function mediaRoutes(app: FastifyInstance) {
   /** Step 1: reserve a MediaAsset row and get somewhere to upload to. */
@@ -169,13 +155,13 @@ export async function mediaRoutes(app: FastifyInstance) {
     if (media.ownerUserId !== user.sub) throw forbidden('Not your upload')
     if (!media.externalId) throw badRequest('This asset has no upload ticket', 'NO_TICKET')
 
-    const playbackUrl = await resolvePlaybackUrl(media.externalId, media.retentionUntil)
+    const playbackUrl = await playableUrl({ ...media, provider: mediaProvider.name })
 
     const updated = await prisma.mediaAsset.update({
       where: { id },
       data: {
         status: 'ready',
-        playbackUrl,
+        playbackUrl: persistablePlaybackUrl(playbackUrl),
         ...(body.sizeBytes ? { sizeBytes: body.sizeBytes } : {}),
         ...(body.durationSeconds ? { durationSeconds: body.durationSeconds } : {}),
       },
@@ -185,7 +171,8 @@ export async function mediaRoutes(app: FastifyInstance) {
       ok: true,
       mediaId: updated.id,
       status: updated.status,
-      playbackUrl: updated.playbackUrl,
+      // The freshly minted link, not the (null) column — the browser needs one now.
+      playbackUrl,
     })
   })
 
@@ -199,7 +186,7 @@ export async function mediaRoutes(app: FastifyInstance) {
       id: media.id,
       status: media.status,
       kind: media.kind,
-      playbackUrl: media.playbackUrl,
+      playbackUrl: await playableUrl(media),
       durationSeconds: media.durationSeconds,
       retentionUntil: media.retentionUntil,
     }
@@ -222,14 +209,18 @@ export async function mediaRoutes(app: FastifyInstance) {
     const media = await prisma.mediaAsset.findFirst({ where: { externalId: body.externalId } })
     if (!media) throw notFound('Unknown asset')
 
+    // A provider-supplied URL is only meaningful for providers that do not
+    // sign; R2 and Supabase mint their own, so ignore anything sent here.
     const playbackUrl =
-      body.playbackUrl ?? (await resolvePlaybackUrl(body.externalId, media.retentionUntil))
+      mediaProvider.signedPlaybackUrl || !body.playbackUrl
+        ? await playableUrl(media)
+        : body.playbackUrl
 
     await prisma.mediaAsset.update({
       where: { id: media.id },
       data: {
         status: body.status === 'failed' ? 'failed' : 'ready',
-        playbackUrl,
+        playbackUrl: persistablePlaybackUrl(playbackUrl),
         ...(body.durationSeconds ? { durationSeconds: body.durationSeconds } : {}),
         ...(body.sizeBytes ? { sizeBytes: body.sizeBytes } : {}),
       },

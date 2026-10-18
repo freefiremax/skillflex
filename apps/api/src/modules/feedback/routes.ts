@@ -11,6 +11,7 @@ import {
   notFound,
   requireRole,
 } from '../../lib/auth.js'
+import { playableUrl } from '../../lib/media.js'
 import { currentMentorFor } from '../mentorship/service.js'
 
 /**
@@ -95,24 +96,28 @@ export async function feedbackRoutes(app: FastifyInstance) {
     })
 
     return {
-      feedback: feedback.map((f) => ({
-        id: f.id,
-        at: f.createdAt,
-        mentor: f.mentor.user.name,
-        assignment: f.submission.assignment.title,
-        assignmentId: f.submission.assignmentId,
-        lesson: {
-          id: f.submission.assignment.lesson.id,
-          title: f.submission.assignment.lesson.title,
-        },
-        submissionId: f.submissionId,
-        playbackUrl: f.submission.media?.playbackUrl ?? null,
-        rubric: readObjectList<RubricCriterion>(f.submission.assignment.rubric),
-        rubricScores: readRecord(f.rubricScores),
-        freeform: f.freeform,
-        strengths: f.strengths,
-        nextStep: f.nextStep,
-      })),
+      feedback: await Promise.all(
+        feedback.map(async (f) => ({
+          id: f.id,
+          at: f.createdAt,
+          mentor: f.mentor.user.name,
+          assignment: f.submission.assignment.title,
+          assignmentId: f.submission.assignmentId,
+          lesson: {
+            id: f.submission.assignment.lesson.id,
+            title: f.submission.assignment.lesson.title,
+          },
+          submissionId: f.submissionId,
+          playbackUrl: f.submission.media
+            ? await playableUrl(f.submission.media)
+            : null,
+          rubric: readObjectList<RubricCriterion>(f.submission.assignment.rubric),
+          rubricScores: readRecord(f.rubricScores),
+          freeform: f.freeform,
+          strengths: f.strengths,
+          nextStep: f.nextStep,
+        })),
+      ),
     }
   })
 
@@ -138,7 +143,9 @@ export async function feedbackRoutes(app: FastifyInstance) {
       at: feedback.createdAt,
       mentor: feedback.mentor.user.name,
       assignment: feedback.submission.assignment.title,
-      playbackUrl: feedback.submission.media?.playbackUrl ?? null,
+      playbackUrl: feedback.submission.media
+        ? await playableUrl(feedback.submission.media)
+        : null,
       rubric: readObjectList<RubricCriterion>(feedback.submission.assignment.rubric),
       rubricScores: readRecord(feedback.rubricScores),
       freeform: feedback.freeform,
