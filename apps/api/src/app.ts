@@ -120,7 +120,7 @@ export async function buildApp() {
     if (status >= 500) {
       request.log.error({ err: error }, 'unhandled error')
       return reply.code(500).send({
-        error: { message: 'Something broke on our side', code: 'INTERNAL' },
+        error: { message: error.message || 'Something broke on our side', code: 'INTERNAL' },
       })
     }
 

@@ -86,7 +86,8 @@ export async function liveRoutes(app: FastifyInstance) {
       .filter((c) => effectiveLiveClassStatus(c) !== 'ended')
       .filter((c) => {
         if (!q) return true
-        return `${c.title} ${c.description ?? ''} ${c.mentor.user.name}`.toLowerCase().includes(q)
+        const mentorName = c.mentor?.user?.name ?? ''
+        return `${c.title} ${c.description ?? ''} ${mentorName}`.toLowerCase().includes(q)
       })
     return {
       classes: await Promise.all(visible.map((c) => serializeClass(c, byClass.get(c.id)))),
@@ -176,7 +177,8 @@ export async function liveRoutes(app: FastifyInstance) {
     const q = filter.q?.toLowerCase()
     const visible = classes.filter((c) => {
       if (!q) return true
-      return `${c.title} ${c.description ?? ''} ${c.mentor.user.name}`.toLowerCase().includes(q)
+      const mentorName = c.mentor?.user?.name ?? ''
+      return `${c.title} ${c.description ?? ''} ${mentorName}`.toLowerCase().includes(q)
     })
     return {
       recordings: await Promise.all(visible.map((c) => serializeClass(c, byClass.get(c.id)))),

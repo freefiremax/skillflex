@@ -107,8 +107,9 @@ export const RECORDING_COMPLETE_FRACTION = 0.9
  * When the room is enterable. Derived from the schedule rather than stored, so
  * it cannot drift out of sync with a rescheduled class.
  */
-export function liveClassJoinWindow(scheduledAt: Date, durationMinutes: number) {
-  const start = scheduledAt.getTime()
+export function liveClassJoinWindow(scheduledAt: Date | string, durationMinutes: number) {
+  const date = scheduledAt instanceof Date ? scheduledAt : new Date(scheduledAt)
+  const start = Number.isFinite(date.getTime()) ? date.getTime() : Date.now()
   return {
     opensAt: new Date(start - LIVE_CLASS_JOIN_LEAD_MINUTES * 60_000),
     closesAt: new Date(start + (durationMinutes + LIVE_CLASS_JOIN_GRACE_MINUTES) * 60_000),
@@ -129,7 +130,7 @@ export function liveClassJoinWindow(scheduledAt: Date, durationMinutes: number) 
  */
 export function effectiveLiveClassStatus(input: {
   status: string
-  scheduledAt: Date
+  scheduledAt: Date | string
   durationMinutes: number
 }): LiveClassStatus {
   if (input.status === 'cancelled') return 'cancelled'

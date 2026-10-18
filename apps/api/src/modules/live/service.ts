@@ -109,7 +109,11 @@ async function recordingUrl(media: {
   retentionUntil: Date | null
 } | null): Promise<string | null> {
   if (!media || media.deletedAt || media.status !== 'ready') return null
-  return playableUrl(media)
+  try {
+    return await playableUrl(media)
+  } catch {
+    return null
+  }
 }
 
 /** Shape sent to students for a lecture in a list or on its own page. */
@@ -161,9 +165,9 @@ export async function serializeClass(
     seatsLeft: Math.max(0, cls.capacity - seatsTaken),
     isFull: seatsTaken >= cls.capacity,
     mentor: {
-      id: cls.mentor.id,
-      name: cls.mentor.user.name,
-      headline: cls.mentor.headline,
+      id: cls.mentor?.id ?? '',
+      name: cls.mentor?.user?.name ?? 'Mentor',
+      headline: cls.mentor?.headline ?? null,
     },
     joinOpensAt: opensAt,
     joinClosesAt: closesAt,
