@@ -46,78 +46,275 @@ export default function MentorPage() {
   const switches = (history.data?.events ?? []).filter((e) => e.reasonCode !== 'initial_assignment')
 
   return (
-    <div className="stack">
-      <h1>Your mentor</h1>
+    <div className="master-container" style={{ maxWidth: '860px', margin: '0 auto' }}>
+      {/* Hero Header */}
+      <section
+        style={{
+          background: 'linear-gradient(135deg, #1e3a8a 0%, #1e40af 60%, #2563eb 100%)',
+          borderRadius: '24px',
+          padding: '32px 28px',
+          color: '#ffffff',
+          marginBottom: '24px',
+          position: 'relative',
+          overflow: 'hidden',
+          boxShadow: '0 12px 32px rgba(30, 58, 138, 0.25)',
+        }}
+      >
+        <div style={{ position: 'relative', zIndex: 1, maxWidth: '620px' }}>
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: 'rgba(255, 255, 255, 0.15)',
+              backdropFilter: 'blur(8px)',
+              padding: '4px 12px',
+              borderRadius: '999px',
+              fontSize: '12px',
+              fontWeight: 800,
+              letterSpacing: '0.8px',
+              marginBottom: '12px',
+              textTransform: 'uppercase',
+            }}
+          >
+            <span>🔄 Guaranteed Core Feature</span>
+          </div>
+          <h1 style={{ fontSize: 'clamp(28px, 4vw, 36px)', fontWeight: 850, margin: '0 0 10px', lineHeight: 1.15, color: '#fff' }}>
+            Your 1-on-1 Mentor
+          </h1>
+          <p style={{ fontSize: '16px', lineHeight: 1.5, color: 'rgba(255, 255, 255, 0.88)', margin: 0 }}>
+            Every video task you record is reviewed by a real human mentor. You have complete freedom to switch mentors across our nationwide network anytime at zero extra cost.
+          </p>
+        </div>
 
-      {!m ? (
-        <>
-          <Empty icon="☺" title="No mentor assigned" body="Pick someone from the pool." />
-          <button className="btn btn-primary btn-block" onClick={() => navigate('/mentor/browse')}>
-            Browse mentors
-          </button>
-        </>
-      ) : (
-        <>
-          <Card accent>
-            <div className="strong" style={{ fontSize: '1.05rem' }}>{m.name}</div>
-            {m.headline && <div className="small dim">{m.headline}</div>}
-            {mine.data?.since && (
-              <div className="tiny faint" style={{ marginTop: '0.2rem' }}>
-                Your mentor since {formatDate(mine.data.since)}
-              </div>
-            )}
+        <div
+          style={{
+            position: 'absolute',
+            right: '-15px',
+            bottom: '-20px',
+            fontSize: '140px',
+            opacity: 0.18,
+            userSelect: 'none',
+            pointerEvents: 'none',
+          }}
+        >
+          🧑‍🏫
+        </div>
+      </section>
 
-            {m.bio && (
-              <p className="small" style={{ marginTop: '0.7rem', marginBottom: '0.7rem' }}>
-                {m.bio}
-              </p>
-            )}
-
-            <div className="row wrap" style={{ gap: '0.35rem', marginBottom: '0.4rem' }}>
-              {m.languages.map((l) => (
-                <Pill key={l} tone="brand">{LANGUAGE_LABELS[l]}</Pill>
-              ))}
+      {/* CORE HIGHLIGHT: The "Switch Mentor" Priority Hero Box */}
+      <section
+        style={{
+          background: 'linear-gradient(135deg, #f0fdf4 0%, #eff6ff 100%)',
+          border: '2px solid #3b82f6',
+          borderRadius: '20px',
+          padding: '24px',
+          marginBottom: '28px',
+          boxShadow: '0 8px 24px rgba(59, 130, 246, 0.12)',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '14px' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+              <span style={{ fontSize: '22px' }}>🔄</span>
+              <h2 style={{ fontSize: '20px', fontWeight: 850, margin: 0, color: '#0f172a' }}>
+                Not the right fit? Switch your mentor anytime
+              </h2>
             </div>
-            <div className="row wrap" style={{ gap: '0.35rem' }}>
-              {m.skills.map((s) => (
-                <Pill key={s}>{SKILL_LABELS[s as keyof typeof SKILL_LABELS] ?? s}</Pill>
-              ))}
-            </div>
-          </Card>
-
-          {/* The promise, stated where the user can act on it. This is the
-              entire pitch: no repurchase, no losing your history. */}
-          <Card>
-            <div className="strong small">Not the right fit?</div>
-            <p className="small" style={{ marginTop: '0.25rem' }}>
-              Switch to a different mentor at no extra cost. You keep every piece of feedback
-              you've already received.
+            <p style={{ fontSize: '15px', color: '#475569', margin: 0, maxWidth: '600px' }}>
+              Different learners need different teaching styles, languages, and feedback approaches. Finding the mentor you click with is essential.
             </p>
-            <button className="btn btn-ghost btn-block" onClick={() => navigate('/mentor/browse')}>
-              Switch mentor
+          </div>
+
+          <button
+            type="button"
+            className="master-btn-primary"
+            style={{
+              padding: '14px 24px',
+              fontSize: '16px',
+              fontWeight: 850,
+              background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+              boxShadow: '0 6px 20px rgba(37, 99, 235, 0.3)',
+              flexShrink: 0,
+            }}
+            onClick={() => navigate('/mentor/browse')}
+          >
+            🔄 Browse Mentors & Switch Now →
+          </button>
+        </div>
+
+        {/* 4 Trust Guarantee Pillars */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(59, 130, 246, 0.2)' }}>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+            <span style={{ fontSize: '20px' }}>🪙</span>
+            <div>
+              <strong style={{ display: 'block', fontSize: '13px', color: '#0f172a' }}>Always ₹0 Free</strong>
+              <span style={{ fontSize: '12px', color: '#64748b' }}>Unlimited switching included with your account.</span>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+            <span style={{ fontSize: '20px' }}>📁</span>
+            <div>
+              <strong style={{ display: 'block', fontSize: '13px', color: '#0f172a' }}>100% History Kept</strong>
+              <span style={{ fontSize: '12px', color: '#64748b' }}>All your videos, rubrics & notes stay forever.</span>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+            <span style={{ fontSize: '20px' }}>🤝</span>
+            <div>
+              <strong style={{ display: 'block', fontSize: '13px', color: '#0f172a' }}>Zero Disruption</strong>
+              <span style={{ fontSize: '12px', color: '#64748b' }}>Your new mentor sees past notes so you don't start over.</span>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+            <span style={{ fontSize: '20px' }}>🏛️</span>
+            <div>
+              <strong style={{ display: 'block', fontSize: '13px', color: '#0f172a' }}>Cross-College Pool</strong>
+              <span style={{ fontSize: '12px', color: '#64748b' }}>Access mentors from across institutions nationwide.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Current Mentor Profile Card */}
+      {!m ? (
+        <article className="master-card" style={{ textAlign: 'center', padding: '40px 20px' }}>
+          <Empty icon="☺" title="No mentor currently assigned" body="Pick someone from the cross-institutional pool to start reviewing your work." />
+          <button
+            type="button"
+            className="master-btn-primary"
+            style={{ margin: '20px auto 0', padding: '14px 28px' }}
+            onClick={() => navigate('/mentor/browse')}
+          >
+            Find & Pick a Mentor →
+          </button>
+        </article>
+      ) : (
+        <article className="master-card" style={{ marginBottom: '24px', padding: '28px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '14px', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+              <div
+                style={{
+                  width: '64px',
+                  height: '64px',
+                  borderRadius: '20px',
+                  background: 'linear-gradient(135deg, #dbeafe, #bfdbfe)',
+                  color: '#1e40af',
+                  display: 'grid',
+                  placeItems: 'center',
+                  fontSize: '26px',
+                  fontWeight: 850,
+                  boxShadow: '0 4px 12px rgba(30, 64, 175, 0.12)',
+                }}
+              >
+                {m.name.charAt(0)}
+              </div>
+              <div>
+                <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--master-green)', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '2px' }}>
+                  ● Active Assigned Mentor
+                </div>
+                <h2 style={{ fontSize: '24px', fontWeight: 850, margin: '0 0 4px', color: '#0f172a' }}>{m.name}</h2>
+                {m.headline && <div style={{ fontSize: '15px', color: '#64748b', fontWeight: 500 }}>{m.headline}</div>}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              className="master-chip"
+              style={{ padding: '10px 18px', fontWeight: 800, color: '#2563eb', borderColor: '#93c5fd' }}
+              onClick={() => navigate('/mentor/browse')}
+            >
+              🔄 Change Mentor
             </button>
-          </Card>
-        </>
+          </div>
+
+          {mine.data?.since && (
+            <div style={{ fontSize: '13px', color: '#64748b', marginBottom: '16px' }}>
+              Guiding your communication journey since <strong>{formatDate(mine.data.since)}</strong>
+            </div>
+          )}
+
+          {m.bio && (
+            <div
+              style={{
+                fontSize: '15px',
+                color: '#334155',
+                lineHeight: 1.55,
+                background: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: '14px',
+                padding: '16px',
+                marginBottom: '18px',
+              }}
+            >
+              {m.bio}
+            </div>
+          )}
+
+          <div style={{ display: 'grid', gap: '12px' }}>
+            <div>
+              <span style={{ fontSize: '12px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.8px', display: 'block', marginBottom: '6px' }}>
+                Languages Spoken
+              </span>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                {m.languages.map((l) => (
+                  <Pill key={l} tone="brand">🗣 {LANGUAGE_LABELS[l]}</Pill>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <span style={{ fontSize: '12px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.8px', display: 'block', marginBottom: '6px' }}>
+                Specialist Skill Areas
+              </span>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                {m.skills.map((s) => (
+                  <Pill key={s}>🎯 {SKILL_LABELS[s as keyof typeof SKILL_LABELS] ?? s}</Pill>
+                ))}
+              </div>
+            </div>
+          </div>
+        </article>
       )}
 
+      {/* Switch History Timeline */}
       {switches.length > 0 && (
-        <>
-          <div className="section-title">Your switches</div>
-          <div className="stack-sm">
+        <section className="master-card" style={{ padding: '24px' }}>
+          <h3 style={{ fontSize: '18px', fontWeight: 850, margin: '0 0 16px', color: '#0f172a' }}>
+            Your Mentorship Switch History
+          </h3>
+          <div style={{ display: 'grid', gap: '12px' }}>
             {switches.map((e) => (
-              <Card key={e.id} className="card-tight">
-                <div className="row-between">
-                  <span className="small">
+              <div
+                key={e.id}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  background: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '12px',
+                  padding: '12px 16px',
+                  fontSize: '14px',
+                }}
+              >
+                <div>
+                  <div>
                     {e.from ? `${e.from} → ` : ''}
-                    <span className="strong">{e.to}</span>
-                  </span>
-                  <span className="tiny faint">{formatDate(e.at)}</span>
+                    <strong style={{ color: '#1d4ed8' }}>{e.to}</strong>
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+                    Reason: <em>{e.reasonLabel}</em>
+                  </div>
                 </div>
-                <div className="tiny dim" style={{ marginTop: '0.2rem' }}>{e.reasonLabel}</div>
-              </Card>
+                <span style={{ fontSize: '12px', color: '#94a3b8' }}>{formatDate(e.at)}</span>
+              </div>
             ))}
           </div>
-        </>
+        </section>
       )}
     </div>
   )

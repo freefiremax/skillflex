@@ -80,6 +80,17 @@ function IconPerson() {
   )
 }
 
+function MentorIcon({ active }: { active: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" fill={active ? 'currentColor' : 'none'} fillOpacity={active ? 0.22 : 0} />
+      <circle cx="9" cy="7" r="4" fill={active ? 'currentColor' : 'none'} fillOpacity={active ? 0.22 : 0} />
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  )
+}
+
 function IconExit() {
   return (
     <svg className="tb-icon" viewBox="0 0 24 24" aria-hidden focusable="false">
@@ -99,6 +110,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     { to: '/', label: t('nav.home'), icon: (active) => <HomeIcon active={active} /> },
     { to: '/lessons', label: t('nav.lessons'), icon: (active) => <LessonsIcon active={active} /> },
     { to: '/live', label: t('nav.live'), icon: (active) => <LiveIcon active={active} /> },
+    { to: '/mentor', label: t('nav.mentor'), icon: (active) => <MentorIcon active={active} /> },
     { to: '/feedback', label: t('nav.feedback'), icon: (active) => <FeedbackIcon active={active} /> },
     { to: '/plan', label: t('nav.plan'), icon: (active) => <PlanIcon active={active} /> },
   ]
@@ -130,6 +142,22 @@ export function AppShell({ children }: { children: ReactNode }) {
             Skill<span className="brand-flex">Flex</span>
           </div>
           <div className="row" style={{ gap: '0.5rem' }}>
+            {me?.role === 'student' && (
+              <NavLink
+                to="/mentor"
+                className="pill"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.12), rgba(59, 130, 246, 0.08))',
+                  borderColor: 'rgba(37, 99, 235, 0.3)',
+                  color: '#1d4ed8',
+                  fontWeight: 700,
+                }}
+                title="Your assigned mentor & free switching"
+              >
+                <span>👨‍🏫</span>
+                <span className="pill-name">Mentor (Switch)</span>
+              </NavLink>
+            )}
             <select
               aria-label="Language selection"
               className="lang-select"

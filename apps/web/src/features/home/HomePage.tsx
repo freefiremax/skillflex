@@ -99,6 +99,19 @@ export default function HomePage() {
     queryFn: () => api.get<{ assignments: WeekAssignment[] }>('/curriculum/my-week'),
   })
 
+  const myMentor = useQuery({
+    queryKey: ['my-mentor'],
+    queryFn: () =>
+      api.get<{
+        since: string | null
+        mentor: {
+          id: string
+          name: string
+          headline: string | null
+        } | null
+      }>('/mentorship/me'),
+  })
+
   const all = week.data?.assignments ?? []
   const pending = all.filter((a) => a.status === 'not_started').length
   const awaiting = all.filter((a) => ['submitted', 'in_review'].includes(a.status)).length
@@ -140,6 +153,65 @@ export default function HomePage() {
               <u />
             </div>
             <Art src="/assets/art/hero.png" fallback="🧑‍💻" />
+          </div>
+        </div>
+      </div>
+
+      {/* Core Differentiator: Personal Mentor & Free Switching */}
+      <div
+        style={{
+          background: 'linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%)',
+          border: '1.5px solid #bfdbfe',
+          borderRadius: '20px',
+          padding: '20px 22px',
+          boxShadow: '0 4px 18px rgba(37, 99, 235, 0.08)',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '18px' }}>🔄</span>
+            <span style={{ fontSize: '12px', fontWeight: 850, letterSpacing: '0.8px', color: '#1d4ed8', textTransform: 'uppercase' }}>
+              Core Feature: Guaranteed Free Mentor Switching
+            </span>
+          </div>
+          <span style={{ fontSize: '12px', fontWeight: 800, background: '#dbeafe', color: '#1e40af', padding: '3px 10px', borderRadius: '999px' }}>
+            ₹0 Cost · Keep 100% History
+          </span>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
+          <div>
+            <h3 style={{ fontSize: '18px', fontWeight: 850, margin: '0 0 6px', color: '#0f172a' }}>
+              {myMentor.data?.mentor ? (
+                <>Your Assigned Mentor: <span style={{ color: '#2563eb' }}>{myMentor.data.mentor.name}</span></>
+              ) : (
+                'Choose Your 1-on-1 Mentor'
+              )}
+            </h3>
+            <p style={{ fontSize: '14px', color: '#475569', margin: 0, maxWidth: '560px', lineHeight: 1.45 }}>
+              Not connecting with your mentor's teaching style or want feedback in a different language? Switch to any mentor across the national network anytime for free. Your complete feedback and progress history moves with you.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              className="btn btn-primary"
+              style={{ padding: '10px 18px', fontSize: '14px', fontWeight: 800, background: 'linear-gradient(135deg, #2563eb, #1d4ed8)' }}
+              onClick={() => navigate('/mentor/browse')}
+            >
+              🔄 Switch Mentor →
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost"
+              style={{ padding: '10px 16px', fontSize: '14px', fontWeight: 700 }}
+              onClick={() => navigate('/mentor')}
+            >
+              Mentor Details
+            </button>
           </div>
         </div>
       </div>
