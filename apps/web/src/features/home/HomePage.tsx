@@ -139,9 +139,78 @@ export default function HomePage() {
         <div className="home-rule" />
 
         <div className="home-hero-body">
-          <p className="home-quote" style={{ margin: 0 }}>
-            {t('home.quote')}
-          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', minWidth: 0, width: '100%', alignSelf: 'stretch', justifyContent: 'space-between' }}>
+            {/* The exact red box area: Switch Mentor Highlight Box */}
+            <div
+              style={{
+                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(239, 246, 255, 0.92) 100%)',
+                border: '1.5px solid #93c5fd',
+                borderRadius: '18px',
+                padding: '12px 16px',
+                boxShadow: '0 4px 16px rgba(37, 99, 235, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ fontSize: '15px' }}>🔄</span>
+                  <span style={{ fontSize: '11px', fontWeight: 850, letterSpacing: '0.6px', color: '#1d4ed8', textTransform: 'uppercase' }}>
+                    {t('home.switch_mentor_badge')}
+                  </span>
+                </div>
+                <span style={{ fontSize: '11px', fontWeight: 800, background: '#dbeafe', color: '#1e40af', padding: '2px 8px', borderRadius: '999px' }}>
+                  ₹0 · 100% History
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ fontSize: '15px', fontWeight: 850, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {myMentor.data?.mentor ? (
+                      <>👨‍🏫 {myMentor.data.mentor.name}</>
+                    ) : (
+                      <>👨‍🏫 {t('home.switch_mentor_choose')}</>
+                    )}
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#64748b', lineHeight: 1.35, marginTop: '2px' }}>
+                    {t('home.switch_mentor_desc')}
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                  <button
+                    type="button"
+                    className="btn btn-primary btn-sm"
+                    style={{
+                      padding: '8px 14px',
+                      fontSize: '13px',
+                      fontWeight: 800,
+                      background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+                      boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)',
+                    }}
+                    onClick={() => navigate('/mentor/browse')}
+                  >
+                    🔄 {t('home.switch_mentor_btn')} →
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-sm"
+                    style={{ padding: '8px 10px', fontSize: '13px' }}
+                    onClick={() => navigate('/mentor')}
+                    title="Mentor details"
+                  >
+                    ℹ️
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <p className="home-quote" style={{ margin: 0 }}>
+              {t('home.quote')}
+            </p>
+          </div>
 
           <div className="home-hero-art">
             <div className="home-note" aria-hidden>
@@ -153,65 +222,6 @@ export default function HomePage() {
               <u />
             </div>
             <Art src="/assets/art/hero.png" fallback="🧑‍💻" />
-          </div>
-        </div>
-      </div>
-
-      {/* Core Differentiator: Personal Mentor & Free Switching */}
-      <div
-        style={{
-          background: 'linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%)',
-          border: '1.5px solid #bfdbfe',
-          borderRadius: '20px',
-          padding: '20px 22px',
-          boxShadow: '0 4px 18px rgba(37, 99, 235, 0.08)',
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '10px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '18px' }}>🔄</span>
-            <span style={{ fontSize: '12px', fontWeight: 850, letterSpacing: '0.8px', color: '#1d4ed8', textTransform: 'uppercase' }}>
-              Core Feature: Guaranteed Free Mentor Switching
-            </span>
-          </div>
-          <span style={{ fontSize: '12px', fontWeight: 800, background: '#dbeafe', color: '#1e40af', padding: '3px 10px', borderRadius: '999px' }}>
-            ₹0 Cost · Keep 100% History
-          </span>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
-          <div>
-            <h3 style={{ fontSize: '18px', fontWeight: 850, margin: '0 0 6px', color: '#0f172a' }}>
-              {myMentor.data?.mentor ? (
-                <>Your Assigned Mentor: <span style={{ color: '#2563eb' }}>{myMentor.data.mentor.name}</span></>
-              ) : (
-                'Choose Your 1-on-1 Mentor'
-              )}
-            </h3>
-            <p style={{ fontSize: '14px', color: '#475569', margin: 0, maxWidth: '560px', lineHeight: 1.45 }}>
-              Not connecting with your mentor's teaching style or want feedback in a different language? Switch to any mentor across the national network anytime for free. Your complete feedback and progress history moves with you.
-            </p>
-          </div>
-
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-            <button
-              type="button"
-              className="btn btn-primary"
-              style={{ padding: '10px 18px', fontSize: '14px', fontWeight: 800, background: 'linear-gradient(135deg, #2563eb, #1d4ed8)' }}
-              onClick={() => navigate('/mentor/browse')}
-            >
-              🔄 Switch Mentor →
-            </button>
-            <button
-              type="button"
-              className="btn btn-ghost"
-              style={{ padding: '10px 16px', fontSize: '14px', fontWeight: 700 }}
-              onClick={() => navigate('/mentor')}
-            >
-              Mentor Details
-            </button>
           </div>
         </div>
       </div>

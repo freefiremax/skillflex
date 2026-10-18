@@ -96,6 +96,11 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'home.leaderboard': 'Leaderboard',
     'home.languages': 'Languages',
     'home.your_mentor': 'Your mentor',
+    'home.switch_mentor_badge': 'CORE FEATURE · FREE SWITCHING',
+    'home.switch_mentor_label': 'Your Mentor',
+    'home.switch_mentor_desc': 'Not the right fit? Switch anytime at ₹0 cost. All history kept.',
+    'home.switch_mentor_btn': 'Switch Mentor',
+    'home.switch_mentor_choose': 'Pick a Mentor',
     'home.quote': 'Learn at your pace, in your language.',
 
     // Live Page
@@ -226,6 +231,11 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'home.leaderboard': 'लीडरबोर्ड',
     'home.languages': 'भाषाएं',
     'home.your_mentor': 'आपके मेंटर',
+    'home.switch_mentor_badge': 'मुख्य विशेषता · नि:शुल्क मेंटर बदलें',
+    'home.switch_mentor_label': 'आपके मेंटर',
+    'home.switch_mentor_desc': 'सही तालमेल नहीं? ₹0 में कभी भी बदलें। सारा फीडबैक सुरक्षित रहेगा।',
+    'home.switch_mentor_btn': 'मेंटर बदलें',
+    'home.switch_mentor_choose': 'मेंटर चुनें',
     'home.quote': 'अपनी गति से सीखें, अपनी भाषा में।',
 
     // Live Page
@@ -356,6 +366,11 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'home.leaderboard': 'लीडरबोर्ड',
     'home.languages': 'भाषा',
     'home.your_mentor': 'तुमचे मार्गदर्शक',
+    'home.switch_mentor_badge': 'प्रमुख वैशिष्ट्य · मोफत मार्गदर्शक बदला',
+    'home.switch_mentor_label': 'तुमचे मार्गदर्शक',
+    'home.switch_mentor_desc': 'योग्य वाटत नाही? ₹० मध्ये कधीही बदला. सर्व अभिप्राय कायम राहील.',
+    'home.switch_mentor_btn': 'मार्गदर्शक बदला',
+    'home.switch_mentor_choose': 'मार्गदर्शक निवडा',
     'home.quote': 'तुमच्या गतीने शिका, तुमच्या भाषेत.',
 
     // Live Page
