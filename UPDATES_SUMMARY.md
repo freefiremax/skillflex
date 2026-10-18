@@ -89,10 +89,9 @@ This document provides a detailed breakdown of all updates, bug fixes, database 
 - **Status**: *Modified*
 - **Changes**:
   - Integrated `myMentor` query (`/mentorship/me`).
-  - Added a prominent **Guaranteed Free Mentor Switching Spotlight Card** directly under the greeting:
-    - Displays current mentor's name.
-    - Emphasizes the zero-cost policy and 100% history preservation.
-    - Provides a direct **`🔄 Switch Mentor →`** button leading to the mentor directory.
+  - Placed the **Switch Mentor Spotlight Card** directly in the hero area (between the greeting rule and quote), perfectly filling the empty space on the home screen.
+  - Displays the active mentor's name (`👨‍🏫 Your Mentor: [Name]`), key guarantee badges (`₹0 · 100% History`), and a direct button **`🔄 Switch Mentor →`** leading to `/mentor/browse`.
+  - Added localized text support in English, Hindi, and Marathi (`मार्गदर्शक बदला`).
 
 #### 10. [`apps/web/src/features/mentorship/MentorPage.tsx`](file:///c:/Users/Adwait/OneDrive/Desktop/claude%20wala/skillflex/apps/web/src/features/mentorship/MentorPage.tsx)
 - **Status**: *Redesigned*
