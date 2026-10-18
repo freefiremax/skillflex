@@ -189,15 +189,28 @@ export async function serializeClass(
   }
 }
 
-/** Mentor-facing shape: the roster and the room link, no join gating. */
-export function serializeForMentor(
+/** Mentor-facing shape: the roster, room link, and recording playback details. */
+export async function serializeForMentor(
   cls: ClassRow & {
-    recordingMedia?: { status: string; deletedAt: Date | null; durationSeconds: number | null } | null
+    recordingMedia?: {
+      provider: string
+      status: string
+      playbackUrl: string | null
+      externalId: string | null
+      deletedAt: Date | null
+      retentionUntil?: Date | null
+      durationSeconds: number | null
+    } | null
     _count?: { registrations: number }
   },
 ) {
   const seatsTaken = cls._count?.registrations ?? 0
   const media = cls.recordingMedia ?? null
+  const hasRecording = Boolean(
+    cls.recordingPublishedAt && media && !media.deletedAt && media.status === 'ready',
+  )
+  const recordingPlaybackUrl = hasRecording ? await recordingUrl(media as any) : null
+
   return {
     id: cls.id,
     title: cls.title,
@@ -214,10 +227,10 @@ export function serializeForMentor(
     startedAt: cls.startedAt,
     endedAt: cls.endedAt,
     /** Same test as serializeClass() and the /recordings filter — keep them equal. */
-    hasRecording: Boolean(
-      cls.recordingPublishedAt && media && !media.deletedAt && media.status === 'ready',
-    ),
+    hasRecording,
     recordingPublishedAt: cls.recordingPublishedAt,
+    recordingPlaybackUrl,
+    recordingDurationSeconds: cls.recordingMedia?.durationSeconds ?? null,
   }
 }
 

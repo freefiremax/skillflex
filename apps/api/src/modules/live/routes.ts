@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import { prisma } from '@skillflex/db'
 import {
   createLiveClassSchema,
+  createRecordedLectureSchema,
   liveClassSearchSchema,
   publishRecordingSchema,
   recordingProgressSchema,
@@ -19,6 +20,16 @@ import {
   notFound,
   requireRole,
 } from '../../lib/auth.js'
+
+function isMissingTableError(err: unknown): boolean {
+  if (!err || typeof err !== 'object') return false
+  const anyErr = err as { code?: string; message?: string }
+  return (
+    anyErr.code === 'P2021' ||
+    (typeof anyErr.message === 'string' &&
+      (anyErr.message.includes('does not exist') || anyErr.message.includes('relation') || anyErr.message.includes('P2021')))
+  )
+}
 import {
   joinability,
   orgIdsForUser,
@@ -65,82 +76,90 @@ export async function liveRoutes(app: FastifyInstance) {
     const filter = liveClassSearchSchema.parse(request.query ?? {})
     const orgIds = await orgIdsForUser(user.sub)
 
-    const classes = await prisma.liveClass.findMany({
-      where: {
-        status: { in: ['scheduled', 'live'] },
-        ...visibilityFilter(orgIds),
-        ...(filter.language ? { language: filter.language } : {}),
-        ...(filter.skill ? { skill: filter.skill } : {}),
-      },
-      include: studentInclude,
-      orderBy: { scheduledAt: 'asc' },
-    })
-
-    const mine = await prisma.liveClassRegistration.findMany({
-      where: { studentId, classId: { in: classes.map((c) => c.id) } },
-    })
-    const byClass = new Map(mine.map((r) => [r.classId, r]))
-
-    const q = filter.q?.toLowerCase()
-    const visible = classes
-      .filter((c) => effectiveLiveClassStatus(c) !== 'ended')
-      .filter((c) => {
-        if (!q) return true
-        const mentorName = c.mentor?.user?.name ?? ''
-        return `${c.title} ${c.description ?? ''} ${mentorName}`.toLowerCase().includes(q)
+    try {
+      const classes = await prisma.liveClass.findMany({
+        where: {
+          status: { in: ['scheduled', 'live'] },
+          ...visibilityFilter(orgIds),
+          ...(filter.language ? { language: filter.language } : {}),
+          ...(filter.skill ? { skill: filter.skill } : {}),
+        },
+        include: studentInclude,
+        orderBy: { scheduledAt: 'asc' },
       })
-    return {
-      classes: await Promise.all(visible.map((c) => serializeClass(c, byClass.get(c.id)))),
+
+      const mine = await prisma.liveClassRegistration.findMany({
+        where: { studentId, classId: { in: classes.map((c) => c.id) } },
+      })
+      const byClass = new Map(mine.map((r) => [r.classId, r]))
+
+      const q = filter.q?.toLowerCase()
+      const visible = classes
+        .filter((c) => effectiveLiveClassStatus(c) !== 'ended')
+        .filter((c) => {
+          if (!q) return true
+          const mentorName = c.mentor?.user?.name ?? ''
+          return `${c.title} ${c.description ?? ''} ${mentorName}`.toLowerCase().includes(q)
+        })
+      return {
+        classes: await Promise.all(visible.map((c) => serializeClass(c, byClass.get(c.id)))),
+      }
+    } catch (err) {
+      if (isMissingTableError(err)) return { classes: [] }
+      throw err
     }
   })
 
   /**
    * The student's next registered class. Small and cheap on purpose — the pet
    * companion polls it, so it must not be the /classes payload.
-   *
-   * The `scheduledAt` floor is what makes the `take` safe. "Ended" is derived
-   * from the clock and cannot be a WHERE clause, so without it a student with a
-   * handful of old registrations whose mentors never pressed End fills the whole
-   * page with classes the JS filter then discards, and their real next lecture
-   * never surfaces. A class can outlive its start by at most
-   * durationMinutes + grace, and the contract caps duration at 240.
    */
   app.get('/next', { preHandler: requireRole('student') }, async (request) => {
     const studentId = currentStudentId(request)
     const floor = new Date(Date.now() - (MAX_CLASS_MINUTES + LIVE_CLASS_JOIN_GRACE_MINUTES) * 60_000)
 
-    const registrations = await prisma.liveClassRegistration.findMany({
-      where: {
-        studentId,
-        liveClass: { status: { in: ['scheduled', 'live'] }, scheduledAt: { gte: floor } },
-      },
-      include: { liveClass: { include: studentInclude } },
-      orderBy: { liveClass: { scheduledAt: 'asc' } },
-      take: 5,
-    })
+    try {
+      const registrations = await prisma.liveClassRegistration.findMany({
+        where: {
+          studentId,
+          liveClass: { status: { in: ['scheduled', 'live'] }, scheduledAt: { gte: floor } },
+        },
+        include: { liveClass: { include: studentInclude } },
+        orderBy: { liveClass: { scheduledAt: 'asc' } },
+        take: 5,
+      })
 
-    const next = registrations.find(
-      (r) => effectiveLiveClassStatus(r.liveClass) !== 'ended',
-    )
-    return { class: next ? await serializeClass(next.liveClass, next) : null }
+      const next = registrations.find(
+        (r) => effectiveLiveClassStatus(r.liveClass) !== 'ended',
+      )
+      return { class: next ? await serializeClass(next.liveClass, next) : null }
+    } catch (err) {
+      if (isMissingTableError(err)) return { class: null }
+      throw err
+    }
   })
 
   /** Everything the student registered for, upcoming and past. */
   app.get('/my-classes', { preHandler: requireRole('student') }, async (request) => {
     const studentId = currentStudentId(request)
 
-    const registrations = await prisma.liveClassRegistration.findMany({
-      where: { studentId },
-      include: { liveClass: { include: studentInclude } },
-      orderBy: { liveClass: { scheduledAt: 'desc' } },
-    })
+    try {
+      const registrations = await prisma.liveClassRegistration.findMany({
+        where: { studentId },
+        include: { liveClass: { include: studentInclude } },
+        orderBy: { liveClass: { scheduledAt: 'desc' } },
+      })
 
-    const serialized = await Promise.all(
-      registrations.map((r) => serializeClass(r.liveClass, r)),
-    )
-    return {
-      upcoming: serialized.filter((c) => c.status === 'scheduled' || c.status === 'live').reverse(),
-      past: serialized.filter((c) => c.status === 'ended' || c.status === 'cancelled'),
+      const serialized = await Promise.all(
+        registrations.map((r) => serializeClass(r.liveClass, r)),
+      )
+      return {
+        upcoming: serialized.filter((c) => c.status === 'scheduled' || c.status === 'live').reverse(),
+        past: serialized.filter((c) => c.status === 'ended' || c.status === 'cancelled'),
+      }
+    } catch (err) {
+      if (isMissingTableError(err)) return { upcoming: [], past: [] }
+      throw err
     }
   })
 
@@ -157,31 +176,36 @@ export async function liveRoutes(app: FastifyInstance) {
     const filter = liveClassSearchSchema.parse(request.query ?? {})
     const orgIds = await orgIdsForUser(user.sub)
 
-    const classes = await prisma.liveClass.findMany({
-      where: {
-        recordingPublishedAt: { not: null },
-        recordingMedia: { status: 'ready', deletedAt: null },
-        ...visibilityFilter(orgIds),
-        ...(filter.language ? { language: filter.language } : {}),
-        ...(filter.skill ? { skill: filter.skill } : {}),
-      },
-      include: studentInclude,
-      orderBy: { recordingPublishedAt: 'desc' },
-    })
+    try {
+      const classes = await prisma.liveClass.findMany({
+        where: {
+          recordingPublishedAt: { not: null },
+          recordingMedia: { status: 'ready', deletedAt: null },
+          ...visibilityFilter(orgIds),
+          ...(filter.language ? { language: filter.language } : {}),
+          ...(filter.skill ? { skill: filter.skill } : {}),
+        },
+        include: studentInclude,
+        orderBy: { recordingPublishedAt: 'desc' },
+      })
 
-    const mine = await prisma.liveClassRegistration.findMany({
-      where: { studentId, classId: { in: classes.map((c) => c.id) } },
-    })
-    const byClass = new Map(mine.map((r) => [r.classId, r]))
+      const mine = await prisma.liveClassRegistration.findMany({
+        where: { studentId, classId: { in: classes.map((c) => c.id) } },
+      })
+      const byClass = new Map(mine.map((r) => [r.classId, r]))
 
-    const q = filter.q?.toLowerCase()
-    const visible = classes.filter((c) => {
-      if (!q) return true
-      const mentorName = c.mentor?.user?.name ?? ''
-      return `${c.title} ${c.description ?? ''} ${mentorName}`.toLowerCase().includes(q)
-    })
-    return {
-      recordings: await Promise.all(visible.map((c) => serializeClass(c, byClass.get(c.id)))),
+      const q = filter.q?.toLowerCase()
+      const visible = classes.filter((c) => {
+        if (!q) return true
+        const mentorName = c.mentor?.user?.name ?? ''
+        return `${c.title} ${c.description ?? ''} ${mentorName}`.toLowerCase().includes(q)
+      })
+      return {
+        recordings: await Promise.all(visible.map((c) => serializeClass(c, byClass.get(c.id)))),
+      }
+    } catch (err) {
+      if (isMissingTableError(err)) return { recordings: [] }
+      throw err
     }
   })
 
@@ -323,16 +347,21 @@ export async function liveRoutes(app: FastifyInstance) {
   app.get('/mentor/classes', { preHandler: requireRole('mentor') }, async (request) => {
     const mentorId = currentMentorId(request)
 
-    const classes = await prisma.liveClass.findMany({
-      where: { mentorId },
-      include: { recordingMedia: true, _count: { select: { registrations: true } } },
-      orderBy: { scheduledAt: 'desc' },
-    })
+    try {
+      const classes = await prisma.liveClass.findMany({
+        where: { mentorId },
+        include: { recordingMedia: true, _count: { select: { registrations: true } } },
+        orderBy: { scheduledAt: 'desc' },
+      })
 
-    const serialized = classes.map(serializeForMentor)
-    return {
-      upcoming: serialized.filter((c) => c.status === 'scheduled' || c.status === 'live').reverse(),
-      past: serialized.filter((c) => c.status === 'ended' || c.status === 'cancelled'),
+      const serialized = await Promise.all(classes.map(serializeForMentor))
+      return {
+        upcoming: serialized.filter((c) => c.status === 'scheduled' || c.status === 'live').reverse(),
+        past: serialized.filter((c) => c.status === 'ended' || c.status === 'cancelled'),
+      }
+    } catch (err) {
+      if (isMissingTableError(err)) return { upcoming: [], past: [] }
+      throw err
     }
   })
 
@@ -349,7 +378,7 @@ export async function liveRoutes(app: FastifyInstance) {
     })
 
     return {
-      class: serializeForMentor(cls),
+      class: await serializeForMentor(cls),
       roster: registrations.map((r) => ({
         studentId: r.student.id,
         name: r.student.user.name,
@@ -363,25 +392,98 @@ export async function liveRoutes(app: FastifyInstance) {
     }
   })
 
+  /**
+   * Directly upload / publish a recorded lecture.
+   * Can be called as POST /live/recorded-lectures or POST /live/mentor/recordings.
+   */
+  const handleCreateRecordedLecture = async (request: any, reply: any) => {
+    const mentorId = currentMentorId(request)
+    const user = currentUser(request)
+    const body = createRecordedLectureSchema.parse(request.body)
+
+    const media = await prisma.mediaAsset.findUnique({ where: { id: body.mediaId } })
+    if (!media || media.deletedAt) throw notFound('Recording media not found')
+    if (media.ownerUserId !== user.sub) throw forbidden('That is not your upload')
+    if (media.kind !== 'lecture_recording') {
+      throw badRequest('That media asset is not a lecture recording', 'WRONG_MEDIA_KIND')
+    }
+    if (media.status !== 'ready') {
+      throw badRequest('That upload has not completed yet', 'MEDIA_NOT_READY')
+    }
+
+    const durationMinutes =
+      body.durationMinutes ??
+      (media.durationSeconds ? Math.max(1, Math.round(media.durationSeconds / 60)) : 45)
+
+    const now = new Date()
+    try {
+      const cls = await prisma.liveClass.create({
+        data: {
+          mentorId,
+          title: body.title,
+          description: body.description ?? null,
+          skill: body.skill ?? null,
+          language: body.language,
+          status: 'ended',
+          scheduledAt: now,
+          startedAt: now,
+          endedAt: now,
+          durationMinutes,
+          capacity: 500,
+          recordingMediaId: media.id,
+          recordingPublishedAt: now,
+        },
+        include: { recordingMedia: true, _count: { select: { registrations: true } } },
+      })
+
+      return reply.code(201).send({
+        ok: true,
+        id: cls.id,
+        class: await serializeForMentor(cls),
+      })
+    } catch (err) {
+      if (isMissingTableError(err)) {
+        throw badRequest(
+          'Database table "live_classes" does not exist yet. Please run packages/db/prisma/add-live-classes.sql in your Supabase SQL Editor.',
+          'DB_TABLE_MISSING',
+        )
+      }
+      throw err
+    }
+  }
+
+  app.post('/recorded-lectures', { preHandler: requireRole('mentor') }, handleCreateRecordedLecture)
+  app.post('/mentor/recordings', { preHandler: requireRole('mentor') }, handleCreateRecordedLecture)
+
   app.post('/classes', { preHandler: requireRole('mentor') }, async (request, reply) => {
     const mentorId = currentMentorId(request)
     const body = createLiveClassSchema.parse(request.body)
 
-    const cls = await prisma.liveClass.create({
-      data: {
-        mentorId,
-        title: body.title,
-        description: body.description ?? null,
-        skill: body.skill ?? null,
-        language: body.language,
-        scheduledAt: body.scheduledAt,
-        durationMinutes: body.durationMinutes,
-        capacity: body.capacity,
-        joinUrl: body.joinUrl ?? null,
-      },
-    })
+    try {
+      const cls = await prisma.liveClass.create({
+        data: {
+          mentorId,
+          title: body.title,
+          description: body.description ?? null,
+          skill: body.skill ?? null,
+          language: body.language,
+          scheduledAt: body.scheduledAt,
+          durationMinutes: body.durationMinutes,
+          capacity: body.capacity,
+          joinUrl: body.joinUrl ?? null,
+        },
+      })
 
-    return reply.code(201).send({ id: cls.id })
+      return reply.code(201).send({ id: cls.id })
+    } catch (err) {
+      if (isMissingTableError(err)) {
+        throw badRequest(
+          'Database table "live_classes" does not exist yet. Please run packages/db/prisma/add-live-classes.sql in your Supabase SQL Editor.',
+          'DB_TABLE_MISSING',
+        )
+      }
+      throw err
+    }
   })
 
   app.patch('/classes/:id', { preHandler: requireRole('mentor') }, async (request) => {

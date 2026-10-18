@@ -181,6 +181,17 @@ export const publishRecordingSchema = z.object({
   mediaId: cuid,
   durationSeconds: z.number().int().min(1).max(6 * 60 * 60).optional(),
 })
+export type PublishRecordingInput = z.infer<typeof publishRecordingSchema>
+
+export const createRecordedLectureSchema = z.object({
+  title: z.string().trim().min(3, 'Title must be at least 3 characters').max(120),
+  description: z.string().trim().max(1000).optional(),
+  skill: z.enum(SKILLS).optional(),
+  language: z.enum(SUPPORTED_LANGUAGES),
+  mediaId: cuid,
+  durationMinutes: z.number().int().min(1).max(480).optional(),
+})
+export type CreateRecordedLectureInput = z.infer<typeof createRecordedLectureSchema>
 
 export const recordingProgressSchema = z.object({
   watchedSeconds: z.number().int().min(0).max(6 * 60 * 60),
