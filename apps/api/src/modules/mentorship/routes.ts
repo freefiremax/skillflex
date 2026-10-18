@@ -14,6 +14,7 @@ import {
   requireRole,
 } from '../../lib/auth.js'
 import { currentMentorFor, searchMentors, switchMentor } from './service.js'
+import { mentorHealthFor, mentorHealthReport } from './health.js'
 
 export async function mentorshipRoutes(app: FastifyInstance) {
   /** The student's current mentor. */
@@ -128,6 +129,27 @@ export async function mentorshipRoutes(app: FastifyInstance) {
         since: a.startedAt,
       })),
     }
+  })
+
+  /**
+   * Platform-admin view: every mentor's load, worst-first. Detection only —
+   * this endpoint recommends, it never reassigns or pauses anyone.
+   */
+  app.get('/health', { preHandler: requireRole('platform_admin') }, async () => {
+    const mentors = await mentorHealthReport()
+    return {
+      mentors,
+      note: 'Load estimates from operational signals only (assignments, review backlog, turnaround). No AI judgement of mentor quality, and no change is made automatically — these are prompts for a human decision.',
+    }
+  })
+
+  /**
+   * A mentor's own health. Shown back to the mentor as a self-check, not a
+   * ranking against peers — so it returns only their own numbers.
+   */
+  app.get('/health/me', { preHandler: requireRole('mentor') }, async (request) => {
+    const mentorId = currentMentorId(request)
+    return mentorHealthFor(mentorId)
   })
 
   /** A single mentor's public profile. */

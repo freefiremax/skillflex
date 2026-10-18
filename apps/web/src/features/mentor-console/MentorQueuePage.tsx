@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import { LANGUAGE_LABELS, type Language } from '@skillflex/shared'
+import { LANGUAGE_LABELS, type Language, type MentorHealthStatus } from '@skillflex/shared'
 import { api } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
 import { Empty, ErrorNote, Loading, formatDate } from '../../components/ui'
@@ -21,6 +21,18 @@ interface RosterStudent {
   cohort: string | null
   languages: Language[]
   since: string
+}
+
+interface MentorHealthMe {
+  status: MentorHealthStatus
+  reasons: string[]
+  metrics: {
+    activeStudents: number
+    maxActiveStudents: number
+    pendingReviews: number
+    avgReviewDelayHours: number | null
+    oldestPendingHours: number | null
+  }
 }
 
 const STUDENT_AVATARS = [
@@ -49,6 +61,12 @@ export default function MentorQueuePage() {
     queryKey: ['mentor-roster'],
     queryFn: () => api.get<{ students: RosterStudent[] }>('/mentorship/students'),
   })
+
+  const health = useQuery({
+    queryKey: ['mentor-health-me'],
+    queryFn: () => api.get<MentorHealthMe>('/mentorship/health/me'),
+  })
+  const h = health.data
 
   const items = queue.data?.queue ?? []
   const allStudents = roster.data?.students ?? []
@@ -79,6 +97,55 @@ export default function MentorQueuePage() {
           />
         </div>
       </section>
+
+      {/* Self-health banner — a supportive heads-up to the mentor, shown only
+          when load is elevated. Never a score or a ranking; the admin view
+          handles cross-mentor comparison, this is just "here's what's piling
+          up and what you can do about it." */}
+      {h && h.status !== 'healthy' && (
+        <div
+          style={{
+            borderRadius: '18px',
+            padding: '18px 22px',
+            marginBottom: '24px',
+            background: h.status === 'overloaded' ? '#fdecec' : '#fff8dd',
+            border: `1px solid ${h.status === 'overloaded' ? '#f3cfcb' : '#f0e2a8'}`,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+            <span style={{ fontSize: '20px' }}>{h.status === 'overloaded' ? '◆' : '●'}</span>
+            <strong
+              style={{
+                fontSize: '16px',
+                color: h.status === 'overloaded' ? '#8f352e' : '#8a6a16',
+              }}
+            >
+              {h.status === 'overloaded'
+                ? 'Your queue needs a hand'
+                : 'Your queue is starting to build up'}
+            </strong>
+          </div>
+          {h.reasons.length > 0 && (
+            <ul
+              style={{
+                margin: '0 0 8px',
+                paddingLeft: '1.1rem',
+                color: '#4b5563',
+                fontSize: '14px',
+              }}
+            >
+              {h.reasons.map((reason, i) => (
+                <li key={i}>{reason}</li>
+              ))}
+            </ul>
+          )}
+          <div style={{ fontSize: '13px', color: '#6b7280' }}>
+            {h.status === 'overloaded'
+              ? 'This is a lot to carry. Clear what you can, and it is completely reasonable to pause new matches or lower your student cap in your profile — or ask your admin to move a few students to a mentor with room.'
+              : 'Clearing the oldest few now keeps things from piling up. If the load stays high, you can lower your student cap or pause new matches in your profile.'}
+          </div>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div
