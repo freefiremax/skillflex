@@ -8,8 +8,17 @@ import { AwsClient } from 'aws4fetch'
 import { HttpError } from './auth.js'
 import { env } from './env.js'
 
-const here = path.dirname(fileURLToPath(import.meta.url))
-export const storageRoot = path.resolve(here, '../../', env.STORAGE_DIR)
+function getDirname(): string {
+  try {
+    if (typeof import.meta.url === 'string' && import.meta.url) {
+      return path.dirname(fileURLToPath(import.meta.url))
+    }
+  } catch {}
+  return process.cwd?.() ?? ''
+}
+
+const here = getDirname()
+export const storageRoot = path.resolve(here, '../../', process.env.STORAGE_DIR || 'storage')
 
 export interface UploadTicket {
   /** Where the browser should PUT/POST the bytes. */
@@ -201,15 +210,14 @@ function storageFailure(httpStatus: number, detail: string): StorageError {
 class SupabaseMediaProvider implements MediaProvider {
   readonly name = 'supabase'
 
-  private readonly base: string
-  private readonly bucket: string
-  private readonly key: string
-
-  constructor() {
-    // env.ts already guarantees these are present when MEDIA_PROVIDER=supabase.
-    this.base = `${env.SUPABASE_URL!.replace(/\/+$/, '')}/storage/v1`
-    this.bucket = env.SUPABASE_STORAGE_BUCKET
-    this.key = env.SUPABASE_SERVICE_ROLE_KEY!
+  private get base(): string {
+    return `${(env.SUPABASE_URL || '').replace(/\/+$/, '')}/storage/v1`
+  }
+  private get bucket(): string {
+    return env.SUPABASE_STORAGE_BUCKET || 'submissions'
+  }
+  private get key(): string {
+    return env.SUPABASE_SERVICE_ROLE_KEY || ''
   }
 
   private async call<T>(method: string, urlPath: string, body?: unknown): Promise<T> {
@@ -343,22 +351,30 @@ class R2MediaProvider implements MediaProvider {
   /** SigV4 presigning is capped at seven days by the protocol; R2 enforces it. */
   readonly maxPlaybackTtlSeconds = 7 * 24 * 60 * 60
 
-  private readonly client: AwsClient
-  private readonly endpoint: string
-  private readonly bucket: string
-  private readonly publicBase?: string
+  private _client?: AwsClient
 
-  constructor() {
-    // env.ts already guarantees these are present when MEDIA_PROVIDER=r2.
-    this.bucket = env.R2_BUCKET
-    this.endpoint = `https://${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`
-    this.publicBase = env.R2_PUBLIC_BASE_URL?.replace(/\/+$/, '') || undefined
-    this.client = new AwsClient({
-      accessKeyId: env.R2_ACCESS_KEY_ID!,
-      secretAccessKey: env.R2_SECRET_ACCESS_KEY!,
-      service: 's3',
-      region: 'auto',
-    })
+  private get client(): AwsClient {
+    if (!this._client) {
+      this._client = new AwsClient({
+        accessKeyId: env.R2_ACCESS_KEY_ID || '',
+        secretAccessKey: env.R2_SECRET_ACCESS_KEY || '',
+        service: 's3',
+        region: 'auto',
+      })
+    }
+    return this._client
+  }
+
+  private get endpoint(): string {
+    return `https://${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`
+  }
+
+  private get bucket(): string {
+    return env.R2_BUCKET || 'pymedia'
+  }
+
+  private get publicBase(): string | undefined {
+    return env.R2_PUBLIC_BASE_URL?.replace(/\/+$/, '') || undefined
   }
 
   /**
@@ -517,4 +533,19 @@ function build(): MediaProvider {
   }
 }
 
-export const mediaProvider = build()
+let instance: MediaProvider | undefined
+
+function getMediaProvider(): MediaProvider {
+  if (!instance) {
+    instance = build()
+  }
+  return instance
+}
+
+export const mediaProvider: MediaProvider = new Proxy({} as MediaProvider, {
+  get(_target, prop: string | symbol) {
+    const p = getMediaProvider()
+    const val = (p as any)[prop]
+    return typeof val === 'function' ? val.bind(p) : val
+  },
+})

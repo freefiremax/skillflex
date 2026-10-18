@@ -3,6 +3,9 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
+  build: {
+    emptyOutDir: true,
+  },
   server: {
     port: 5173,
     // The API and the dev media files are proxied so the browser sees one
