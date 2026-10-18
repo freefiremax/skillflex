@@ -17,10 +17,13 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^6.2.1",
-    "@skillflex/shared": "*"
+    "@skillflex/shared": "*",
+    "pg": "^8.23.1"
   },
   "devDependencies": {
+    "@types/pg": "^8.23.1",
     "dotenv-cli": "^8.0.0",
     "prisma": "^6.2.1",
     "tsx": "^4.19.2",

@@ -48,5 +48,8 @@ powershell.cmd
 # vercel local state
 .vercel/
 
+# cloudflare local state
+.wrangler/
+
 # claude code local state (machine-specific permissions)
 .claude/settings.local.json
