@@ -3,6 +3,24 @@ import { prisma, readObjectList } from '@skillflex/db'
 import { createSubmissionSchema, type RubricCriterion } from '@skillflex/shared'
 import { badRequest, currentMentorId, currentStudentId, currentUser, forbidden, notFound, requireRole } from '../../lib/auth.js'
 import { currentMentorFor } from '../mentorship/service.js'
+import { playableUrl } from '../../lib/media.js'
+
+/**
+ * A submission's playable link, or null when there is no media row. Prisma's
+ * `media: true` gives the whole MediaAsset, so no projection is needed.
+ */
+function submissionPlaybackUrl(
+  media: {
+    provider: string
+    status: string
+    playbackUrl: string | null
+    externalId: string | null
+    deletedAt: Date | null
+    retentionUntil: Date | null
+  } | null,
+): Promise<string | null> {
+  return media ? playableUrl(media) : Promise.resolve(null)
+}
 
 /**
  * Submissions: the student records a video against an assignment and submits it.
@@ -70,15 +88,17 @@ export async function submissionRoutes(app: FastifyInstance) {
     })
 
     return {
-      submissions: submissions.map((s) => ({
-        id: s.id,
-        status: s.status,
-        submittedAt: s.submittedAt,
-        assignment: { id: s.assignment.id, title: s.assignment.title },
-        lesson: s.assignment.lesson.title,
-        playbackUrl: s.media?.playbackUrl ?? null,
-        hasFeedback: Boolean(s.feedback),
-      })),
+      submissions: await Promise.all(
+        submissions.map(async (s) => ({
+          id: s.id,
+          status: s.status,
+          submittedAt: s.submittedAt,
+          assignment: { id: s.assignment.id, title: s.assignment.title },
+          lesson: s.assignment.lesson.title,
+          playbackUrl: await submissionPlaybackUrl(s.media),
+          hasFeedback: Boolean(s.feedback),
+        })),
+      ),
     }
   })
 
@@ -110,14 +130,16 @@ export async function submissionRoutes(app: FastifyInstance) {
     })
 
     return {
-      queue: submissions.map((s) => ({
-        submissionId: s.id,
-        status: s.status,
-        submittedAt: s.submittedAt,
-        student: s.student.user.name,
-        assignment: s.assignment.title,
-        playbackUrl: s.media?.playbackUrl ?? null,
-      })),
+      queue: await Promise.all(
+        submissions.map(async (s) => ({
+          submissionId: s.id,
+          status: s.status,
+          submittedAt: s.submittedAt,
+          student: s.student.user.name,
+          assignment: s.assignment.title,
+          playbackUrl: await submissionPlaybackUrl(s.media),
+        })),
+      ),
     }
   })
 
@@ -165,7 +187,7 @@ export async function submissionRoutes(app: FastifyInstance) {
         rubric: readObjectList<RubricCriterion>(submission.assignment.rubric),
       },
       lesson: submission.assignment.lesson.title,
-      playbackUrl: submission.media?.playbackUrl ?? null,
+      playbackUrl: await submissionPlaybackUrl(submission.media),
       feedback: submission.feedback
         ? {
             id: submission.feedback.id,

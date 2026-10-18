@@ -7,7 +7,7 @@ import {
   type RubricCriterion,
 } from '@skillflex/shared'
 import { currentStudentId, notFound, requireAuth, requireRole } from '../../lib/auth.js'
-import { mediaProvider } from '../../lib/media.js'
+import { playableUrl } from '../../lib/media.js'
 
 /**
  * Curriculum read + authoring.
@@ -40,27 +40,35 @@ export async function curriculumRoutes(app: FastifyInstance) {
       },
     })
 
+    // Two async levels: pickAsset() signs a URL per lesson for signing providers,
+    // so the nested maps have to await. Promise.all keeps the tree in order.
     return {
-      tracks: tracks.map((t) => ({
-        id: t.id,
-        slug: t.slug,
-        title: t.title,
-        description: t.description,
-        modules: t.modules.map((m) => ({
-          id: m.id,
-          title: m.title,
-          summary: m.summary,
-          lessons: m.lessons.map((l) => ({
-            id: l.id,
-            title: l.title,
-            summary: l.summary,
-            durationSeconds: l.durationSeconds,
-            /** Which languages this lesson actually exists in. */
-            availableLanguages: l.assets.map((a) => a.language as Language),
-            playbackUrl: pickAsset(l.assets, language),
-          })),
+      tracks: await Promise.all(
+        tracks.map(async (t) => ({
+          id: t.id,
+          slug: t.slug,
+          title: t.title,
+          description: t.description,
+          modules: await Promise.all(
+            t.modules.map(async (m) => ({
+              id: m.id,
+              title: m.title,
+              summary: m.summary,
+              lessons: await Promise.all(
+                m.lessons.map(async (l) => ({
+                  id: l.id,
+                  title: l.title,
+                  summary: l.summary,
+                  durationSeconds: l.durationSeconds,
+                  /** Which languages this lesson actually exists in. */
+                  availableLanguages: l.assets.map((a) => a.language as Language),
+                  playbackUrl: await pickAsset(l.assets, language),
+                })),
+              ),
+            })),
+          ),
         })),
-      })),
+      ),
     }
   })
 
@@ -112,7 +120,7 @@ export async function curriculumRoutes(app: FastifyInstance) {
       track: { id: lesson.module.track.id, title: lesson.module.track.title },
       module: { id: lesson.module.id, title: lesson.module.title },
       availableLanguages: lesson.assets.map((a) => a.language as Language),
-      playbackUrl: pickAsset(lesson.assets, language),
+      playbackUrl: await pickAsset(lesson.assets, language),
       assignments: lesson.assignments.map((a) => {
         const sub = byAssignment.get(a.id)
         return {
@@ -161,7 +169,9 @@ export async function curriculumRoutes(app: FastifyInstance) {
           id: submission.id,
           status: submission.status,
           submittedAt: submission.submittedAt,
-          playbackUrl: submission.media?.playbackUrl ?? null,
+          // Not media.playbackUrl: signing providers leave that column null and
+          // mint per read. Same rule as pickAsset() above.
+          playbackUrl: submission.media ? await playableUrl(submission.media) : null,
           hasFeedback: Boolean(submission.feedback),
         }
       }
@@ -249,17 +259,29 @@ export async function curriculumRoutes(app: FastifyInstance) {
  * Resolve a lesson to one playable URL for the requested language, falling back
  * through hi -> en rather than returning nothing. A student who picked Hindi
  * and hits an English-only lesson should still be able to watch it.
+ *
+ * Async because providers that sign mint the URL per read — see playableUrl().
+ * Without a media row this is synchronous work, but the signature must not
+ * depend on which language happened to be found.
  */
-function pickAsset(
-  assets: Array<{ language: string; media: { playbackUrl: string | null; externalId: string | null } | null }>,
+async function pickAsset(
+  assets: Array<{
+    language: string
+    media: {
+      provider: string
+      status: string
+      playbackUrl: string | null
+      externalId: string | null
+      deletedAt: Date | null
+      retentionUntil: Date | null
+    } | null
+  }>,
   language?: Language,
-): string | null {
+): Promise<string | null> {
   const order = [language, 'hi', 'en'].filter(Boolean) as string[]
   for (const lang of order) {
     const hit = assets.find((a) => a.language === lang && a.media)
-    if (hit?.media) {
-      return hit.media.playbackUrl ?? (hit.media.externalId ? mediaProvider.playbackUrlFor(hit.media.externalId) : null)
-    }
+    if (hit?.media) return playableUrl(hit.media)
   }
   return null
 }

@@ -38,7 +38,7 @@ const envSchema = z.object({
   DATABASE_URL: z.string().min(1),
   JWT_SECRET: z.string().min(16, 'JWT_SECRET must be at least 16 chars'),
   JWT_EXPIRES_IN: z.string().default('7d'),
-  MEDIA_PROVIDER: z.enum(['local', 'supabase', 'bunny', 'cloudflare']).default('local'),
+  MEDIA_PROVIDER: z.enum(['local', 'supabase', 'r2', 'cloudflare']).default('local'),
   STORAGE_DIR: z.string().default('../../storage'),
   CORS_ORIGIN: z.string().default('http://localhost:5173'),
 
@@ -46,6 +46,18 @@ const envSchema = z.object({
   SUPABASE_URL: z.string().url().optional(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
   SUPABASE_STORAGE_BUCKET: z.string().default('submissions'),
+
+  /**
+   * Cloudflare R2 — required when MEDIA_PROVIDER=r2 or cloudflare. The bucket is
+   * private; playback goes through SigV4-signed URLs minted per request.
+   * R2_PUBLIC_BASE_URL is only for an optional custom domain and does not make
+   * student video public unless that domain is actually configured.
+   */
+  R2_ACCOUNT_ID: z.string().min(1).optional(),
+  R2_ACCESS_KEY_ID: z.string().min(1).optional(),
+  R2_SECRET_ACCESS_KEY: z.string().min(1).optional(),
+  R2_BUCKET: z.string().default('skillflex-media'),
+  R2_PUBLIC_BASE_URL: z.string().url().optional(),
 
   /** Shared secret for the retention cron. Vercel Cron sends it as a Bearer token. */
   CRON_SECRET: z.string().min(16).optional(),
@@ -146,13 +158,17 @@ export function loadEnv(extra?: Record<string, unknown>): z.infer<typeof envSche
     .superRefine((value, ctx) => {
       // Fail at boot rather than on the first upload, which is where a missing
       // key would otherwise surface — long after the deploy looked healthy.
-      if (value.MEDIA_PROVIDER !== 'supabase') return
-      for (const key of ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY'] as const) {
-        if (!value[key]) {
+      const required: Record<string, readonly string[]> = {
+        supabase: ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY'],
+        r2: ['R2_ACCOUNT_ID', 'R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY'],
+        cloudflare: ['R2_ACCOUNT_ID', 'R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY'],
+      }
+      for (const key of required[value.MEDIA_PROVIDER] ?? []) {
+        if (!(value as Record<string, unknown>)[key]) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: [key],
-            message: `${key} is required when MEDIA_PROVIDER=supabase`,
+            message: `${key} is required when MEDIA_PROVIDER=${value.MEDIA_PROVIDER}`,
           })
         }
       }

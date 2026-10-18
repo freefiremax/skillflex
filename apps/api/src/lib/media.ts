@@ -4,6 +4,7 @@ import { pipeline } from 'node:stream/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { Readable } from 'node:stream'
+import { AwsClient } from 'aws4fetch'
 import { HttpError } from './auth.js'
 import { env } from './env.js'
 
@@ -57,9 +58,22 @@ export interface MediaProvider {
    * local provider and its 14 existing call sites are unaffected.
    */
   signedPlaybackUrl?(externalId: string, expiresInSeconds: number): Promise<string>
+  /**
+   * The longest playback link this provider will ever mint, in seconds.
+   *
+   * This is why playableUrl() exists. SigV4 presigning stops at 7 days; a
+   * submission is retained for 365. A URL minted at upload time and stored in
+   * MediaAsset.playbackUrl is therefore dead a week later, with no error to say
+   * so. Providers that sign must leave playbackUrl null and let callers mint on
+   * read. Absent means "no ceiling worth respecting" (local dev).
+   */
+  maxPlaybackTtlSeconds?: number
   /** Hard-delete the bytes. Used by the retention job. */
   deleteObject?(externalId: string): Promise<void>
 }
+
+/** A signature is never allowed to outlive the row's retention deadline. */
+const MAX_SIGNED_URL_SECONDS = 365 * 24 * 60 * 60
 
 class LocalMediaProvider implements MediaProvider {
   readonly name = 'local'
@@ -101,6 +115,16 @@ class LocalMediaProvider implements MediaProvider {
 function extensionFor(contentType: string | undefined): string {
   if (contentType?.includes('mp4')) return 'mp4'
   return 'webm'
+}
+
+/**
+ * Object key inside the bucket, also persisted as externalId. Keyed by media
+ * kind rather than a fixed prefix — lesson video and student video want
+ * separating, and the key must not change after the ticket is handed out.
+ */
+function objectPathFor(mediaId: string, kind: string, contentType?: string): string {
+  const folder = kind.replace(/[^a-z0-9_-]/gi, '') || 'other'
+  return `${folder}/${mediaId}.${extensionFor(contentType)}`
 }
 
 /**
@@ -216,16 +240,6 @@ class SupabaseMediaProvider implements MediaProvider {
     return (await res.json()) as T
   }
 
-  /**
-   * Object key inside the bucket, also persisted as externalId. Keyed by media
-   * kind rather than a fixed prefix — the bucket is already named for the
-   * product, and lesson video and student video want separating.
-   */
-  private objectPath(mediaId: string, kind: string, contentType?: string): string {
-    const folder = kind.replace(/[^a-z0-9_-]/gi, '') || 'other'
-    return `${folder}/${mediaId}.${extensionFor(contentType)}`
-  }
-
   async createUploadTicket({
     mediaId,
     kind,
@@ -235,7 +249,7 @@ class SupabaseMediaProvider implements MediaProvider {
     kind: string
     contentType?: string
   }): Promise<UploadTicket> {
-    const objectPath = this.objectPath(mediaId, kind, contentType)
+    const objectPath = objectPathFor(mediaId, kind, contentType)
 
     let url: string
     try {
@@ -310,23 +324,183 @@ class SupabaseMediaProvider implements MediaProvider {
 }
 
 /**
- * Stub for the real thing. Bunny Stream is the cheapest credible option for an
- * India-first, cost-sensitive rollout; Cloudflare Stream is the alternative.
- * Implementing this class is the only change needed to go production — no
- * route or schema changes, which is the point of the interface.
+ * Cloudflare R2, private bucket, reached over its S3-compatible API.
+ *
+ * Deliberately the presigning path rather than the Worker `MEDIA_BUCKET`
+ * binding. The binding only exists inside Workers, so the same code would have
+ * to be rewritten when the API runs on Vercel; worse, a bound upload has to be
+ * piped through the Worker itself, which buffers the whole video under a 128 MB
+ * memory cap and has no way to hand out a presigned GET. SigV4 gives us the
+ * browser-to-bucket path and time-limited playback on both hosts.
+ *
+ * aws4fetch over @aws-sdk/client-s3: it is ~2 KB against a multi-megabyte SDK,
+ * signs through crypto.subtle (so it runs unmodified in Workers and Node 20),
+ * and all we need is three signed requests.
  */
-class BunnyMediaProvider implements MediaProvider {
-  readonly name = 'bunny'
+class R2MediaProvider implements MediaProvider {
+  readonly name = 'r2'
 
-  async createUploadTicket(): Promise<UploadTicket> {
-    throw new Error(
-      'BunnyMediaProvider is not implemented yet. Set MEDIA_PROVIDER=local for development.',
-    )
+  /** SigV4 presigning is capped at seven days by the protocol; R2 enforces it. */
+  readonly maxPlaybackTtlSeconds = 7 * 24 * 60 * 60
+
+  private readonly client: AwsClient
+  private readonly endpoint: string
+  private readonly bucket: string
+  private readonly publicBase?: string
+
+  constructor() {
+    // env.ts already guarantees these are present when MEDIA_PROVIDER=r2.
+    this.bucket = env.R2_BUCKET
+    this.endpoint = `https://${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`
+    this.publicBase = env.R2_PUBLIC_BASE_URL?.replace(/\/+$/, '') || undefined
+    this.client = new AwsClient({
+      accessKeyId: env.R2_ACCESS_KEY_ID!,
+      secretAccessKey: env.R2_SECRET_ACCESS_KEY!,
+      service: 's3',
+      region: 'auto',
+    })
   }
 
+  /**
+   * Sign a URL into the query string, with the expiry set *before* signing.
+   *
+   * aws4fetch only supplies X-Amz-Expires when the caller left it out (it
+   * defaults to 86400) and never clamps, so a longer value would be signed and
+   * then rejected by R2 with a 403 — a signature that is structurally correct
+   * and still fails. Each caller passes a value it has already bounded.
+   */
+  private async presign(
+    method: 'GET' | 'PUT',
+    key: string,
+    expiresInSeconds: number,
+  ): Promise<string> {
+    const url = new URL(`${this.endpoint}/${this.bucket}/${key}`)
+    url.searchParams.set('X-Amz-Expires', String(Math.max(1, Math.floor(expiresInSeconds))))
+    const { url: signed } = await this.client.sign(new Request(url, { method }), {
+      aws: { signQuery: true },
+    })
+    return signed.toString()
+  }
+
+  async createUploadTicket({
+    mediaId,
+    kind,
+    contentType,
+  }: {
+    mediaId: string
+    kind: string
+    contentType?: string
+  }): Promise<UploadTicket> {
+    const key = objectPathFor(mediaId, kind, contentType)
+    return {
+      uploadUrl: await this.presign('PUT', key, R2_UPLOAD_TTL_SECONDS),
+      externalId: key,
+      // content-type is explicitly excluded from the SigV4 signature by
+      // aws4fetch, so the browser can send whatever MediaRecorder produced.
+      headers: { 'content-type': contentType ?? 'video/webm' },
+    }
+  }
+
+  async signedPlaybackUrl(externalId: string, expiresInSeconds: number): Promise<string> {
+    const ttl = Math.min(expiresInSeconds, this.maxPlaybackTtlSeconds)
+    return this.presign('GET', externalId, ttl)
+  }
+
+  /**
+   * A real DELETE, not the retention job's opinion of one. R2 answers 204 for a
+   * key that already does not exist, which is the outcome the caller wanted.
+   */
+  async deleteObject(externalId: string): Promise<void> {
+    let res: Response
+    try {
+      res = await this.client.fetch(`${this.endpoint}/${this.bucket}/${externalId}`, {
+        method: 'DELETE',
+      })
+    } catch (cause) {
+      throw new HttpError(
+        502,
+        `Video storage is unreachable at R2 — ${(cause as Error).message}`,
+        'STORAGE_UNREACHABLE',
+      )
+    }
+    if (!res.ok && res.status !== 404) {
+      throw new HttpError(
+        502,
+        `R2 refused to delete ${externalId} (${res.status}). Check that R2_ACCESS_KEY_ID has Object Read & Write on "${this.bucket}".`,
+        'STORAGE_MISCONFIGURED',
+      )
+    }
+  }
+
+  /**
+   * Only meaningful if a public custom domain was configured for the bucket.
+   * Unsigned endpoint URLs are not fetchable, exactly as the Supabase class
+   * documents — callers that need a working URL go through playableUrl().
+   */
   playbackUrlFor(externalId: string): string {
-    return `https://vz-example.b-cdn.net/${externalId}/playlist.m3u8`
+    return this.publicBase
+      ? `${this.publicBase}/${externalId}`
+      : `${this.endpoint}/${this.bucket}/${externalId}`
   }
+}
+
+/** How long a browser has to finish a direct PUT. Generous for a 2-minute clip. */
+const R2_UPLOAD_TTL_SECONDS = 60 * 60
+
+/**
+ * A fresh, playable URL for a MediaAsset row — or null when the bytes are gone.
+ *
+ * Every playback surface should call this instead of reading `playbackUrl`
+ * directly. For providers that sign, the stored column is null by design: a URL
+ * minted at upload time expires long before the row does (7 days against 365),
+ * and a dead link in a <video> shows no error to anyone.
+ *
+ * `provider` is the row's own column, not the active env value, so an asset
+ * written by a previous deploy still resolves through the provider that holds
+ * it. Signing only happens when that provider is the one this process can talk
+ * to — otherwise the stored URL is the only honest answer.
+ */
+export async function playableUrl(media: {
+  provider: string
+  externalId: string | null
+  playbackUrl: string | null
+  status?: string
+  deletedAt?: Date | null
+  retentionUntil?: Date | null
+}): Promise<string | null> {
+  if (media.deletedAt || media.status === 'deleted' || media.status === 'failed') return null
+  if (!media.externalId) return media.playbackUrl
+
+  const canSign = media.provider === mediaProvider.name && Boolean(mediaProvider.signedPlaybackUrl)
+  if (!canSign) {
+    return media.playbackUrl ?? mediaProvider.playbackUrlFor(media.externalId)
+  }
+
+  return mediaProvider.signedPlaybackUrl!(media.externalId, playbackTtlSeconds(media.retentionUntil))
+}
+
+/**
+ * Mint a link that dies no later than the video it points at.
+ *
+ * Clamped by the provider's own ceiling first (7 days for R2), then by what is
+ * left of the retention window. Never below a minute: an asset past its
+ * retention deadline but not yet swept would otherwise arrive pre-expired.
+ */
+function playbackTtlSeconds(retentionUntil: Date | null | undefined): number {
+  const ceiling = mediaProvider.maxPlaybackTtlSeconds ?? MAX_SIGNED_URL_SECONDS
+  if (!retentionUntil) return ceiling
+  const remaining = Math.floor((retentionUntil.getTime() - Date.now()) / 1000)
+  return Math.min(ceiling, Math.max(60, remaining))
+}
+
+/**
+ * What to store in MediaAsset.playbackUrl for an asset that just went ready.
+ *
+ * Signing providers get null — see playableUrl(). Local dev keeps its relative
+ * path so the file is served by @fastify/static with no signing step at all.
+ */
+export function persistablePlaybackUrl(url: string | null): string | null {
+  return mediaProvider.signedPlaybackUrl ? null : url
 }
 
 function build(): MediaProvider {
@@ -335,9 +509,9 @@ function build(): MediaProvider {
       return new LocalMediaProvider()
     case 'supabase':
       return new SupabaseMediaProvider()
-    case 'bunny':
+    case 'r2':
     case 'cloudflare':
-      return new BunnyMediaProvider()
+      return new R2MediaProvider()
     default:
       return new LocalMediaProvider()
   }

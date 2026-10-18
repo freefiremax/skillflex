@@ -82,14 +82,14 @@ export async function liveRoutes(app: FastifyInstance) {
     const byClass = new Map(mine.map((r) => [r.classId, r]))
 
     const q = filter.q?.toLowerCase()
+    const visible = classes
+      .filter((c) => effectiveLiveClassStatus(c) !== 'ended')
+      .filter((c) => {
+        if (!q) return true
+        return `${c.title} ${c.description ?? ''} ${c.mentor.user.name}`.toLowerCase().includes(q)
+      })
     return {
-      classes: classes
-        .filter((c) => effectiveLiveClassStatus(c) !== 'ended')
-        .filter((c) => {
-          if (!q) return true
-          return `${c.title} ${c.description ?? ''} ${c.mentor.user.name}`.toLowerCase().includes(q)
-        })
-        .map((c) => serializeClass(c, byClass.get(c.id))),
+      classes: await Promise.all(visible.map((c) => serializeClass(c, byClass.get(c.id)))),
     }
   })
 
@@ -121,7 +121,7 @@ export async function liveRoutes(app: FastifyInstance) {
     const next = registrations.find(
       (r) => effectiveLiveClassStatus(r.liveClass) !== 'ended',
     )
-    return { class: next ? serializeClass(next.liveClass, next) : null }
+    return { class: next ? await serializeClass(next.liveClass, next) : null }
   })
 
   /** Everything the student registered for, upcoming and past. */
@@ -134,7 +134,9 @@ export async function liveRoutes(app: FastifyInstance) {
       orderBy: { liveClass: { scheduledAt: 'desc' } },
     })
 
-    const serialized = registrations.map((r) => serializeClass(r.liveClass, r))
+    const serialized = await Promise.all(
+      registrations.map((r) => serializeClass(r.liveClass, r)),
+    )
     return {
       upcoming: serialized.filter((c) => c.status === 'scheduled' || c.status === 'live').reverse(),
       past: serialized.filter((c) => c.status === 'ended' || c.status === 'cancelled'),
@@ -172,13 +174,12 @@ export async function liveRoutes(app: FastifyInstance) {
     const byClass = new Map(mine.map((r) => [r.classId, r]))
 
     const q = filter.q?.toLowerCase()
+    const visible = classes.filter((c) => {
+      if (!q) return true
+      return `${c.title} ${c.description ?? ''} ${c.mentor.user.name}`.toLowerCase().includes(q)
+    })
     return {
-      recordings: classes
-        .filter((c) => {
-          if (!q) return true
-          return `${c.title} ${c.description ?? ''} ${c.mentor.user.name}`.toLowerCase().includes(q)
-        })
-        .map((c) => serializeClass(c, byClass.get(c.id))),
+      recordings: await Promise.all(visible.map((c) => serializeClass(c, byClass.get(c.id)))),
     }
   })
 
@@ -199,7 +200,7 @@ export async function liveRoutes(app: FastifyInstance) {
       where: { classId_studentId: { classId: id, studentId } },
     })
 
-    return { class: serializeClass(cls, registration) }
+    return { class: await serializeClass(cls, registration) }
   })
 
   app.post('/classes/:id/register', { preHandler: requireRole('student') }, async (request) => {
