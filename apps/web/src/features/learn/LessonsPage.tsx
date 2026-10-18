@@ -125,7 +125,7 @@ export default function LessonsPage() {
 
               {track.modules.map((module, mIdx) => (
                 <div key={module.id} style={{ marginBottom: '24px' }}>
-                  <div className="master-lesson-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}>
+                  <div className="master-lesson-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))' }}>
                     {module.lessons.map((lesson, lIdx) => {
                       const art = REAL_LESSON_ARTS[(mIdx + lIdx) % REAL_LESSON_ARTS.length]
                       const durationMin = lesson.durationSeconds

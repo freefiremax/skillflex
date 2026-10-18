@@ -89,28 +89,28 @@ export default function BrowseMentorsPage() {
         <article className="master-card" style={{ padding: '32px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
             <span style={{ fontSize: '28px' }}>🔄</span>
-            <div style={{ fontSize: '13px', fontWeight: 800, color: '#2563eb', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+            <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--brand)', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
               Confirm Free Mentor Switch
             </div>
           </div>
 
-          <h1 style={{ fontSize: '26px', fontWeight: 850, margin: '0 0 12px', color: '#0f172a' }}>
+          <h1 style={{ fontSize: '26px', fontWeight: 850, margin: '0 0 12px', color: 'var(--master-ink)' }}>
             Switch to {selected.name}?
           </h1>
 
           <div
             style={{
-              background: '#f0fdf4',
-              border: '1.5px solid #86efac',
+              background: 'var(--master-green-soft)',
+              border: '1.5px solid var(--line-strong)',
               borderRadius: '16px',
               padding: '16px 18px',
               marginBottom: '24px',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, color: '#166534', fontSize: '14px', marginBottom: '4px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, color: 'var(--master-green-dark)', fontSize: '14px', marginBottom: '4px' }}>
               <span>✓ Guaranteed 100% Free Switch</span>
             </div>
-            <p style={{ margin: 0, fontSize: '13px', color: '#1e293b', lineHeight: 1.45 }}>
+            <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-dim)', lineHeight: 1.45 }}>
               You pay nothing. You keep every piece of past feedback, task video, and scorecard. {selected.name} will be briefed on your history so you never have to start over.
             </p>
           </div>
@@ -122,7 +122,7 @@ export default function BrowseMentorsPage() {
             }}
           >
             <div style={{ marginBottom: '18px' }}>
-              <label style={{ display: 'block', fontWeight: 800, color: '#334155', marginBottom: '8px', fontSize: '14px' }}>
+              <label style={{ display: 'block', fontWeight: 800, color: 'var(--text-dim)', marginBottom: '8px', fontSize: '14px' }}>
                 Why are you switching? *
               </label>
               <select
@@ -136,13 +136,13 @@ export default function BrowseMentorsPage() {
                   </option>
                 ))}
               </select>
-              <div style={{ fontSize: '12px', color: '#64748b', marginTop: '6px' }}>
+              <div style={{ fontSize: '12px', color: 'var(--master-muted)', marginTop: '6px' }}>
                 🔒 This is completely private and never visible to your previous mentor. It helps our matching algorithm.
               </div>
             </div>
 
             <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', fontWeight: 800, color: '#334155', marginBottom: '8px', fontSize: '14px' }}>
+              <label style={{ display: 'block', fontWeight: 800, color: 'var(--text-dim)', marginBottom: '8px', fontSize: '14px' }}>
                 Any specific goals or notes for {selected.name.split(' ')[0]}? (Optional)
               </label>
               <textarea
@@ -160,7 +160,7 @@ export default function BrowseMentorsPage() {
               <button
                 type="submit"
                 className="master-btn-primary"
-                style={{ flex: 1, justifyContent: 'center', padding: '16px', fontSize: '16px', background: 'linear-gradient(135deg, #2563eb, #1d4ed8)' }}
+                style={{ flex: 1, justifyContent: 'center', padding: '16px', fontSize: '16px', background: 'linear-gradient(135deg, var(--cta-from), var(--cta-to))' }}
                 disabled={doSwitch.isPending}
               >
                 {doSwitch.isPending ? 'Switching mentor…' : `Confirm switch to ${selected.name}`}
@@ -189,7 +189,7 @@ export default function BrowseMentorsPage() {
       {/* Top Banner */}
       <section
         style={{
-          background: 'linear-gradient(135deg, #1e3a8a 0%, #1e40af 60%, #2563eb 100%)',
+          background: 'linear-gradient(135deg, var(--brand-deep) 0%, var(--brand) 60%, var(--accent) 100%)',
           borderRadius: '24px',
           padding: '32px 28px',
           color: '#ffffff',
@@ -245,10 +245,10 @@ export default function BrowseMentorsPage() {
       {currentMentor && (
         <div
           style={{
-            background: '#eff6ff',
-            border: '1.5px solid #bfdbfe',
+            background: 'var(--master-green-soft)',
+            border: '1.5px solid var(--brand)',
             borderRadius: '16px',
-            padding: '16px 20px',
+            padding: '16px',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
@@ -260,14 +260,14 @@ export default function BrowseMentorsPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ fontSize: '20px' }}>👨‍🏫</span>
             <div>
-              <div style={{ fontSize: '12px', fontWeight: 800, color: '#1e40af', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+              <div style={{ fontSize: '12px', fontWeight: 800, color: 'var(--master-green-dark)', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
                 Your Current Mentor
               </div>
-              <strong style={{ fontSize: '16px', color: '#0f172a' }}>{currentMentor.name}</strong>
+              <strong style={{ fontSize: '16px', color: 'var(--master-ink)' }}>{currentMentor.name}</strong>
             </div>
           </div>
 
-          <div style={{ fontSize: '13px', color: '#475569', fontWeight: 600 }}>
+          <div style={{ fontSize: '13px', color: 'var(--text-dim)', fontWeight: 600 }}>
             Switching is free, instant, and preserves all your past submissions.
           </div>
         </div>
@@ -275,9 +275,9 @@ export default function BrowseMentorsPage() {
 
       {/* Filter Card */}
       <article className="master-card" style={{ marginBottom: '24px', padding: '20px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: '14px' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, color: '#475569', marginBottom: '6px' }}>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, color: 'var(--text-dim)', marginBottom: '6px' }}>
               Search by Mentor Name or Specialty
             </label>
             <input
@@ -289,7 +289,7 @@ export default function BrowseMentorsPage() {
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, color: '#475569', marginBottom: '6px' }}>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, color: 'var(--text-dim)', marginBottom: '6px' }}>
               Language Spoken
             </label>
             <select
@@ -305,7 +305,7 @@ export default function BrowseMentorsPage() {
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, color: '#475569', marginBottom: '6px' }}>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, color: 'var(--text-dim)', marginBottom: '6px' }}>
               Skill Specialization
             </label>
             <select
@@ -344,7 +344,7 @@ export default function BrowseMentorsPage() {
           </button>
         </article>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: '20px' }}>
           {list.map((m) => {
             const isCurrent = m.id === currentId
             return (
@@ -356,8 +356,8 @@ export default function BrowseMentorsPage() {
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
-                  border: isCurrent ? '2px solid #3b82f6' : '1px solid #e2e8f0',
-                  boxShadow: isCurrent ? '0 8px 24px rgba(59, 130, 246, 0.16)' : 'var(--master-shadow-soft)',
+                  border: isCurrent ? '2px solid var(--brand)' : '1px solid var(--master-line)',
+                  boxShadow: isCurrent ? '0 8px 24px rgba(112, 68, 214, 0.16)' : 'var(--master-shadow-soft)',
                 }}
               >
                 <div>
@@ -368,8 +368,8 @@ export default function BrowseMentorsPage() {
                           width: '50px',
                           height: '50px',
                           borderRadius: '16px',
-                          background: isCurrent ? 'linear-gradient(135deg, #dbeafe, #bfdbfe)' : 'linear-gradient(135deg, #f1f5f9, #e2e8f0)',
-                          color: isCurrent ? '#1e40af' : '#334155',
+                          background: isCurrent ? 'linear-gradient(135deg, var(--brand-tint), var(--master-green-soft))' : 'linear-gradient(135deg, var(--surface), var(--surface-2))',
+                          color: isCurrent ? 'var(--master-green-dark)' : 'var(--master-ink)',
                           display: 'grid',
                           placeItems: 'center',
                           fontSize: '20px',
@@ -379,8 +379,8 @@ export default function BrowseMentorsPage() {
                         {m.name.charAt(0)}
                       </div>
                       <div>
-                        <h3 style={{ fontSize: '18px', fontWeight: 850, margin: '0 0 2px', color: '#0f172a' }}>{m.name}</h3>
-                        {m.headline && <div style={{ fontSize: '13px', color: '#64748b' }}>{m.headline}</div>}
+                        <h3 style={{ fontSize: '18px', fontWeight: 850, margin: '0 0 2px', color: 'var(--master-ink)' }}>{m.name}</h3>
+                        {m.headline && <div style={{ fontSize: '13px', color: 'var(--master-muted)' }}>{m.headline}</div>}
                       </div>
                     </div>
 
@@ -394,13 +394,13 @@ export default function BrowseMentorsPage() {
                   </div>
 
                   {m.bio && (
-                    <p style={{ fontSize: '14px', color: '#475569', lineHeight: 1.45, marginBottom: '14px' }}>
+                    <p style={{ fontSize: '14px', color: 'var(--text-dim)', lineHeight: 1.45, marginBottom: '14px' }}>
                       {m.bio}
                     </p>
                   )}
 
                   <div style={{ marginBottom: '10px' }}>
-                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.6px', display: 'block', marginBottom: '4px' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.6px', display: 'block', marginBottom: '4px' }}>
                       Languages
                     </span>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
@@ -411,7 +411,7 @@ export default function BrowseMentorsPage() {
                   </div>
 
                   <div style={{ marginBottom: '18px' }}>
-                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.6px', display: 'block', marginBottom: '4px' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.6px', display: 'block', marginBottom: '4px' }}>
                       Specialties
                     </span>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
@@ -427,7 +427,7 @@ export default function BrowseMentorsPage() {
                     <button
                       type="button"
                       className="master-chip"
-                      style={{ width: '100%', justifyContent: 'center', fontWeight: 800, background: '#f8fafc', color: '#64748b' }}
+                      style={{ width: '100%', justifyContent: 'center', fontWeight: 800, background: 'var(--master-green-soft)', color: 'var(--master-muted)' }}
                       disabled
                     >
                       ✓ Your Active Mentor
@@ -440,9 +440,9 @@ export default function BrowseMentorsPage() {
                         width: '100%',
                         justifyContent: 'center',
                         fontSize: '15px',
-                        background: m.hasCapacity
-                          ? 'linear-gradient(135deg, #2563eb, #1d4ed8)'
-                          : '#94a3b8',
+                                            background: m.hasCapacity
+                          ? 'linear-gradient(135deg, var(--cta-from), var(--cta-to))'
+                          : 'var(--master-muted)',
                       }}
                       disabled={!m.hasCapacity}
                       onClick={() => setSelected(m)}

@@ -183,7 +183,7 @@ export default function LiveClassPage() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))',
             gap: '14px',
             marginBottom: '24px',
           }}
@@ -321,7 +321,7 @@ export default function LiveClassPage() {
               <div
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(70px, 1fr))',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(min(70px, 100%), 1fr))',
                   gap: '10px',
                   marginTop: '14px',
                 }}
@@ -358,7 +358,7 @@ export default function LiveClassPage() {
               {/* Quick Actions */}
               <div style={{ marginTop: '18px' }}>
                 <h3 style={{ fontSize: '17px', margin: '0 0 10px', fontWeight: 800 }}>Quick actions</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '8px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(130px, 100%), 1fr))', gap: '8px' }}>
                   <button type="button" className="master-chip">▤ Show slides</button>
                   <button type="button" className="master-chip">▣ Take questions</button>
                   <button type="button" className="master-chip">▥ Add poll</button>

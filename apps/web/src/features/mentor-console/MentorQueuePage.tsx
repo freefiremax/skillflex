@@ -151,7 +151,7 @@ export default function MentorQueuePage() {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))',
           gap: '18px',
           marginBottom: '28px',
         }}
@@ -385,7 +385,7 @@ export default function MentorQueuePage() {
             onChange={(e) => setSearch(e.target.value)}
             placeholder="⌕  Search students..."
             aria-label="Search students"
-            style={{ width: '280px', padding: '12px 16px' }}
+            style={{ width: 'min(280px, 100%)', padding: '12px 16px' }}
           />
         </div>
 

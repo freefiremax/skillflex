@@ -106,11 +106,13 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { language, setLanguage, t } = useTranslation()
   const { pathname } = useLocation()
 
+  /* Five entries, the hard cap. The loop (lessons → record → feedback → plan)
+     plus Home fills it; Mentor is reached from the box on Home and the
+     icon in the header, which is a better door than a sixth cramped tab. */
   const studentNav: IosTabItem[] = [
     { to: '/', label: t('nav.home'), icon: (active) => <HomeIcon active={active} /> },
     { to: '/lessons', label: t('nav.lessons'), icon: (active) => <LessonsIcon active={active} /> },
     { to: '/live', label: t('nav.live'), icon: (active) => <LiveIcon active={active} /> },
-    { to: '/mentor', label: t('nav.mentor'), icon: (active) => <MentorIcon active={active} /> },
     { to: '/feedback', label: t('nav.feedback'), icon: (active) => <FeedbackIcon active={active} /> },
     { to: '/plan', label: t('nav.plan'), icon: (active) => <PlanIcon active={active} /> },
   ]
@@ -145,17 +147,12 @@ export function AppShell({ children }: { children: ReactNode }) {
             {me?.role === 'student' && (
               <NavLink
                 to="/mentor"
-                className="pill"
-                style={{
-                  background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.12), rgba(59, 130, 246, 0.08))',
-                  borderColor: 'rgba(37, 99, 235, 0.3)',
-                  color: '#1d4ed8',
-                  fontWeight: 700,
-                }}
-                title="Your assigned mentor & free switching"
+                className="pill mentor-pill"
+                title="Your mentor and free switching"
+                aria-label="Mentor"
               >
-                <span>👨‍🏫</span>
-                <span className="pill-name">Mentor (Switch)</span>
+                <span aria-hidden>👨‍🏫</span>
+                <span className="pill-name mentor-pill-name">Mentor</span>
               </NavLink>
             )}
             <select

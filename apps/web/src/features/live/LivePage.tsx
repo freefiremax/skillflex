@@ -51,9 +51,13 @@ export default function LivePage() {
           alignItems: 'flex-start',
           gap: '16px',
           marginBottom: '28px',
+          /* The scribble is `flexShrink: 0`, so on a narrow phone it stayed on
+             the row and pushed the heading off the right edge. Wrapping drops
+             it below the copy instead of fighting for the same line. */
+          flexWrap: 'wrap',
         }}
       >
-        <div>
+        <div style={{ flex: '1 1 260px', minWidth: 0 }}>
           <div
             style={{
               color: 'var(--master-green)',

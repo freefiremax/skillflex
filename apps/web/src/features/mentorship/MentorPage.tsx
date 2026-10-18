@@ -50,14 +50,14 @@ export default function MentorPage() {
       {/* Hero Header */}
       <section
         style={{
-          background: 'linear-gradient(135deg, #1e3a8a 0%, #1e40af 60%, #2563eb 100%)',
+          background: 'linear-gradient(135deg, var(--brand-deep) 0%, var(--brand) 60%, var(--accent) 100%)',
           borderRadius: '24px',
           padding: '32px 28px',
           color: '#ffffff',
           marginBottom: '24px',
           position: 'relative',
           overflow: 'hidden',
-          boxShadow: '0 12px 32px rgba(30, 58, 138, 0.25)',
+          boxShadow: '0 12px 32px rgba(82, 39, 179, 0.25)',
         }}
       >
         <div style={{ position: 'relative', zIndex: 1, maxWidth: '620px' }}>
@@ -105,23 +105,23 @@ export default function MentorPage() {
       {/* CORE HIGHLIGHT: The "Switch Mentor" Priority Hero Box */}
       <section
         style={{
-          background: 'linear-gradient(135deg, #f0fdf4 0%, #eff6ff 100%)',
-          border: '2px solid #3b82f6',
+          background: 'linear-gradient(135deg, var(--master-green-soft) 0%, var(--surface) 100%)',
+          border: '2px solid var(--brand)',
           borderRadius: '20px',
           padding: '24px',
           marginBottom: '28px',
-          boxShadow: '0 8px 24px rgba(59, 130, 246, 0.12)',
+          boxShadow: '0 8px 24px rgba(112, 68, 214, 0.12)',
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '14px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
               <span style={{ fontSize: '22px' }}>🔄</span>
-              <h2 style={{ fontSize: '20px', fontWeight: 850, margin: 0, color: '#0f172a' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 850, margin: 0, color: 'var(--master-ink)' }}>
                 Not the right fit? Switch your mentor anytime
               </h2>
             </div>
-            <p style={{ fontSize: '15px', color: '#475569', margin: 0, maxWidth: '600px' }}>
+            <p style={{ fontSize: '15px', color: 'var(--master-muted)', margin: 0, maxWidth: '600px' }}>
               Different learners need different teaching styles, languages, and feedback approaches. Finding the mentor you click with is essential.
             </p>
           </div>
@@ -133,8 +133,8 @@ export default function MentorPage() {
               padding: '14px 24px',
               fontSize: '16px',
               fontWeight: 850,
-              background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
-              boxShadow: '0 6px 20px rgba(37, 99, 235, 0.3)',
+              background: 'linear-gradient(135deg, var(--cta-from), var(--cta-to))',
+              boxShadow: '0 6px 20px rgba(112, 68, 214, 0.3)',
               flexShrink: 0,
             }}
             onClick={() => navigate('/mentor/browse')}
@@ -144,36 +144,36 @@ export default function MentorPage() {
         </div>
 
         {/* 4 Trust Guarantee Pillars */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(59, 130, 246, 0.2)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(180px, 100%), 1fr))', gap: '12px', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--line-strong)' }}>
           <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
             <span style={{ fontSize: '20px' }}>🪙</span>
             <div>
-              <strong style={{ display: 'block', fontSize: '13px', color: '#0f172a' }}>Always ₹0 Free</strong>
-              <span style={{ fontSize: '12px', color: '#64748b' }}>Unlimited switching included with your account.</span>
+              <strong style={{ display: 'block', fontSize: '13px', color: 'var(--master-ink)' }}>Always ₹0 Free</strong>
+              <span style={{ fontSize: '12px', color: 'var(--master-muted)' }}>Unlimited switching included with your account.</span>
             </div>
           </div>
 
           <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
             <span style={{ fontSize: '20px' }}>📁</span>
             <div>
-              <strong style={{ display: 'block', fontSize: '13px', color: '#0f172a' }}>100% History Kept</strong>
-              <span style={{ fontSize: '12px', color: '#64748b' }}>All your videos, rubrics & notes stay forever.</span>
+              <strong style={{ display: 'block', fontSize: '13px', color: 'var(--master-ink)' }}>100% History Kept</strong>
+              <span style={{ fontSize: '12px', color: 'var(--master-muted)' }}>All your videos, rubrics & notes stay forever.</span>
             </div>
           </div>
 
           <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
             <span style={{ fontSize: '20px' }}>🤝</span>
             <div>
-              <strong style={{ display: 'block', fontSize: '13px', color: '#0f172a' }}>Zero Disruption</strong>
-              <span style={{ fontSize: '12px', color: '#64748b' }}>Your new mentor sees past notes so you don't start over.</span>
+              <strong style={{ display: 'block', fontSize: '13px', color: 'var(--master-ink)' }}>Zero Disruption</strong>
+              <span style={{ fontSize: '12px', color: 'var(--master-muted)' }}>Your new mentor sees past notes so you don't start over.</span>
             </div>
           </div>
 
           <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
             <span style={{ fontSize: '20px' }}>🏛️</span>
             <div>
-              <strong style={{ display: 'block', fontSize: '13px', color: '#0f172a' }}>Cross-College Pool</strong>
-              <span style={{ fontSize: '12px', color: '#64748b' }}>Access mentors from across institutions nationwide.</span>
+              <strong style={{ display: 'block', fontSize: '13px', color: 'var(--master-ink)' }}>Cross-College Pool</strong>
+              <span style={{ fontSize: '12px', color: 'var(--master-muted)' }}>Access mentors from across institutions nationwide.</span>
             </div>
           </div>
         </div>
@@ -201,13 +201,13 @@ export default function MentorPage() {
                   width: '64px',
                   height: '64px',
                   borderRadius: '20px',
-                  background: 'linear-gradient(135deg, #dbeafe, #bfdbfe)',
-                  color: '#1e40af',
+                  background: 'linear-gradient(135deg, var(--brand-tint), var(--master-green-soft))',
+                  color: 'var(--master-green-dark)',
                   display: 'grid',
                   placeItems: 'center',
                   fontSize: '26px',
                   fontWeight: 850,
-                  boxShadow: '0 4px 12px rgba(30, 64, 175, 0.12)',
+                  boxShadow: '0 4px 12px rgba(112, 68, 214, 0.12)',
                 }}
               >
                 {m.name.charAt(0)}
@@ -216,15 +216,15 @@ export default function MentorPage() {
                 <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--master-green)', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '2px' }}>
                   ● Active Assigned Mentor
                 </div>
-                <h2 style={{ fontSize: '24px', fontWeight: 850, margin: '0 0 4px', color: '#0f172a' }}>{m.name}</h2>
-                {m.headline && <div style={{ fontSize: '15px', color: '#64748b', fontWeight: 500 }}>{m.headline}</div>}
+                <h2 style={{ fontSize: '24px', fontWeight: 850, margin: '0 0 4px', color: 'var(--master-ink)' }}>{m.name}</h2>
+                {m.headline && <div style={{ fontSize: '15px', color: 'var(--master-muted)', fontWeight: 500 }}>{m.headline}</div>}
               </div>
             </div>
 
             <button
               type="button"
               className="master-chip"
-              style={{ padding: '10px 18px', fontWeight: 800, color: '#2563eb', borderColor: '#93c5fd' }}
+              style={{ padding: '10px 18px', fontWeight: 800, color: 'var(--brand-deep)', borderColor: 'var(--line-strong)' }}
               onClick={() => navigate('/mentor/browse')}
             >
               🔄 Change Mentor
@@ -232,7 +232,7 @@ export default function MentorPage() {
           </div>
 
           {mine.data?.since && (
-            <div style={{ fontSize: '13px', color: '#64748b', marginBottom: '16px' }}>
+            <div style={{ fontSize: '13px', color: 'var(--master-muted)', marginBottom: '16px' }}>
               Guiding your communication journey since <strong>{formatDate(mine.data.since)}</strong>
             </div>
           )}
@@ -241,10 +241,10 @@ export default function MentorPage() {
             <div
               style={{
                 fontSize: '15px',
-                color: '#334155',
+                color: 'var(--master-ink)',
                 lineHeight: 1.55,
-                background: '#f8fafc',
-                border: '1px solid #e2e8f0',
+                background: 'var(--master-green-soft)',
+                border: '1px solid var(--master-line)',
                 borderRadius: '14px',
                 padding: '16px',
                 marginBottom: '18px',
@@ -256,7 +256,7 @@ export default function MentorPage() {
 
           <div style={{ display: 'grid', gap: '12px' }}>
             <div>
-              <span style={{ fontSize: '12px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.8px', display: 'block', marginBottom: '6px' }}>
+              <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--master-muted)', textTransform: 'uppercase', letterSpacing: '0.8px', display: 'block', marginBottom: '6px' }}>
                 Languages Spoken
               </span>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
@@ -267,7 +267,7 @@ export default function MentorPage() {
             </div>
 
             <div>
-              <span style={{ fontSize: '12px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.8px', display: 'block', marginBottom: '6px' }}>
+              <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--master-muted)', textTransform: 'uppercase', letterSpacing: '0.8px', display: 'block', marginBottom: '6px' }}>
                 Specialist Skill Areas
               </span>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
@@ -283,7 +283,7 @@ export default function MentorPage() {
       {/* Switch History Timeline */}
       {switches.length > 0 && (
         <section className="master-card" style={{ padding: '24px' }}>
-          <h3 style={{ fontSize: '18px', fontWeight: 850, margin: '0 0 16px', color: '#0f172a' }}>
+          <h3 style={{ fontSize: '18px', fontWeight: 850, margin: '0 0 16px', color: 'var(--master-ink)' }}>
             Your Mentorship Switch History
           </h3>
           <div style={{ display: 'grid', gap: '12px' }}>
@@ -294,8 +294,8 @@ export default function MentorPage() {
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  background: '#f8fafc',
-                  border: '1px solid #e2e8f0',
+                  background: 'var(--master-green-soft)',
+                  border: '1px solid var(--master-line)',
                   borderRadius: '12px',
                   padding: '12px 16px',
                   fontSize: '14px',
@@ -304,13 +304,13 @@ export default function MentorPage() {
                 <div>
                   <div>
                     {e.from ? `${e.from} → ` : ''}
-                    <strong style={{ color: '#1d4ed8' }}>{e.to}</strong>
+                    <strong style={{ color: 'var(--brand-deep)' }}>{e.to}</strong>
                   </div>
-                  <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--master-muted)', marginTop: '2px' }}>
                     Reason: <em>{e.reasonLabel}</em>
                   </div>
                 </div>
-                <span style={{ fontSize: '12px', color: '#94a3b8' }}>{formatDate(e.at)}</span>
+                <span style={{ fontSize: '12px', color: 'var(--text-faint)' }}>{formatDate(e.at)}</span>
               </div>
             ))}
           </div>
