@@ -17,6 +17,6 @@ NODE_ENV = "production"
 # R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY. Only the non-sensitive bucket name
 # belongs in this file.
 MEDIA_PROVIDER = "r2"
-R2_BUCKET = "skillflex-media"
+R2_BUCKET = "pymedia"
 SUPPORT_LLM_BASE_URL = "https://api.groq.com/openai/v1"
 SUPPORT_LLM_MODEL = "llama-3.3-70b-versatile"

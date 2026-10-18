@@ -56,7 +56,7 @@ const envSchema = z.object({
   R2_ACCOUNT_ID: z.string().min(1).optional(),
   R2_ACCESS_KEY_ID: z.string().min(1).optional(),
   R2_SECRET_ACCESS_KEY: z.string().min(1).optional(),
-  R2_BUCKET: z.string().default('skillflex-media'),
+  R2_BUCKET: z.string().default('pymedia'),
   R2_PUBLIC_BASE_URL: z.string().url().optional(),
 
   /** Shared secret for the retention cron. Vercel Cron sends it as a Bearer token. */
