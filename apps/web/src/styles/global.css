@@ -1174,6 +1174,25 @@ a.pill:hover {
   white-space: nowrap;
 }
 
+/* The mentor door sits in the header for students. It is a fourth control, which
+   is what the row was measured for — but a long word is not. Below 600px it
+   keeps only its glyph, and it takes the lavender tokens rather than the
+   one-off blues it shipped with, which read as a foreign element next to the
+   account pill. */
+.mentor-pill {
+  background: var(--brand-soft);
+  border-color: var(--line-strong);
+  color: var(--brand-deep);
+  font-weight: 700;
+}
+.mentor-pill:hover {
+  background: var(--brand-tint);
+}
+@media (max-width: 600px) {
+  .mentor-pill { padding-left: 0.7rem; padding-right: 0.7rem; }
+  .mentor-pill-name { display: none; }
+}
+
 /* Language is the one *product* control in the header — not a buried setting —
    so it gets a real thumb target instead of the 36px it used to inherit from an
    inline style. Keeping the type at 0.82rem holds the control narrow enough to

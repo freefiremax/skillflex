@@ -628,7 +628,7 @@ export default function MentorLivePage() {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '24px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: '14px', marginBottom: '24px' }}>
                 <div>
                   <label style={{ display: 'block', fontWeight: 750, color: '#4a596e', marginBottom: '8px' }}>
                     Language *
@@ -812,7 +812,7 @@ export default function MentorLivePage() {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: '14px', marginBottom: '16px' }}>
               <div>
                 <label style={{ display: 'block', fontWeight: 750, color: '#4a596e', marginBottom: '8px' }}>
                   Language *
@@ -847,7 +847,7 @@ export default function MentorLivePage() {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: '14px', marginBottom: '16px' }}>
               <div>
                 <label style={{ display: 'block', fontWeight: 750, color: '#4a596e', marginBottom: '8px' }}>
                   Date & time *
@@ -994,7 +994,7 @@ export default function MentorLivePage() {
       </section>
 
       {/* Action Buttons Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px', marginBottom: '28px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(260px, 100%), 1fr))', gap: '16px', marginBottom: '28px' }}>
         <button
           type="button"
           className="master-btn-primary"
