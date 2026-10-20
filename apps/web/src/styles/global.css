@@ -2577,6 +2577,115 @@ a.pill:hover {
   }
 }
 
+/* Lessons page ------------------------------------------------------------ */
+/* Keep the lesson hero and cards inside the padded shell on narrow phones.
+   These rules intentionally use minmax(0, ...) so long translated titles can
+   wrap instead of creating a page-wide horizontal scrollbar. */
+.lessons-hero-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+  min-height: 380px;
+  background: rgba(255, 255, 255, 0.7);
+}
+.lessons-hero-text {
+  min-width: 0;
+  padding: 44px 38px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.lessons-hero-title {
+  min-width: 0;
+  font-size: clamp(36px, 4.5vw, 62px);
+  letter-spacing: -3px;
+  line-height: 1;
+  margin: 0 0 16px;
+  font-weight: 850;
+  overflow-wrap: anywhere;
+}
+.lessons-hero-subtitle {
+  font-size: 18px;
+  color: #59687b;
+  margin: 0 0 16px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.lessons-hero-quote {
+  font-family: "Segoe Print", "Comic Sans MS", cursive;
+  font-size: 18px;
+  line-height: 1.35;
+  color: #26364b;
+  margin-top: 12px;
+}
+.lessons-hero-media {
+  min-width: 0;
+  min-height: 280px;
+  background: linear-gradient(145deg, #ede5fc, #ded0f7);
+  overflow: hidden;
+}
+.lessons-card-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 150px) minmax(0, 1fr);
+  gap: 18px;
+  align-items: center;
+  padding: 16px;
+  margin: 0;
+  min-width: 0;
+}
+.lessons-card-grid > * { min-width: 0; }
+.lessons-card-thumb {
+  height: 140px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #ede5fc;
+}
+
+@media (max-width: 700px) {
+  .lessons-hero-card {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+  .lessons-hero-text { padding: 24px 20px 22px; }
+  .lessons-hero-title {
+    font-size: clamp(34px, 12vw, 48px);
+    letter-spacing: -2px;
+  }
+  .lessons-hero-media {
+    min-height: 190px;
+    height: 48vw;
+    max-height: 250px;
+  }
+  .lessons-card-grid {
+    grid-template-columns: minmax(0, 104px) minmax(0, 1fr);
+    gap: 14px;
+  }
+  .lessons-card-thumb { height: 104px; }
+
+  /* The keep-learning banner has an inline desktop grid declaration. The
+     important override is limited to this page and this breakpoint so it
+     cannot affect other master cards. */
+  .master-container > section:last-child {
+    grid-template-columns: 1fr !important;
+  }
+  .master-container > section:last-child > div:last-child {
+    min-height: 180px !important;
+    height: 48vw;
+    max-height: 230px;
+  }
+}
+
+@media (max-width: 420px) {
+  .lessons-card-grid {
+    grid-template-columns: 1fr;
+  }
+  .lessons-card-thumb {
+    height: 150px;
+  }
+}
+
 /* Master 2-column layout */
 .master-2col {
   display: grid;
@@ -3680,5 +3789,4 @@ a.pill:hover {
   font-size: 40px;
   margin: 0 auto 18px;
 }
-
 
